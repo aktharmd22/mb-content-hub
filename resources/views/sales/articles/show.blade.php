@@ -76,9 +76,23 @@
                     <p class="text-sm text-gray-900 dark:text-gray-100 mt-0.5">{{ $article->techLead?->name ?? '—' }}</p>
                 </div>
                 @if($article->published_url)
-                    <div class="col-span-2 sm:col-span-1">
+                    <div class="col-span-2 sm:col-span-1" x-data="{ copied: false }">
                         <p class="text-xs text-gray-500 dark:text-gray-400">Published URL</p>
-                        <a href="{{ $article->published_url }}" target="_blank" rel="noopener" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline truncate block">{{ $article->published_url }}</a>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <a href="{{ $article->published_url }}" target="_blank" rel="noopener"
+                               class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline truncate flex-1 min-w-0">{{ $article->published_url }}</a>
+                            <button type="button"
+                                    @click="navigator.clipboard.writeText(@js($article->published_url)).then(() => { copied = true; setTimeout(() => copied = false, 1500); })"
+                                    :title="copied ? 'Copied!' : 'Copy URL'"
+                                    class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors">
+                                <svg x-show="!copied" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                <svg x-show="copied" x-cloak class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 @endif
             </div>
