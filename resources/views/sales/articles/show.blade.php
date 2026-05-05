@@ -6,7 +6,8 @@
         $stage = $article->current_stage;
         $isOwn = $article->sales_rep_id === auth()->id();
         $canActOnClientApproval = $isOwn && $stage === \App\Enums\ArticleStage::CLIENT_APPROVAL;
-        $canPublish = $isOwn && $stage === \App\Enums\ArticleStage::APPROVED;
+        // Sales' job ends at "Verified". Tech team handles publishing the article on the website.
+        $verifiedAwaitingPublish = $isOwn && $stage === \App\Enums\ArticleStage::APPROVED;
     @endphp
 
     <div class="p-6 max-w-5xl">
@@ -91,9 +92,9 @@
         </div>
 
         <!-- Stage actions -->
-        @if($canActOnClientApproval || $canPublish)
+        @if($canActOnClientApproval || $verifiedAwaitingPublish)
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6"
-                 x-data="{ revisionOpen: false, publishOpen: false }">
+                 x-data="{ revisionOpen: false }">
                 <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Actions</h3>
 
                 @if($canActOnClientApproval)
@@ -226,16 +227,16 @@
                     </script>
                 @endif
 
-                @if($canPublish)
-                    <button type="button" @click="publishOpen = !publishOpen" class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
-                        Mark published
-                    </button>
-                    <form x-show="publishOpen" x-cloak method="POST" action="{{ route('sales.articles.publish', $article) }}" class="mt-3 flex items-center gap-2">
-                        @csrf
-                        <input type="url" name="published_url" required placeholder="https://malayznbeat.com/..."
-                               class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
-                        <button type="submit" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">Publish</button>
-                    </form>
+                @if($verifiedAwaitingPublish)
+                    <div class="flex items-start gap-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                        <svg class="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-emerald-200">Verified — your part is done.</p>
+                            <p class="text-xs text-emerald-300/80 mt-0.5">The tech team will publish this article on the website and update its status here.</p>
+                        </div>
+                    </div>
                 @endif
             </div>
         @endif

@@ -144,17 +144,6 @@ class ArticleController extends Controller
         );
     }
 
-    public function publish(Request $request, Article $article, ArticleWorkflowService $workflow): RedirectResponse
-    {
-        $this->ensureOwnArticle($article);
-
-        $url = $request->validate([
-            'published_url' => ['required', 'url', 'max:500'],
-        ])['published_url'];
-
-        return $this->runTransition(fn () => $workflow->markPublished($article, $url), 'Marked as published.', $article);
-    }
-
     public function comment(Request $request, Article $article): RedirectResponse
     {
         $this->authorize('comment', $article);
