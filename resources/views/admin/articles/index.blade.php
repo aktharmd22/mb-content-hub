@@ -72,15 +72,20 @@
             </div>
         </form>
 
-        <!-- Bulk actions form -->
-        <form method="POST" action="{{ route('admin.articles.bulk') }}"
-              x-data="{ selected: [], action: '' }"
-              @submit="if (selected.length === 0) { event.preventDefault(); window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Select at least one article.' } })); }">
-            @csrf
+        <!-- Bulk + table share Alpine state, but live in SEPARATE forms so per-row delete forms aren't illegally nested. -->
+        <div x-data="{ selected: [], action: '' }">
 
-            <!-- Bulk action bar -->
-            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 mb-2 flex flex-wrap items-center gap-2"
-                 x-show="selected.length > 0" x-cloak>
+            <!-- Bulk action bar (its own form) -->
+            <form method="POST" action="{{ route('admin.articles.bulk') }}"
+                  x-show="selected.length > 0" x-cloak
+                  @submit="if (selected.length === 0) { event.preventDefault(); window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Select at least one article.' } })); }"
+                  class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 mb-2 flex flex-wrap items-center gap-2">
+                @csrf
+                <!-- Selected article IDs are mirrored from Alpine state into hidden inputs -->
+                <template x-for="id in selected" :key="id">
+                    <input type="hidden" name="article_ids[]" :value="id"/>
+                </template>
+
                 <span class="text-sm text-gray-700 dark:text-gray-300" x-text="selected.length + ' selected'"></span>
 
                 <select name="action" x-model="action" required
@@ -109,8 +114,9 @@
                     Apply
                 </button>
                 <button type="button" @click="selected = []; action = ''" class="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Cancel</button>
-            </div>
+            </form>
 
+            <!-- Table (not inside any form, so per-row delete forms are valid) -->
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                 @if($articles->count() === 0)
                     <div class="p-12 text-center">
@@ -140,7 +146,7 @@
                             @foreach($articles as $a)
                                 <tr class="group hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                                     <td class="px-3 py-3">
-                                        <input type="checkbox" name="article_ids[]" value="{{ $a->id }}"
+                                        <input type="checkbox" value="{{ $a->id }}"
                                                x-model="selected" class="row-check w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"/>
                                     </td>
                                     <td class="px-3 py-3 text-xs font-mono text-gray-500 dark:text-gray-400">{{ $a->article_code }}</td>
@@ -175,6 +181,6 @@
                     </div>
                 @endif
             </div>
-        </form>
+        </div>
     </div>
 </x-app-layout>
