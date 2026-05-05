@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/articles/{article}/start',              [\App\Http\Controllers\Writer\ArticleController::class, 'start'])->name('articles.start');
         Route::post('/articles/{article}/submit-review',      [\App\Http\Controllers\Writer\ArticleController::class, 'submitForReview'])->name('articles.submit-review');
         Route::post('/articles/{article}/publish',            [\App\Http\Controllers\Writer\ArticleController::class, 'publish'])->name('articles.publish');
+        Route::post('/articles/{article}/update-url',         [\App\Http\Controllers\Writer\ArticleController::class, 'updatePublishedUrl'])->name('articles.update-url');
         Route::post('/articles/{article}/comment',            [\App\Http\Controllers\Writer\ArticleController::class, 'comment'])->name('articles.comment');
         Route::get('/articles/{article}/download',            [\App\Http\Controllers\Writer\ArticleController::class, 'downloadCurrent'])->name('articles.download');
         Route::get('/articles/{article}/download-source',     [\App\Http\Controllers\Writer\ArticleController::class, 'downloadSource'])->name('articles.download-source');

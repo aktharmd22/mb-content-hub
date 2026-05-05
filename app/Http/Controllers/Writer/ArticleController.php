@@ -69,6 +69,25 @@ class ArticleController extends Controller
             ->with('success', "Picked up {$article->article_code}.");
     }
 
+    public function updatePublishedUrl(Request $request, Article $article): RedirectResponse
+    {
+        $this->ensureAssignedToMe($article);
+
+        if ($article->current_stage !== ArticleStage::PUBLISHED) {
+            return back()->with('error', 'URL can only be edited on published articles.');
+        }
+
+        $url = $request->validate([
+            'published_url' => ['required', 'url', 'max:500'],
+        ])['published_url'];
+
+        $article->update(['published_url' => $url]);
+
+        return redirect()
+            ->route('writer.articles.show', $article)
+            ->with('success', 'Published URL updated.');
+    }
+
     public function publish(Request $request, Article $article, ArticleWorkflowService $workflow): RedirectResponse
     {
         $url = $request->validate([

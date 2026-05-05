@@ -255,15 +255,30 @@
                     </div>
                 @elseif($isPassive)
                     @if($stage === \App\Enums\ArticleStage::PUBLISHED)
-                        <div class="flex items-start gap-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                        <div x-data="{ editUrlOpen: false }" class="flex items-start gap-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                             <svg class="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            <div class="min-w-0">
-                                <p class="text-sm font-medium text-emerald-200">Published</p>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-medium text-emerald-200">Published</p>
+                                    <button x-show="!editUrlOpen" type="button" @click="editUrlOpen = true"
+                                            class="text-xs text-emerald-300/80 hover:text-emerald-200 transition-colors">Edit URL</button>
+                                </div>
                                 @if($article->published_url)
-                                    <a href="{{ $article->published_url }}" target="_blank" rel="noopener" class="text-xs text-emerald-300 hover:underline truncate block">{{ $article->published_url }}</a>
+                                    <a x-show="!editUrlOpen" href="{{ $article->published_url }}" target="_blank" rel="noopener"
+                                       class="text-xs text-emerald-300 hover:underline truncate block">{{ $article->published_url }}</a>
                                 @endif
+                                <form x-show="editUrlOpen" x-cloak method="POST" action="{{ route('writer.articles.update-url', $article) }}"
+                                      class="mt-1 flex items-center gap-2">
+                                    @csrf
+                                    <input type="url" name="published_url" required
+                                           value="{{ $article->published_url }}"
+                                           placeholder="https://malayznbeat.com/articles/..."
+                                           class="flex-1 px-3 py-1.5 text-xs bg-ink-800 border border-ink-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"/>
+                                    <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-md">Save</button>
+                                    <button type="button" @click="editUrlOpen = false" class="text-xs text-gray-400 hover:text-gray-200">Cancel</button>
+                                </form>
                             </div>
                         </div>
                     @elseif($stage === \App\Enums\ArticleStage::CLIENT_APPROVAL)
