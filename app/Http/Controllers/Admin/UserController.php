@@ -74,6 +74,16 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'You cannot delete your own account.');
         }
 
+        // Free username/email so admins can recreate accounts with the same identifiers.
+        // The unique indexes on `users` would otherwise block reuse since soft-deleted
+        // rows keep their original values.
+        $stamp = now()->format('YmdHis');
+        $user->update([
+            'username'  => "deleted_{$stamp}_{$user->username}",
+            'email'     => $user->email ? "deleted_{$stamp}_{$user->email}" : null,
+            'is_active' => false,
+        ]);
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted.');
