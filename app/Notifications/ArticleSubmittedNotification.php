@@ -23,7 +23,10 @@ class ArticleSubmittedNotification extends Notification
             ->line("**{$this->article->article_code}** — {$this->article->title}")
             ->line("Submitted by: {$this->article->salesRep?->name}")
             ->line("Client: {$this->article->client?->name}")
-            ->action('Assign writer', route('admin.assignments.index'));
+            ->action(
+                $notifiable->isAdmin() ? 'Assign writer' : 'View inbox',
+                $this->urlFor($notifiable),
+            );
     }
 
     public function toArray(object $notifiable): array
@@ -34,7 +37,15 @@ class ArticleSubmittedNotification extends Notification
             'article_code'   => $this->article->article_code,
             'article_title'  => $this->article->title,
             'message'        => "{$this->article->article_code} submitted, needs assignment",
-            'url'            => route('admin.assignments.index'),
+            'url'            => $this->urlFor($notifiable),
         ];
+    }
+
+    /** Admins land on the assignment queue; tech team lands on the inbox they can pick up from. */
+    private function urlFor(object $notifiable): string
+    {
+        return $notifiable->isAdmin()
+            ? route('admin.assignments.index')
+            : route('writer.articles.index', ['stage' => 'inbox']);
     }
 }
