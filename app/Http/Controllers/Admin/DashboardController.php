@@ -45,7 +45,10 @@ class DashboardController extends Controller
             'pct'   => max(2, round(((int) ($stageCounts[$stage->value] ?? 0)) / $maxCount * 100)),
         ]);
 
+        // Filter out orphaned history rows whose article was deleted (soft- or hard-delete).
+        // Without this, the dashboard 500s on `$h->article->article_code` for missing relations.
         $recentActivity = StageHistory::with(['article:id,article_code,title', 'changedBy:id,name,role'])
+            ->whereHas('article')
             ->orderByDesc('changed_at')
             ->limit(15)
             ->get();
