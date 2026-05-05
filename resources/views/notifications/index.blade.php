@@ -49,19 +49,15 @@
                 <ul class="divide-y divide-gray-100 dark:divide-gray-800">
                     @foreach($notifications as $n)
                         @php $isUnread = $n->read_at === null; @endphp
-                        <li data-notification-row data-id="{{ $n->id }}">
-                            <form method="POST" action="{{ route('notifications.read', $n->id) }}" class="flex">
-                                @csrf
-                                <button type="submit" class="flex-1 flex items-start gap-3 px-5 py-3 text-left hover:bg-ink-800/50 transition-colors">
-                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 {{ $isUnread ? 'bg-indigo-500' : 'bg-transparent' }}"></span>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm {{ $isUnread ? 'text-gray-100 font-medium' : 'text-gray-400' }}">
-                                            {{ $n->data['message'] ?? 'Notification' }}
-                                        </p>
-                                        <p class="text-xs text-gray-500 mt-0.5">{{ $n->created_at->diffForHumans() }}</p>
-                                    </div>
-                                </button>
-                            </form>
+                        <li data-notification-row data-id="{{ $n->id }}"
+                            class="flex items-start gap-3 px-5 py-3">
+                            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 {{ $isUnread ? 'bg-indigo-500' : 'bg-transparent' }}"></span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm {{ $isUnread ? 'text-gray-100 font-medium' : 'text-gray-400' }}">
+                                    {{ $n->data['message'] ?? 'Notification' }}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $n->created_at->diffForHumans() }}</p>
+                            </div>
                         </li>
                     @endforeach
                 </ul>
