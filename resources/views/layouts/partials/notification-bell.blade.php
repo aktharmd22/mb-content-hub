@@ -49,8 +49,8 @@
 
             <template x-for="n in items" :key="n.id">
                 <a
-                    :href="n.url"
-                    @click.prevent="markRead(n)"
+                    :href="n.url && n.url !== '#' ? n.url : '{{ route('notifications.index') }}'"
+                    @click="markReadAsync(n)"
                     class="block px-4 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors"
                 >
                     <p class="text-sm text-gray-900 dark:text-gray-100" x-text="n.message"></p>
@@ -150,17 +150,19 @@
                 } catch (e) { /* ignore */ }
             },
 
-            async markRead(n) {
+            // Mark as read in the background; don't block the link's normal navigation.
+            // `keepalive` lets the request finish even after the browser starts loading the new page.
+            markReadAsync(n) {
                 try {
-                    await fetch(`/notifications/${n.id}/read`, {
+                    fetch(`/notifications/${n.id}/read`, {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         },
-                    });
+                        keepalive: true,
+                    }).catch(() => {});
                 } catch (e) { /* ignore */ }
-                window.location = n.url;
             },
         }
     }
