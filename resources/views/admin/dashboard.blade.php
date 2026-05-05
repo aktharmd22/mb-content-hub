@@ -97,7 +97,7 @@
                         <li class="px-5 py-3 flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs font-mono text-gray-500">{{ $h->article->article_code }}</span>
+                                    <span class="text-xs font-mono text-gray-500">{{ $h->article?->article_code ?? '—' }}</span>
                                     @if($h->from_stage)
                                         <x-stage-badge :stage="$h->from_stage" />
                                         <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,7 +107,7 @@
                                     <x-stage-badge :stage="$h->to_stage" />
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1 truncate">
-                                    {{ $h->article->title }} — {{ $h->changedBy?->name ?? 'system' }}
+                                    {{ $h->article?->title ?? '(deleted)' }} — {{ $h->changedBy?->name ?? 'system' }}
                                 </p>
                             </div>
                             <span class="text-xs text-gray-500 whitespace-nowrap">{{ $h->changed_at->diffForHumans(syntax: \Carbon\CarbonInterface::DIFF_ABSOLUTE, short: true) }}</span>
