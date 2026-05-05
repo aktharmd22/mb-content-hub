@@ -87,6 +87,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/articles/create',                [\App\Http\Controllers\Sales\ArticleController::class, 'create'])->name('articles.create');
         Route::post('/articles',                      [\App\Http\Controllers\Sales\ArticleController::class, 'store'])->name('articles.store');
         Route::get('/articles/{article}',             [\App\Http\Controllers\Sales\ArticleController::class, 'show'])->name('articles.show');
+        Route::delete('/articles/{article}',          [\App\Http\Controllers\Sales\ArticleController::class, 'destroy'])->name('articles.destroy');
         Route::get('/articles/{article}/download',    [\App\Http\Controllers\Sales\ArticleController::class, 'download'])->name('articles.download');
         Route::get('/articles/{article}/assets/{asset}', [\App\Http\Controllers\Sales\ArticleController::class, 'downloadAsset'])->name('articles.assets.download');
         Route::post('/articles/{article}/comment',    [\App\Http\Controllers\Sales\ArticleController::class, 'comment'])->name('articles.comment');

@@ -189,6 +189,27 @@ class ArticleController extends Controller
             ->deleteFileAfterSend();
     }
 
+    public function destroy(Article $article, GoogleDriveService $drive): RedirectResponse
+    {
+        $this->ensureOwnArticle($article);
+
+        // Best-effort: also remove the Drive file. Log failures but don't block deletion.
+        if ($article->current_drive_file_id) {
+            try {
+                $drive->deleteFile($article->current_drive_file_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $code = $article->article_code;
+        $article->delete();
+
+        return redirect()
+            ->route('sales.articles.index')
+            ->with('success', "Article {$code} deleted.");
+    }
+
     public function downloadAsset(Article $article, ArticleAsset $asset, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
     {
         $this->authorize('view', $article);
