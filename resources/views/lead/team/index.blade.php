@@ -38,7 +38,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-sm text-gray-900 dark:text-gray-100">{{ $row['writer']->name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">@{{ $row['writer']->username }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ '@' . $row['writer']->username }}</p>
                                         </div>
                                     </div>
                                 </td>
