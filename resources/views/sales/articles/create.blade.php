@@ -147,7 +147,7 @@
                     <div class="flex items-center justify-between mb-2">
                         <div>
                             <h3 class="text-sm font-medium text-gray-100">Assets <span class="text-gray-500 font-normal text-xs">(optional)</span></h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Attach images, video, audio, PDFs or links. Saved to a subfolder for this article.</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Attach images, video, audio, PDFs or links. Saved to a subfolder named after the article title.</p>
                         </div>
                         <button type="button" @click="addAsset()"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
@@ -156,16 +156,6 @@
                             </svg>
                             Add asset
                         </button>
-                    </div>
-
-                    <div x-show="assets.length > 0" x-cloak class="mb-3">
-                        <label for="assets_folder_name" class="block text-xs font-medium text-gray-300 mb-1.5">
-                            Asset folder name <span class="text-gray-500 font-normal">(creates a subfolder inside Collect &amp; Store)</span>
-                        </label>
-                        <input id="assets_folder_name" name="assets_folder_name" type="text" maxlength="255"
-                               value="{{ old('assets_folder_name') }}"
-                               class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                               placeholder="defaults to article title"/>
                     </div>
 
                     <div class="space-y-2">
@@ -177,11 +167,7 @@
                                     <option value="link">Link</option>
                                 </select>
 
-                                <div class="flex-1 min-w-0 space-y-2">
-                                    <input type="text" :name="`assets[${i}][name]`" x-model="asset.name"
-                                           placeholder="Label (optional)"
-                                           class="w-full px-3 py-1.5 text-xs bg-ink-800 border border-ink-600 rounded text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
-
+                                <div class="flex-1 min-w-0">
                                     <template x-if="asset.type === 'file'">
                                         <input type="file" :name="`assets[${i}][file]`"
                                                accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.webm,.mp3,.wav,.m4a,.pdf,.doc,.docx,.txt"
