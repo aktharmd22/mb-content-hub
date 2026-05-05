@@ -27,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/dropdown',              [NotificationController::class, 'dropdown'])->name('notifications.dropdown');
     Route::post('/notifications/{id}/read',            [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all',             [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{id}',               [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications',                    [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
     Route::get('/notifications/preferences',           [NotificationController::class, 'preferences'])->name('notifications.preferences');
     Route::post('/notifications/preferences',          [NotificationController::class, 'savePreferences'])->name('notifications.preferences.save');
 

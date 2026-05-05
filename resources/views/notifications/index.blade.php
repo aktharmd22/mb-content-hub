@@ -34,6 +34,15 @@
                         </button>
                     </form>
                 @endif
+                @if($notifications->total() > 0)
+                    <form method="POST" action="{{ route('notifications.destroy-all') }}"
+                          onsubmit="return confirm('Clear all notifications? This cannot be undone.');">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-3 py-1.5 text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 rounded-lg transition-colors">
+                            Clear all
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
 
@@ -50,7 +59,7 @@
                     @foreach($notifications as $n)
                         @php $isUnread = $n->read_at === null; @endphp
                         <li data-notification-row data-id="{{ $n->id }}"
-                            class="flex items-start gap-3 px-5 py-3">
+                            class="group flex items-start gap-3 px-5 py-3">
                             <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 {{ $isUnread ? 'bg-indigo-500' : 'bg-transparent' }}"></span>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm {{ $isUnread ? 'text-gray-100 font-medium' : 'text-gray-400' }}">
@@ -58,6 +67,16 @@
                                 </p>
                                 <p class="text-xs text-gray-500 mt-0.5">{{ $n->created_at->diffForHumans() }}</p>
                             </div>
+                            <form method="POST" action="{{ route('notifications.destroy', $n->id) }}"
+                                  class="flex-shrink-0">
+                                @csrf @method('DELETE')
+                                <button type="submit" title="Delete notification"
+                                        class="opacity-0 group-hover:opacity-100 inline-flex items-center justify-center w-7 h-7 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </form>
                         </li>
                     @endforeach
                 </ul>
