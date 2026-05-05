@@ -2,7 +2,7 @@
     <x-slot name="header">Submit new article</x-slot>
     <x-slot name="title">Submit article</x-slot>
 
-    <div class="p-6 max-w-2xl"
+    <div class="p-6 max-w-4xl"
          x-data="articleForm()">
 
         <a href="{{ route('sales.articles.index') }}" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-3 transition-colors">
@@ -158,35 +158,91 @@
                         </button>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                         <template x-for="(asset, i) in assets" :key="asset.uid">
-                            <div class="flex items-start gap-2 p-3 bg-ink-800/40 border border-ink-700 rounded-lg">
-                                <select :name="`assets[${i}][type]`" x-model="asset.type"
-                                        class="px-2 py-1.5 text-xs bg-ink-800 border border-ink-600 rounded text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                                    <option value="file">File</option>
-                                    <option value="link">Link</option>
-                                </select>
-
-                                <div class="flex-1 min-w-0">
-                                    <template x-if="asset.type === 'file'">
-                                        <input type="file" :name="`assets[${i}][file]`"
-                                               accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.webm,.mp3,.wav,.m4a,.pdf,.doc,.docx,.txt"
-                                               class="block w-full text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-ink-700 file:text-gray-200 hover:file:bg-ink-600"/>
-                                    </template>
-
-                                    <template x-if="asset.type === 'link'">
-                                        <input type="url" :name="`assets[${i}][url]`" x-model="asset.url"
-                                               placeholder="https://..."
-                                               class="w-full px-3 py-1.5 text-xs bg-ink-800 border border-ink-600 rounded text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
-                                    </template>
+                            <div class="bg-ink-800/40 border border-ink-700 rounded-lg overflow-hidden">
+                                <!-- Type toggle bar -->
+                                <div class="flex items-center justify-between px-3 py-2 bg-ink-800/60 border-b border-ink-700">
+                                    <div class="inline-flex bg-ink-900 border border-ink-700 rounded-md p-0.5">
+                                        <button type="button"
+                                                @click="asset.type = 'file'; asset.url = ''"
+                                                :class="asset.type === 'file' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            File
+                                        </button>
+                                        <button type="button"
+                                                @click="asset.type = 'link'; clearAssetFile(i)"
+                                                :class="asset.type === 'link' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                            </svg>
+                                            Link
+                                        </button>
+                                    </div>
+                                    <button type="button" @click="removeAsset(i)" title="Remove"
+                                            class="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                        Remove
+                                    </button>
                                 </div>
 
-                                <button type="button" @click="removeAsset(i)" title="Remove"
-                                        class="p-1.5 text-gray-500 hover:text-rose-400 transition-colors">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
+                                <input type="hidden" :name="`assets[${i}][type]`" :value="asset.type"/>
+
+                                <!-- File body -->
+                                <template x-if="asset.type === 'file'">
+                                    <div class="p-3">
+                                        <label
+                                            :for="`asset-file-${asset.uid}`"
+                                            :class="asset.fileName
+                                                ? 'border-emerald-500/40 bg-emerald-500/5'
+                                                : 'border-ink-600 hover:border-indigo-500/60 hover:bg-indigo-500/5'"
+                                            class="flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors">
+                                            <div class="w-9 h-9 rounded-lg bg-ink-800 border border-ink-700 flex items-center justify-center flex-shrink-0">
+                                                <svg x-show="!asset.fileName" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                                </svg>
+                                                <svg x-show="asset.fileName" x-cloak class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p x-show="!asset.fileName" class="text-sm text-gray-300">
+                                                    <span class="font-medium text-indigo-400">Click to choose a file</span> or drag it here
+                                                </p>
+                                                <p x-show="asset.fileName" x-cloak class="text-sm text-gray-100 truncate" x-text="asset.fileName"></p>
+                                                <p x-show="!asset.fileName" class="text-xs text-gray-500 mt-0.5">Images, video, audio, PDF or document</p>
+                                                <p x-show="asset.fileName" x-cloak class="text-xs text-gray-500 mt-0.5" x-text="asset.fileSize"></p>
+                                            </div>
+                                            <span x-show="asset.fileName" x-cloak class="text-xs text-indigo-400 hover:underline">Replace</span>
+                                        </label>
+                                        <input type="file"
+                                               :id="`asset-file-${asset.uid}`"
+                                               :name="`assets[${i}][file]`"
+                                               @change="handleAssetFile(i, $event.target.files[0])"
+                                               accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.webm,.mp3,.wav,.m4a,.pdf,.doc,.docx,.txt"
+                                               class="hidden"/>
+                                    </div>
+                                </template>
+
+                                <!-- Link body -->
+                                <template x-if="asset.type === 'link'">
+                                    <div class="p-3">
+                                        <div class="relative">
+                                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                            </svg>
+                                            <input type="url" :name="`assets[${i}][url]`" x-model="asset.url"
+                                                   placeholder="https://..."
+                                                   class="w-full pl-9 pr-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </div>
@@ -270,13 +326,36 @@
                 clientError: '',
                 newClient: { name: '', company: '', contact_email: '', contact_phone: '' },
 
-                // Asset rows — each: { uid, type, name, url }
+                // Asset rows — each: { uid, type, url, fileName, fileSize }
                 assets: [],
                 addAsset() {
-                    this.assets.push({ uid: Date.now() + Math.random(), type: 'file', name: '', url: '' });
+                    this.assets.push({
+                        uid: Date.now() + Math.random(),
+                        type: 'file',
+                        url: '',
+                        fileName: '',
+                        fileSize: '',
+                    });
                 },
                 removeAsset(i) {
                     this.assets.splice(i, 1);
+                },
+                handleAssetFile(i, f) {
+                    if (! f) {
+                        this.assets[i].fileName = '';
+                        this.assets[i].fileSize = '';
+                        return;
+                    }
+                    if (f.size > 200 * 1024 * 1024) {
+                        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Asset file is larger than 200 MB.' } }));
+                        return;
+                    }
+                    this.assets[i].fileName = f.name;
+                    this.assets[i].fileSize = this.formatBytes(f.size);
+                },
+                clearAssetFile(i) {
+                    this.assets[i].fileName = '';
+                    this.assets[i].fileSize = '';
                 },
 
                 handleFile(f) {
