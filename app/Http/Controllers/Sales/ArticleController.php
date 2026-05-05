@@ -135,7 +135,13 @@ class ArticleController extends Controller
             'reason' => ['required', 'string', 'max:1000'],
         ])['reason'];
 
-        return $this->runTransition(fn () => $workflow->requestRevision($article, $reason), 'Sent for revision.', $article);
+        $assets = $this->buildAssetsPayload($request);
+
+        return $this->runTransition(
+            fn () => $workflow->requestRevision($article, $reason, assets: $assets),
+            'Sent for revision.',
+            $article,
+        );
     }
 
     public function publish(Request $request, Article $article, ArticleWorkflowService $workflow): RedirectResponse

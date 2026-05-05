@@ -98,11 +98,67 @@ class ArticleWorkflowService
                 ]);
             } catch (\Throwable $e) {
                 report($e);
-                // If folder creation fails, still record the assets metadata + links;
-                // file uploads will be skipped below.
             }
         }
 
+        $this->uploadAssetsToFolder($article, $assets, $assetsFolderId, $actor);
+    }
+
+    /**
+     * Save revision assets in a "Correction needed" subfolder of the article's
+     * existing assets folder so tech team sees them grouped with the original assets.
+     */
+    private function attachRevisionAssets(Article $article, array $assets, ?User $actor): void
+    {
+        $assets = array_values(array_filter($assets, fn ($a) => ! empty($a['type'])));
+        if (empty($assets)) {
+            return;
+        }
+
+        // Ensure the article's main assets folder exists; create it on the fly if it
+        // doesn't (sales may not have attached anything on first submission).
+        $articleAssetsFolderId = $article->assets_folder_drive_id;
+        if (! $articleAssetsFolderId) {
+            $assetsParent = Setting::get('drive_folder_assets');
+            if ($assetsParent) {
+                try {
+                    $articleAssetsFolderId = $this->drive->createFolder($article->title, $assetsParent);
+                    $article->update([
+                        'assets_folder_drive_id' => $articleAssetsFolderId,
+                        'assets_folder_name'     => $article->title,
+                    ]);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        }
+
+        // Drive subfolder for this revision round. Numbered so multiple rounds don't collide.
+        $previousRevisions = $article->history()
+            ->where('to_stage', ArticleStage::REVISIONS->value)
+            ->count();
+        $suffix      = $previousRevisions === 0 ? '' : ' (' . ($previousRevisions + 1) . ')';
+        $folderName  = 'Correction needed' . $suffix;
+
+        $correctionFolderId = null;
+        if ($articleAssetsFolderId) {
+            try {
+                $correctionFolderId = $this->drive->createFolder($folderName, $articleAssetsFolderId);
+            } catch (\Throwable $e) {
+                report($e);
+                $correctionFolderId = $articleAssetsFolderId;
+            }
+        }
+
+        $this->uploadAssetsToFolder($article, $assets, $correctionFolderId, $actor);
+    }
+
+    /**
+     * Upload each asset (file or link) into Drive and persist an ArticleAsset row.
+     * If $folderId is null, file assets are skipped but links are still recorded.
+     */
+    private function uploadAssetsToFolder(Article $article, array $assets, ?string $folderId, ?User $actor): void
+    {
         foreach ($assets as $asset) {
             if ($asset['type'] === 'link' && ! empty($asset['url'])) {
                 ArticleAsset::create([
@@ -112,13 +168,13 @@ class ArticleWorkflowService
                     'url'        => $asset['url'],
                     'created_by' => $actor?->id,
                 ]);
-            } elseif ($asset['type'] === 'file' && isset($asset['file']) && $assetsFolderId) {
+            } elseif ($asset['type'] === 'file' && isset($asset['file']) && $folderId) {
                 /** @var UploadedFile $f */
                 $f         = $asset['file'];
                 $assetName = trim((string) ($asset['name'] ?? '')) ?: $f->getClientOriginalName();
 
                 try {
-                    $driveFileId = $this->drive->uploadFile($f->getRealPath(), $assetsFolderId, $assetName);
+                    $driveFileId = $this->drive->uploadFile($f->getRealPath(), $folderId, $assetName);
                 } catch (\Throwable $e) {
                     report($e);
                     continue;
@@ -289,7 +345,7 @@ class ArticleWorkflowService
     /**
      * Send the article back for revisions. Allowed from internal_review (lead) or client_approval (sales).
      */
-    public function requestRevision(Article|int $article, string $reason, ?User $actor = null): Article
+    public function requestRevision(Article|int $article, string $reason, ?User $actor = null, array $assets = []): Article
     {
         $actor ??= Auth::user();
         $article = $this->resolveArticle($article);
@@ -308,10 +364,14 @@ class ArticleWorkflowService
             }
         }
 
-        return DB::transaction(function () use ($article, $reason, $actor) {
+        return DB::transaction(function () use ($article, $reason, $actor, $assets) {
             $from = $article->current_stage;
 
             $this->moveFile($article, ArticleStage::REVISIONS);
+
+            // Save any reference assets in a "Correction needed" subfolder before
+            // recording history, so the count-based naming reflects this revision round.
+            $this->attachRevisionAssets($article, $assets, $actor);
 
             $article->current_stage    = ArticleStage::REVISIONS;
             $article->stage_entered_at = now();

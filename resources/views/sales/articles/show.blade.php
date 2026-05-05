@@ -112,16 +112,118 @@
                         </button>
                     </div>
 
-                    <form x-show="revisionOpen" x-cloak method="POST" action="{{ route('sales.articles.request-revision', $article) }}" class="mt-3 space-y-2">
+                    <form x-show="revisionOpen" x-cloak method="POST" action="{{ route('sales.articles.request-revision', $article) }}"
+                          enctype="multipart/form-data"
+                          x-data="revisionAssets()"
+                          class="mt-3 space-y-3">
                         @csrf
                         <textarea name="reason" required rows="3" maxlength="1000"
                                   placeholder="Why is the client requesting changes?"
                                   class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+
+                        <!-- Revision assets -->
+                        <div class="pt-3 border-t border-gray-100 dark:border-gray-800">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <h4 class="text-xs font-medium text-gray-700 dark:text-gray-300">Reference assets <span class="text-gray-500 font-normal">(optional)</span></h4>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">Saved to a "Correction needed" subfolder so tech team can see exactly what to change.</p>
+                                </div>
+                                <button type="button" @click="addAsset()"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 rounded-md transition-colors">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Add asset
+                                </button>
+                            </div>
+
+                            <div class="space-y-2">
+                                <template x-for="(asset, i) in assets" :key="asset.uid">
+                                    <div class="bg-ink-800/40 border border-ink-700 rounded-lg overflow-hidden">
+                                        <div class="flex items-center justify-between px-3 py-2 bg-ink-800/60 border-b border-ink-700">
+                                            <div class="inline-flex bg-ink-900 border border-ink-700 rounded-md p-0.5">
+                                                <button type="button"
+                                                        @click="asset.type = 'file'; asset.url = ''"
+                                                        :class="asset.type === 'file' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                                                        class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded transition-colors">File</button>
+                                                <button type="button"
+                                                        @click="asset.type = 'link'; asset.fileName = ''; asset.fileSize = ''"
+                                                        :class="asset.type === 'link' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                                                        class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded transition-colors">Link</button>
+                                            </div>
+                                            <button type="button" @click="removeAsset(i)" class="text-xs text-gray-500 hover:text-rose-400">Remove</button>
+                                        </div>
+                                        <input type="hidden" :name="`assets[${i}][type]`" :value="asset.type"/>
+
+                                        <template x-if="asset.type === 'file'">
+                                            <div class="p-2">
+                                                <label :for="`rev-asset-file-${asset.uid}`"
+                                                       :class="asset.fileName ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-600 hover:border-amber-500/60 hover:bg-amber-500/5'"
+                                                       class="flex items-center gap-3 px-3 py-2 border-2 border-dashed rounded-md cursor-pointer transition-colors">
+                                                    <svg x-show="!asset.fileName" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                                    </svg>
+                                                    <svg x-show="asset.fileName" x-cloak class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p x-show="!asset.fileName" class="text-xs text-gray-300"><span class="text-amber-400 font-medium">Click to choose a file</span></p>
+                                                        <p x-show="asset.fileName" x-cloak class="text-xs text-gray-100 truncate" x-text="asset.fileName"></p>
+                                                        <p x-show="asset.fileName" x-cloak class="text-[11px] text-gray-500" x-text="asset.fileSize"></p>
+                                                    </div>
+                                                </label>
+                                                <input type="file"
+                                                       :id="`rev-asset-file-${asset.uid}`"
+                                                       :name="`assets[${i}][file]`"
+                                                       @change="handleAssetFile(i, $event.target.files[0])"
+                                                       accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.webm,.mp3,.wav,.m4a,.pdf,.doc,.docx,.txt"
+                                                       class="hidden"/>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="asset.type === 'link'">
+                                            <div class="p-2">
+                                                <input type="url" :name="`assets[${i}][url]`" x-model="asset.url"
+                                                       placeholder="https://..."
+                                                       class="w-full px-3 py-1.5 text-xs bg-ink-800 border border-ink-600 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"/>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <div class="flex justify-end gap-2">
                             <button type="button" @click="revisionOpen = false" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">Cancel</button>
                             <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg">Send for revision</button>
                         </div>
                     </form>
+
+                    <script>
+                        function revisionAssets() {
+                            return {
+                                assets: [],
+                                addAsset() {
+                                    this.assets.push({ uid: Date.now() + Math.random(), type: 'file', url: '', fileName: '', fileSize: '' });
+                                },
+                                removeAsset(i) { this.assets.splice(i, 1); },
+                                handleAssetFile(i, f) {
+                                    if (! f) return;
+                                    if (f.size > 200 * 1024 * 1024) {
+                                        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'File is larger than 200 MB.' } }));
+                                        return;
+                                    }
+                                    this.assets[i].fileName = f.name;
+                                    this.assets[i].fileSize = this.formatBytes(f.size);
+                                },
+                                formatBytes(b) {
+                                    if (b < 1024) return b + ' B';
+                                    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+                                    return (b / 1024 / 1024).toFixed(1) + ' MB';
+                                },
+                            }
+                        }
+                    </script>
                 @endif
 
                 @if($canPublish)
