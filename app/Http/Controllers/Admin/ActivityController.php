@@ -14,6 +14,7 @@ class ActivityController extends Controller
     public function index(Request $request): View
     {
         $entries = StageHistory::with(['article:id,article_code,title', 'changedBy:id,name,role'])
+            ->whereHas('article')
             ->when($request->filled('user_id'), fn ($q) => $q->where('changed_by', $request->get('user_id')))
             ->when($request->filled('stage'),   fn ($q) => $q->where('to_stage', $request->get('stage')))
             ->when($request->filled('from'),    fn ($q) => $q->where('changed_at', '>=', $request->get('from')))

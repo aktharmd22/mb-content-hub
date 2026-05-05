@@ -44,7 +44,7 @@
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                                        <span class="text-xs font-mono text-gray-500 dark:text-gray-400">{{ $h->article->article_code }}</span>
+                                        <span class="text-xs font-mono text-gray-500 dark:text-gray-400">{{ $h->article?->article_code ?? '—' }}</span>
                                         @if($h->from_stage)
                                             <x-stage-badge :stage="$h->from_stage" />
                                             <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,7 +53,7 @@
                                         @endif
                                         <x-stage-badge :stage="$h->to_stage" />
                                     </div>
-                                    <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ $h->article->title }}</p>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ $h->article?->title ?? '(deleted)' }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
                                         {{ $h->changedBy?->name ?? 'system' }}
                                         @if($h->changedBy?->role)<span class="text-gray-400">({{ $h->changedBy->role }})</span>@endif
