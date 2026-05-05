@@ -95,6 +95,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/articles/{article}/comment',    [\App\Http\Controllers\Sales\ArticleController::class, 'comment'])->name('articles.comment');
         Route::post('/articles/{article}/client-approved', [\App\Http\Controllers\Sales\ArticleController::class, 'clientApproved'])->name('articles.client-approved');
         Route::post('/articles/{article}/request-revision', [\App\Http\Controllers\Sales\ArticleController::class, 'requestRevision'])->name('articles.request-revision');
+        Route::post('/articles/{article}/revoke-revision',  [\App\Http\Controllers\Sales\ArticleController::class, 'revokeRevision'])->name('articles.revoke-revision');
 
         Route::post('/clients/quick-create',          [\App\Http\Controllers\Sales\ClientController::class, 'quickCreate'])->name('clients.quick-create');
         Route::resource('clients', \App\Http\Controllers\Sales\ClientController::class)->except(['show']);

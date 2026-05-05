@@ -127,6 +127,17 @@ class ArticleController extends Controller
         return $this->runTransition(fn () => $workflow->clientApproved($article), 'Marked as client-approved.', $article);
     }
 
+    public function revokeRevision(Article $article, ArticleWorkflowService $workflow): RedirectResponse
+    {
+        $this->ensureOwnArticle($article);
+
+        return $this->runTransition(
+            fn () => $workflow->revokeRevision($article),
+            'Correction revoked. Article is back in sales review.',
+            $article,
+        );
+    }
+
     public function requestRevision(Request $request, Article $article, ArticleWorkflowService $workflow): RedirectResponse
     {
         $this->ensureOwnArticle($article);

@@ -343,6 +343,38 @@ class ArticleWorkflowService
     }
 
     /**
+     * Undo a revision request and send the article back to client review.
+     * Useful when sales triggers "Send for revision" by mistake.
+     */
+    public function revokeRevision(Article|int $article, ?User $actor = null): Article
+    {
+        $actor ??= Auth::user();
+        $article = $this->resolveArticle($article);
+
+        $this->requireStage($article, [ArticleStage::REVISIONS]);
+        $this->requireRole($actor, ['sales', 'admin'], 'revoke a correction');
+        if ($actor->role === 'sales' && $article->sales_rep_id !== $actor->id) {
+            throw WorkflowException::notAuthorized($actor, 'revoke this correction');
+        }
+
+        return DB::transaction(function () use ($article, $actor) {
+            $from = $article->current_stage;
+
+            $this->moveFile($article, ArticleStage::CLIENT_APPROVAL);
+
+            $article->current_stage    = ArticleStage::CLIENT_APPROVAL;
+            $article->stage_entered_at = now();
+            $article->save();
+
+            $this->recordHistory($article, $from, ArticleStage::CLIENT_APPROVAL, $actor, 'Correction revoked — article back in sales review');
+            // Intentionally not firing ArticleStageTransitioned: re-notifying sales "ready for review"
+            // for an action they just performed would be noise. The history row is the audit trail.
+
+            return $article->fresh();
+        });
+    }
+
+    /**
      * Send the article back for revisions. Allowed from internal_review (lead) or client_approval (sales).
      */
     public function requestRevision(Article|int $article, string $reason, ?User $actor = null, array $assets = []): Article

@@ -8,6 +8,7 @@
         $canActOnClientApproval = $isOwn && $stage === \App\Enums\ArticleStage::CLIENT_APPROVAL;
         // Sales' job ends at "Verified". Tech team handles publishing the article on the website.
         $verifiedAwaitingPublish = $isOwn && $stage === \App\Enums\ArticleStage::APPROVED;
+        $canRevokeRevision       = $isOwn && $stage === \App\Enums\ArticleStage::REVISIONS;
     @endphp
 
     <div class="p-6 max-w-5xl">
@@ -106,7 +107,7 @@
         </div>
 
         <!-- Stage actions -->
-        @if($canActOnClientApproval || $verifiedAwaitingPublish)
+        @if($canActOnClientApproval || $verifiedAwaitingPublish || $canRevokeRevision)
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6"
                  x-data="{ revisionOpen: false }">
                 <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Actions</h3>
@@ -239,6 +240,30 @@
                             }
                         }
                     </script>
+                @endif
+
+                @if($canRevokeRevision)
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                            <svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-amber-200">Sent for correction</p>
+                                <p class="text-xs text-amber-300/80 mt-0.5">If you sent this back by mistake, you can revoke and put it back into sales review.</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ route('sales.articles.revoke-revision', $article) }}"
+                              onsubmit="return confirm('Revoke the correction request? The article will go back to Sales review.');">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/30 text-sm font-medium rounded-lg transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                </svg>
+                                Revoke correction
+                            </button>
+                        </form>
+                    </div>
                 @endif
 
                 @if($verifiedAwaitingPublish)
