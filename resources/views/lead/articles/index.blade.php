@@ -74,7 +74,7 @@
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->techWriter?->name ?? '—' }}</td>
                                 <td class="px-4 py-3"><x-stage-badge :stage="$a->current_stage" /></td>
                                 <td class="px-4 py-3 text-xs">
-                                    @php $waitDays = $a->stage_entered_at?->diffInDays(now()) ?? 0; @endphp
+                                    @php $waitDays = (int) ($a->stage_entered_at?->diffInDays(now()) ?? 0); @endphp
                                     @if($waitDays >= 3)
                                         <span class="text-rose-600 dark:text-rose-400">{{ $waitDays }}d</span>
                                     @elseif($waitDays >= 1)

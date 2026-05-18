@@ -93,7 +93,7 @@
                                         {{ $a->client?->name ?? '—' }} · {{ $a->techWriter?->name ?? 'unassigned' }}
                                     </p>
                                 </div>
-                                @php $waitDays = $a->stage_entered_at?->diffInDays(now()) ?? 0; @endphp
+                                @php $waitDays = (int) ($a->stage_entered_at?->diffInDays(now()) ?? 0); @endphp
                                 <span class="text-xs font-medium text-rose-600 dark:text-rose-400 whitespace-nowrap">{{ $waitDays }}d in stage</span>
                             </a>
                         </li>

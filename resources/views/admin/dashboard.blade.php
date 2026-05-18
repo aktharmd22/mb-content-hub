@@ -73,7 +73,7 @@
                                     <a href="{{ route('admin.articles.index', ['q' => $a->article_code]) }}" class="text-rose-300 hover:underline">
                                         {{ $a->article_code }} · {{ $a->title }}
                                     </a>
-                                    <span class="text-rose-400">— {{ $a->current_stage->label() }} for {{ $a->stage_entered_at->diffInDays(now()) }}d</span>
+                                    <span class="text-rose-400">— {{ $a->current_stage->label() }} for {{ (int) $a->stage_entered_at->diffInDays(now()) }}d</span>
                                 </li>
                             @endforeach
                         </ul>
