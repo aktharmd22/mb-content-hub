@@ -21,7 +21,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        // Always send users to the role-aware dashboard redirector instead of an
+        // "intended" URL — otherwise sales/tech users can land on an admin URL
+        // they previously hit while logged out and get a 403.
+        $request->session()->forget('url.intended');
+
+        return redirect()->route('dashboard');
     }
 
     public function destroy(Request $request): RedirectResponse
