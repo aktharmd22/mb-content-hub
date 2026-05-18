@@ -34,7 +34,7 @@
                                     <a href="{{ route('lead.articles.show', $a) }}" class="text-rose-700 dark:text-rose-300 hover:underline">
                                         {{ $a->article_code }} · {{ $a->title }}
                                     </a>
-                                    <span class="text-xs text-rose-600 dark:text-rose-400">— {{ $a->current_stage->label() }} for {{ $a->stage_entered_at->diffInDays(now()) }} days</span>
+                                    <span class="text-xs text-rose-600 dark:text-rose-400">— {{ $a->current_stage->label() }} for {{ (int) $a->stage_entered_at->diffInDays(now()) }} days</span>
                                 </li>
                             @endforeach
                         </ul>
@@ -75,7 +75,7 @@
                                             {{ $a->client?->name ?? '—' }} · {{ $a->techWriter?->name ?? 'unassigned' }}
                                         </p>
                                     </div>
-                                    @php $waitDays = $a->stage_entered_at?->diffInDays(now()) ?? 0; @endphp
+                                    @php $waitDays = (int) ($a->stage_entered_at?->diffInDays(now()) ?? 0); @endphp
                                     @if($waitDays >= 2)
                                         <span class="text-xs font-medium text-amber-600 dark:text-amber-400 whitespace-nowrap">{{ $waitDays }}d wait</span>
                                     @else
