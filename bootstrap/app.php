@@ -27,5 +27,19 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Never show the bare "419 Session expired" page. Instead, silently send the user
+        // back to where they came from (or login) so they can try again with a fresh token.
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Session expired. Please refresh and try again.'], 419);
+            }
+
+            // If user is logged in, bounce them to wherever they were (gets fresh CSRF on reload).
+            // Otherwise, send to login fresh.
+            $target = auth()->check()
+                ? ($request->headers->get('referer') ?: route('dashboard'))
+                : route('login');
+
+            return redirect()->to($target)->with('error', 'Your session timed out. Please try again.');
+        });
     })->create();
