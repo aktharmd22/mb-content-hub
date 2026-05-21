@@ -54,15 +54,21 @@
                     <option value="{{ $r->id }}" @selected(request('sales_rep_id') == $r->id)>{{ $r->name }}</option>
                 @endforeach
             </select>
+            <select name="tech_team_id" class="px-3 py-1.5 text-sm bg-ink-800 border border-ink-700 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">All tech team</option>
+                @foreach($techTeam as $t)
+                    <option value="{{ $t->id }}" @selected(request('tech_team_id') == $t->id)>{{ $t->name }}</option>
+                @endforeach
+            </select>
             <select name="client_id" class="px-3 py-1.5 text-sm bg-ink-800 border border-ink-700 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">All clients</option>
                 @foreach($clients as $c)
                     <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->name }}</option>
                 @endforeach
             </select>
-            <div class="col-span-2 md:col-span-3 flex items-center gap-2">
+            <div class="col-span-2 md:col-span-4 flex items-center gap-2">
                 <button type="submit" class="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition-colors">Filter</button>
-                @if(request()->hasAny(['q', 'status', 'sales_rep_id', 'client_id']))
+                @if(request()->hasAny(['q', 'status', 'sales_rep_id', 'tech_team_id', 'client_id']))
                     <a href="{{ route('admin.viral-packages.index') }}" class="text-xs text-gray-500 hover:text-gray-300">Clear</a>
                 @endif
             </div>
@@ -84,6 +90,7 @@
                         <tr>
                             <th class="text-left px-4 py-2.5 font-medium text-[11px] text-gray-400 uppercase tracking-wide">Client</th>
                             <th class="text-left px-4 py-2.5 font-medium text-[11px] text-gray-400 uppercase tracking-wide">Sales rep</th>
+                            <th class="text-left px-4 py-2.5 font-medium text-[11px] text-gray-400 uppercase tracking-wide">Tech team</th>
                             <th class="text-left px-4 py-2.5 font-medium text-[11px] text-gray-400 uppercase tracking-wide">Created</th>
                             <th class="text-left px-4 py-2.5 font-medium text-[11px] text-gray-400 uppercase tracking-wide">Progress</th>
                             <th class="text-left px-4 py-2.5 font-medium text-[11px] text-gray-400 uppercase tracking-wide">Status</th>
@@ -95,7 +102,26 @@
                             <tr class="hover:bg-ink-800/40 transition-colors cursor-pointer"
                                 onclick="window.location='{{ route('admin.viral-packages.show', $p) }}'">
                                 <td class="px-4 py-3 text-sm text-gray-100 font-medium">{{ $p->client?->name ?? '—' }}</td>
-                                <td class="px-4 py-3 text-xs text-gray-300">{{ $p->salesRep?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-xs text-gray-300">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-5 h-5 rounded-full bg-indigo-500/15 text-indigo-300 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
+                                            {{ $p->salesRep ? strtoupper(substr($p->salesRep->name, 0, 1)) : '—' }}
+                                        </span>
+                                        <span class="truncate">{{ $p->salesRep?->name ?? '—' }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-300">
+                                    @if($p->techTeam)
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-5 h-5 rounded-full bg-violet-500/15 text-violet-300 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
+                                                {{ strtoupper(substr($p->techTeam->name, 0, 1)) }}
+                                            </span>
+                                            <span class="truncate">{{ $p->techTeam->name }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-gray-500 italic">Unassigned</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-xs text-gray-400">{{ $p->created_at->diffForHumans() }}</td>
                                 <td class="px-4 py-3">@include('partials.viral-package-progress', ['package' => $p])</td>
                                 <td class="px-4 py-3">

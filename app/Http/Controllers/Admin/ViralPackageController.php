@@ -14,9 +14,10 @@ class ViralPackageController extends Controller
     public function index(Request $request): View
     {
         $packages = ViralPackage::query()
-            ->with(['client', 'salesRep', 'deliverables'])
+            ->with(['client', 'salesRep', 'techTeam', 'deliverables'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->get('status')))
             ->when($request->filled('sales_rep_id'), fn ($q) => $q->where('sales_rep_id', $request->get('sales_rep_id')))
+            ->when($request->filled('tech_team_id'), fn ($q) => $q->where('tech_team_id', $request->get('tech_team_id')))
             ->when($request->filled('client_id'), fn ($q) => $q->where('client_id', $request->get('client_id')))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = trim((string) $request->get('q'));
@@ -35,9 +36,10 @@ class ViralPackageController extends Controller
         ];
 
         $salesReps = User::where('role', 'sales')->orderBy('name')->get(['id', 'name']);
+        $techTeam  = User::where('role', 'tech_team')->orderBy('name')->get(['id', 'name']);
         $clients   = Client::orderBy('name')->get(['id', 'name']);
 
-        return view('admin.viral-packages.index', compact('packages', 'stats', 'salesReps', 'clients'));
+        return view('admin.viral-packages.index', compact('packages', 'stats', 'salesReps', 'techTeam', 'clients'));
     }
 
     public function destroy(ViralPackage $viralPackage, \App\Services\GoogleDriveService $drive): \Illuminate\Http\RedirectResponse
@@ -63,6 +65,7 @@ class ViralPackageController extends Controller
         $viralPackage->load([
             'client',
             'salesRep',
+            'techTeam',
             'assets.creator',
             'deliverables.assignee',
             'deliverables.history.changedBy',

@@ -30,22 +30,40 @@
                 @include('partials.viral-package-progress', ['package' => $package])
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800">
                 <div>
                     <p class="text-xs text-gray-500">Sales rep</p>
-                    <p class="text-sm text-gray-100 mt-0.5">{{ $package->salesRep?->name ?? '—' }}</p>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="w-5 h-5 rounded-full bg-indigo-500/15 text-indigo-300 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
+                            {{ $package->salesRep ? strtoupper(substr($package->salesRep->name, 0, 1)) : '—' }}
+                        </span>
+                        <p class="text-sm text-gray-100 truncate">{{ $package->salesRep?->name ?? '—' }}</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Tech team</p>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        @if($package->techTeam)
+                            <span class="w-5 h-5 rounded-full bg-violet-500/15 text-violet-300 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
+                                {{ strtoupper(substr($package->techTeam->name, 0, 1)) }}
+                            </span>
+                            <p class="text-sm text-gray-100 truncate">{{ $package->techTeam->name }}</p>
+                        @else
+                            <p class="text-sm text-gray-500 italic">Unassigned</p>
+                        @endif
+                    </div>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Created</p>
-                    <p class="text-sm text-gray-100 mt-0.5">{{ $package->created_at->format('M j, Y') }}</p>
+                    <p class="text-sm text-gray-100 mt-1">{{ $package->created_at->format('M j, Y') }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Delivered</p>
-                    <p class="text-sm text-gray-100 mt-0.5">{{ $package->completed_at?->format('M j, Y') ?? '—' }}</p>
+                    <p class="text-sm text-gray-100 mt-1">{{ $package->completed_at?->format('M j, Y') ?? '—' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Assets</p>
-                    <p class="text-sm text-gray-100 mt-0.5">{{ $package->assets->count() }} items</p>
+                    <p class="text-sm text-gray-100 mt-1">{{ $package->assets->count() }} items</p>
                 </div>
             </div>
         </div>
