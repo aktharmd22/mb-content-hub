@@ -59,43 +59,45 @@
     @endif
 
     {{-- Action button (full-width, prominent) --}}
-    @if($d->stage === 'pending')
-        <form method="POST" action="{{ route('writer.viral-packages.deliverables.pick-up', ['viralPackage' => $package, 'deliverable' => $d]) }}">
-            @csrf
-            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
+    @if(in_array($d->stage, ['pending', 'in_progress'], true))
+        <button type="button" @click="uploadOpen = !uploadOpen"
+                x-show="!uploadOpen"
+                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
+            @if($d->stage === 'pending')
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 Start working
-            </button>
-        </form>
-    @elseif($d->stage === 'in_progress')
-        <button type="button" @click="uploadOpen = !uploadOpen"
-                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-            </svg>
-            {{ $d->drive_file_id ? 'Upload new version' : 'Upload & submit' }}
+            @else
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                {{ $d->drive_file_id ? 'Upload new version' : 'Upload & submit' }}
+            @endif
         </button>
 
         <form x-show="uploadOpen" x-cloak method="POST" enctype="multipart/form-data"
               action="{{ route('writer.viral-packages.deliverables.submit', ['viralPackage' => $package, 'deliverable' => $d]) }}"
-              class="mt-3 space-y-3">
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 -translate-y-1"
+              x-transition:enter-end="opacity-100 translate-y-0"
+              class="space-y-3">
             @csrf
             <label :for="`vd-file-{{ $d->id }}`"
-                   :class="fileName ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-600 hover:border-indigo-500/60'"
-                   class="flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors">
-                <svg x-show="!fileName" class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   :class="fileName ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-indigo-500/60 bg-indigo-500/5 hover:bg-indigo-500/10'"
+                   class="flex items-center gap-3 px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors">
+                <svg x-show="!fileName" class="w-6 h-6 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
-                <svg x-show="fileName" x-cloak class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg x-show="fileName" x-cloak class="w-6 h-6 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div class="flex-1 min-w-0">
-                    <p x-show="!fileName" class="text-sm text-indigo-400 font-medium">Choose your file</p>
-                    <p x-show="fileName" x-cloak class="text-sm text-gray-100 truncate" x-text="fileName"></p>
-                    <p x-show="fileName" x-cloak class="text-xs text-gray-500" x-text="fileSize"></p>
+                    <p x-show="!fileName" class="text-sm font-semibold text-indigo-300">Click to choose a file</p>
+                    <p x-show="!fileName" class="text-xs text-gray-500 mt-0.5">or drag and drop here</p>
+                    <p x-show="fileName" x-cloak class="text-sm font-medium text-gray-100 truncate" x-text="fileName"></p>
+                    <p x-show="fileName" x-cloak class="text-xs text-gray-500 mt-0.5" x-text="fileSize"></p>
                 </div>
             </label>
             <input type="file" :id="`vd-file-{{ $d->id }}`" name="file" required
@@ -105,11 +107,14 @@
             <textarea name="notes" rows="2" maxlength="1000" placeholder="Notes for sales (optional)"
                       class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
 
-            <div class="flex justify-end gap-2">
+            <div class="flex items-center gap-2">
                 <button type="button" @click="uploadOpen = false; fileName = ''; fileSize = '';"
-                        class="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 rounded-lg transition-colors">Cancel</button>
+                        class="px-4 py-2.5 text-sm text-gray-400 hover:text-gray-200 hover:bg-ink-800 rounded-lg transition-colors">Cancel</button>
                 <button type="submit" :disabled="!fileName"
-                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors">
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
                     Submit for review
                 </button>
             </div>
