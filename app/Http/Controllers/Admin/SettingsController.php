@@ -29,19 +29,25 @@ class SettingsController extends Controller
             'logoPath'            => \App\Models\Setting::get('app_logo_path'),
             'logoUrl'             => \App\Support\Branding::logoUrl(),
             'faviconUrl'          => \App\Support\Branding::faviconUrl(),
+            'viralPackagesFolder' => (string) \App\Models\Setting::get('drive_folder_viral_packages', ''),
         ]);
     }
 
     public function saveGeneral(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'default_deadline_days' => ['required', 'integer', 'min:1', 'max:90'],
-            'stuck_threshold_days'  => ['required', 'integer', 'min:1', 'max:30'],
-            'app_brand_name'        => ['required', 'string', 'max:50'],
+            'default_deadline_days'         => ['required', 'integer', 'min:1', 'max:90'],
+            'stuck_threshold_days'          => ['required', 'integer', 'min:1', 'max:30'],
+            'app_brand_name'                => ['required', 'string', 'max:50'],
+            'drive_folder_viral_packages'   => ['nullable', 'string', 'max:128'],
         ]);
 
         foreach ($data as $key => $value) {
-            \App\Models\Setting::put($key, (string) $value);
+            if ($value === null || $value === '') {
+                \App\Models\Setting::forget($key);
+            } else {
+                \App\Models\Setting::put($key, (string) $value);
+            }
         }
 
         return back()->with('success', 'Settings saved.');

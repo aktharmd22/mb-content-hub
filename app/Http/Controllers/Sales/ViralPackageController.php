@@ -1,0 +1,272 @@
+<?php
+
+namespace App\Http\Controllers\Sales;
+
+use App\Exceptions\DriveException;
+use App\Exceptions\WorkflowException;
+use App\Http\Controllers\Controller;
+use App\Models\Client;
+use App\Models\ViralPackage;
+use App\Models\ViralPackageAsset;
+use App\Models\ViralPackageDeliverable;
+use App\Services\GoogleDriveService;
+use App\Services\ViralPackageService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
+class ViralPackageController extends Controller
+{
+    public function __construct(private readonly ViralPackageService $service) {}
+
+    public function index(Request $request): View
+    {
+        $packages = ViralPackage::query()
+            ->with(['client', 'salesRep', 'deliverables'])
+            ->when(! auth()->user()->isAdmin(), fn ($q) => $q->where('sales_rep_id', auth()->id()))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->get('status')))
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $term = trim((string) $request->get('q'));
+                $q->whereHas('client', fn ($c) => $c->where('name', 'like', "%{$term}%"));
+            })
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('sales.viral-packages.index', compact('packages'));
+    }
+
+    public function create(): View
+    {
+        $clients = Client::orderBy('name')->get();
+        return view('sales.viral-packages.create', compact('clients'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'client_id'         => ['required', 'integer', 'exists:clients,id'],
+            'assets'            => ['nullable', 'array'],
+            'assets.*.type'     => ['nullable', 'in:file,link'],
+            'assets.*.name'     => ['nullable', 'string', 'max:255'],
+            'assets.*.url'      => ['nullable', 'url', 'max:500'],
+            'assets.*.file'     => ['nullable', 'file', 'max:204800'],
+        ]);
+
+        $assets = $this->buildAssetsPayload($request);
+
+        try {
+            $package = $this->service->createPackage((int) $validated['client_id'], $assets);
+        } catch (DriveException|WorkflowException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withInput()->with('error', 'Could not create package: ' . $e->getMessage());
+        }
+
+        return redirect()
+            ->route('sales.viral-packages.show', $package)
+            ->with('success', "Viral package created for {$package->client->name}.");
+    }
+
+    public function show(ViralPackage $viralPackage): View
+    {
+        $this->ensureOwn($viralPackage);
+
+        $viralPackage->load([
+            'client',
+            'salesRep',
+            'assets.creator',
+            'deliverables.assignee',
+            'deliverables.history.changedBy',
+        ]);
+
+        return view('sales.viral-packages.show', ['package' => $viralPackage]);
+    }
+
+    public function addAssets(Request $request, ViralPackage $viralPackage): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        if ($viralPackage->isCompleted()) {
+            return back()->with('error', 'Cannot add assets to a completed package.');
+        }
+
+        $request->validate([
+            'assets'        => ['required', 'array', 'min:1'],
+            'assets.*.type' => ['required', 'in:file,link'],
+            'assets.*.url'  => ['nullable', 'url', 'max:500'],
+            'assets.*.file' => ['nullable', 'file', 'max:204800'],
+        ]);
+
+        $assets = $this->buildAssetsPayload($request);
+
+        try {
+            $this->service->attachAdditionalAssets($viralPackage, $assets);
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Could not upload assets: ' . $e->getMessage());
+        }
+
+        return back()->with('success', count($assets) . ' asset(s) added.');
+    }
+
+    public function approveDeliverable(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        try {
+            $this->service->approveDeliverable($deliverable);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} approved.");
+    }
+
+    public function requestCorrection(Request $request, ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        $validated = $request->validate([
+            'reason'              => ['required', 'string', 'max:1000'],
+            'correction_assets'   => ['nullable', 'array'],
+            'correction_assets.*.type' => ['nullable', 'in:file,link'],
+            'correction_assets.*.url'  => ['nullable', 'url', 'max:500'],
+            'correction_assets.*.file' => ['nullable', 'file', 'max:204800'],
+        ]);
+
+        $assets = $this->buildAssetsPayload($request, 'correction_assets');
+
+        try {
+            $this->service->requestCorrection($deliverable, $validated['reason'], $assets);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Correction requested for {$deliverable->title}.");
+    }
+
+    public function markDelivered(ViralPackage $viralPackage): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        try {
+            $this->service->markDelivered($viralPackage);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Package marked as delivered. 🎉');
+    }
+
+    public function downloadAsset(ViralPackage $viralPackage, ViralPackageAsset $asset, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        if ($asset->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+
+        return $this->downloadOrRedirect($asset, $drive);
+    }
+
+    public function downloadDeliverable(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        if (! $deliverable->drive_file_id) {
+            return back()->with('error', 'No file has been uploaded yet.');
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'viral_');
+        try {
+            $drive->downloadFile($deliverable->drive_file_id, $tempPath);
+        } catch (DriveException $e) {
+            @unlink($tempPath);
+            return back()->with('error', $e->getMessage());
+        }
+
+        return response()->download($tempPath, $deliverable->drive_filename ?: $deliverable->title)->deleteFileAfterSend();
+    }
+
+    public function destroy(ViralPackage $viralPackage, GoogleDriveService $drive): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        // Best-effort cleanup of Drive folder
+        if ($viralPackage->drive_folder_id) {
+            try {
+                $drive->deleteFile($viralPackage->drive_folder_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $clientName = $viralPackage->client?->name ?? 'package';
+        $viralPackage->delete();
+
+        return redirect()
+            ->route('sales.viral-packages.index')
+            ->with('success', "Package for {$clientName} deleted.");
+    }
+
+    private function ensureOwn(ViralPackage $package): void
+    {
+        $user = auth()->user();
+        if ($user->isAdmin()) return;
+        if ($package->sales_rep_id !== $user->id) {
+            throw new AuthorizationException('You can only act on your own packages.');
+        }
+    }
+
+    private function ensureBelongs(ViralPackageDeliverable $deliverable, ViralPackage $package): void
+    {
+        if ($deliverable->viral_package_id !== $package->id) {
+            abort(404);
+        }
+    }
+
+    private function downloadOrRedirect(ViralPackageAsset $asset, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
+    {
+        if ($asset->type === 'link') {
+            return $asset->url ? redirect()->away($asset->url) : back()->with('error', 'This asset has no URL.');
+        }
+        if (! $asset->drive_file_id) {
+            return back()->with('error', 'This asset has no file attached.');
+        }
+        $tempPath = tempnam(sys_get_temp_dir(), 'viral_asset_');
+        try {
+            $drive->downloadFile($asset->drive_file_id, $tempPath);
+        } catch (DriveException $e) {
+            @unlink($tempPath);
+            return back()->with('error', $e->getMessage());
+        }
+        $filename = $asset->original_filename ?: ($asset->name ?: 'asset');
+        return response()->download($tempPath, $filename)->deleteFileAfterSend();
+    }
+
+    private function buildAssetsPayload(Request $request, string $key = 'assets'): array
+    {
+        $rows  = $request->input($key, []);
+        $files = $request->file($key, []);
+        $out   = [];
+
+        foreach ($rows as $i => $row) {
+            $type = $row['type'] ?? null;
+            if (! in_array($type, ['file', 'link'], true)) continue;
+            $name = $row['name'] ?? null;
+            if ($type === 'link' && ! empty($row['url'])) {
+                $out[] = ['type' => 'link', 'name' => $name, 'url' => $row['url']];
+            } elseif ($type === 'file' && isset($files[$i]['file'])) {
+                $out[] = ['type' => 'file', 'name' => $name, 'file' => $files[$i]['file']];
+            }
+        }
+        return $out;
+    }
+}

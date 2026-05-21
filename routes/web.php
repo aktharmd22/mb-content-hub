@@ -54,6 +54,10 @@ Route::middleware('auth')->group(function () {
         // Activity log
         Route::get('/activity',                         [\App\Http\Controllers\Admin\ActivityController::class, 'index'])->name('activity.index');
 
+        // Viral packages (admin read-only overview)
+        Route::get('/viral-packages',                   [\App\Http\Controllers\Admin\ViralPackageController::class, 'index'])->name('viral-packages.index');
+        Route::get('/viral-packages/{viralPackage}',    [\App\Http\Controllers\Admin\ViralPackageController::class, 'show'])->name('viral-packages.show');
+
         // Article types (CRUD)
         Route::resource('article-types', \App\Http\Controllers\Admin\ArticleTypeController::class)
             ->except(['show'])
@@ -99,6 +103,19 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/clients/quick-create',          [\App\Http\Controllers\Sales\ClientController::class, 'quickCreate'])->name('clients.quick-create');
         Route::resource('clients', \App\Http\Controllers\Sales\ClientController::class)->except(['show']);
+
+        // Viral Packages
+        Route::get('/viral-packages',                                                       [\App\Http\Controllers\Sales\ViralPackageController::class, 'index'])->name('viral-packages.index');
+        Route::get('/viral-packages/create',                                                [\App\Http\Controllers\Sales\ViralPackageController::class, 'create'])->name('viral-packages.create');
+        Route::post('/viral-packages',                                                      [\App\Http\Controllers\Sales\ViralPackageController::class, 'store'])->name('viral-packages.store');
+        Route::get('/viral-packages/{viralPackage}',                                        [\App\Http\Controllers\Sales\ViralPackageController::class, 'show'])->name('viral-packages.show');
+        Route::delete('/viral-packages/{viralPackage}',                                     [\App\Http\Controllers\Sales\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
+        Route::post('/viral-packages/{viralPackage}/assets',                                [\App\Http\Controllers\Sales\ViralPackageController::class, 'addAssets'])->name('viral-packages.assets.store');
+        Route::get('/viral-packages/{viralPackage}/assets/{asset}',                         [\App\Http\Controllers\Sales\ViralPackageController::class, 'downloadAsset'])->name('viral-packages.assets.download');
+        Route::get('/viral-packages/{viralPackage}/deliverables/{deliverable}/download',    [\App\Http\Controllers\Sales\ViralPackageController::class, 'downloadDeliverable'])->name('viral-packages.deliverables.download');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/approve',    [\App\Http\Controllers\Sales\ViralPackageController::class, 'approveDeliverable'])->name('viral-packages.deliverables.approve');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/correction', [\App\Http\Controllers\Sales\ViralPackageController::class, 'requestCorrection'])->name('viral-packages.deliverables.correction');
+        Route::post('/viral-packages/{viralPackage}/mark-delivered',                        [\App\Http\Controllers\Sales\ViralPackageController::class, 'markDelivered'])->name('viral-packages.mark-delivered');
     });
 
     // Tech team — writer-side actions (assignments, write & submit)
@@ -116,6 +133,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/articles/{article}/download',            [\App\Http\Controllers\Writer\ArticleController::class, 'downloadCurrent'])->name('articles.download');
         Route::get('/articles/{article}/download-source',     [\App\Http\Controllers\Writer\ArticleController::class, 'downloadSource'])->name('articles.download-source');
         Route::get('/articles/{article}/assets/{asset}',      [\App\Http\Controllers\Writer\ArticleController::class, 'downloadAsset'])->name('articles.assets.download');
+
+        // Viral Packages
+        Route::get('/viral-packages',                                                    [\App\Http\Controllers\Writer\ViralPackageController::class, 'index'])->name('viral-packages.index');
+        Route::get('/viral-packages/{viralPackage}',                                     [\App\Http\Controllers\Writer\ViralPackageController::class, 'show'])->name('viral-packages.show');
+        Route::get('/viral-packages/{viralPackage}/assets/{asset}',                      [\App\Http\Controllers\Writer\ViralPackageController::class, 'downloadAsset'])->name('viral-packages.assets.download');
+        Route::get('/viral-packages/{viralPackage}/deliverables/{deliverable}/download', [\App\Http\Controllers\Writer\ViralPackageController::class, 'downloadDeliverable'])->name('viral-packages.deliverables.download');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/pick-up', [\App\Http\Controllers\Writer\ViralPackageController::class, 'pickUp'])->name('viral-packages.deliverables.pick-up');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/submit',  [\App\Http\Controllers\Writer\ViralPackageController::class, 'submit'])->name('viral-packages.deliverables.submit');
     });
 
     // Tech team — lead-side actions (review, approve, team performance)

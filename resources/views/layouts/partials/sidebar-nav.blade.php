@@ -52,6 +52,15 @@
         <span class="flex-shrink-0">{!! $icons['users'] !!}</span>
         <span x-show="sidebarOpen" class="truncate">Users</span>
     </a>
+    <a href="{{ route('admin.viral-packages.index') }}" title="Viral packages"
+       class="sidebar-link {{ request()->routeIs('admin.viral-packages*') ? 'active' : '' }}">
+        <span class="flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </span>
+        <span x-show="sidebarOpen" class="truncate">Viral packages</span>
+    </a>
     <a href="{{ route('admin.article-types.index') }}" title="Article types"
        class="sidebar-link {{ request()->routeIs('admin.article-types*') ? 'active' : '' }}">
         <span class="flex-shrink-0">
@@ -76,6 +85,15 @@
        class="sidebar-link {{ request()->routeIs('sales.articles*') ? 'active' : '' }}">
         <span class="flex-shrink-0">{!! $icons['articles'] !!}</span>
         <span x-show="sidebarOpen" class="truncate">Articles</span>
+    </a>
+    <a href="{{ route('sales.viral-packages.index') }}" title="Viral packages"
+       class="sidebar-link {{ request()->routeIs('sales.viral-packages*') ? 'active' : '' }}">
+        <span class="flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </span>
+        <span x-show="sidebarOpen" class="truncate">Viral packages</span>
     </a>
     <a href="{{ route('sales.clients.index') }}" title="Clients"
        class="sidebar-link {{ request()->routeIs('sales.clients*') ? 'active' : '' }}">
@@ -127,6 +145,17 @@
        class="sidebar-link {{ request()->routeIs('lead.team*') ? 'active' : '' }}">
         <span class="flex-shrink-0">{!! $icons['analytics'] !!}</span>
         <span x-show="sidebarOpen" class="truncate">Team performance</span>
+    </a>
+
+    <div x-show="sidebarOpen" class="px-3 pt-3 pb-1 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Viral</div>
+    <a href="{{ route('writer.viral-packages.index') }}" title="Viral packages"
+       class="sidebar-link {{ request()->routeIs('writer.viral-packages*') ? 'active' : '' }}">
+        <span class="flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </span>
+        <span x-show="sidebarOpen" class="truncate">Viral packages</span>
     </a>
 @endif
 
