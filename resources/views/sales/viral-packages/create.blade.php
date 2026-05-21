@@ -25,15 +25,32 @@
                         <label for="client_id" class="block text-xs font-medium text-gray-300 mb-1.5">
                             Client <span class="text-rose-500">*</span>
                         </label>
-                        <select id="client_id" name="client_id" required
-                                class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="">— Select an existing client —</option>
-                            @foreach($clients as $c)
-                                <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->name }}{{ $c->company ? " — {$c->company}" : '' }}</option>
-                            @endforeach
-                        </select>
+                        @if($clients->isEmpty())
+                            <div class="w-full px-3 py-2 text-sm bg-ink-800 border border-amber-500/40 rounded-lg text-amber-200">
+                                @if(($takenCount ?? 0) > 0)
+                                    All your clients already have active viral packages. Wait for one to be delivered, or <a href="{{ route('sales.clients.create') }}" class="underline">add a new client</a>.
+                                @else
+                                    No clients available. <a href="{{ route('sales.clients.create') }}" class="underline">Add a client</a> first.
+                                @endif
+                            </div>
+                            <input type="hidden" name="client_id" value=""/>
+                        @else
+                            <select id="client_id" name="client_id" required
+                                    class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">— Select an existing client —</option>
+                                @foreach($clients as $c)
+                                    <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->name }}{{ $c->company ? " — {$c->company}" : '' }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                         @error('client_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
-                        <p class="mt-1 text-xs text-gray-500">Need a new client? <a href="{{ route('sales.clients.create') }}" class="text-indigo-400 hover:underline">Add in Clients</a> first.</p>
+                        <p class="mt-1 text-xs text-gray-500">
+                            @if(($takenCount ?? 0) > 0)
+                                {{ $takenCount }} {{ Str::plural('client', $takenCount) }} hidden — already in an active package.
+                            @else
+                                One viral package per client. Need a new client? <a href="{{ route('sales.clients.create') }}" class="text-indigo-400 hover:underline">Add in Clients</a> first.
+                            @endif
+                        </p>
                     </div>
 
                     <div>

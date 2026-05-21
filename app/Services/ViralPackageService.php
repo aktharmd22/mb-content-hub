@@ -34,6 +34,16 @@ class ViralPackageService
 
         $client = Client::findOrFail($clientId);
 
+        // Enforce one active viral package per client — across the whole business
+        $existing = ViralPackage::where('client_id', $clientId)
+            ->where('status', 'active')
+            ->with('salesRep')
+            ->first();
+        if ($existing) {
+            $owner = $existing->salesRep?->name ?? 'another sales rep';
+            throw new WorkflowException("{$client->name} already has an active viral package (handled by {$owner}). Wait until it's delivered or ask them to remove it.");
+        }
+
         // Verify the assigned tech is actually a tech_team member
         $techMember = User::where('id', $techTeamId)
             ->where('role', 'tech_team')

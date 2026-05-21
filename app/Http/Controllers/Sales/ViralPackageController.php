@@ -40,12 +40,20 @@ class ViralPackageController extends Controller
 
     public function create(): View
     {
-        $clients  = Client::orderBy('name')->get();
+        // Exclude clients that already have an active viral package — one per client, business-wide.
+        $takenClientIds = ViralPackage::where('status', 'active')->pluck('client_id');
+        $clients = Client::orderBy('name')
+            ->whereNotIn('id', $takenClientIds)
+            ->get();
+
+        $takenCount = $takenClientIds->count();
+
         $techTeam = \App\Models\User::where('role', 'tech_team')
             ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name']);
-        return view('sales.viral-packages.create', compact('clients', 'techTeam'));
+
+        return view('sales.viral-packages.create', compact('clients', 'techTeam', 'takenCount'));
     }
 
     public function store(Request $request): RedirectResponse
