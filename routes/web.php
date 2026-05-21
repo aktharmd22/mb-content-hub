@@ -54,9 +54,10 @@ Route::middleware('auth')->group(function () {
         // Activity log
         Route::get('/activity',                         [\App\Http\Controllers\Admin\ActivityController::class, 'index'])->name('activity.index');
 
-        // Viral packages (admin read-only overview)
+        // Viral packages (admin overview + delete)
         Route::get('/viral-packages',                   [\App\Http\Controllers\Admin\ViralPackageController::class, 'index'])->name('viral-packages.index');
         Route::get('/viral-packages/{viralPackage}',    [\App\Http\Controllers\Admin\ViralPackageController::class, 'show'])->name('viral-packages.show');
+        Route::delete('/viral-packages/{viralPackage}', [\App\Http\Controllers\Admin\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
 
         // Article types (CRUD)
         Route::resource('article-types', \App\Http\Controllers\Admin\ArticleTypeController::class)

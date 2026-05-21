@@ -50,7 +50,7 @@
             @else
                 <ul class="divide-y divide-gray-100 dark:divide-gray-800">
                     @foreach($packages as $p)
-                        <li class="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
+                        <li class="group flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                             <a href="{{ route('sales.viral-packages.show', $p) }}" class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
                                     <p class="text-sm font-medium text-gray-100">{{ $p->client?->name ?? '(client missing)' }}</p>
@@ -65,6 +65,17 @@
                             <div class="flex-shrink-0">
                                 @include('partials.viral-package-progress', ['package' => $p])
                             </div>
+                            <form method="POST" action="{{ route('sales.viral-packages.destroy', $p) }}"
+                                  onsubmit="return confirm('Delete the viral package for {{ $p->client?->name }}? The Drive folder will also be removed. This cannot be undone.');"
+                                  class="flex-shrink-0">
+                                @csrf @method('DELETE')
+                                <button type="submit" title="Delete package"
+                                        class="opacity-0 group-hover:opacity-100 inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 rounded-md transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </form>
                         </li>
                     @endforeach
                 </ul>

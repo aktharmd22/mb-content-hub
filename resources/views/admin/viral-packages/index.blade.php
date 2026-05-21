@@ -71,6 +71,7 @@
                             <th class="text-left px-4 py-2.5 font-medium text-xs text-gray-400 uppercase tracking-wide">Created</th>
                             <th class="text-left px-4 py-2.5 font-medium text-xs text-gray-400 uppercase tracking-wide">Progress</th>
                             <th class="text-left px-4 py-2.5 font-medium text-xs text-gray-400 uppercase tracking-wide">Status</th>
+                            <th class="text-right px-4 py-2.5 font-medium text-xs text-gray-400 uppercase tracking-wide">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-ink-700">
@@ -87,6 +88,19 @@
                                     @else
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Active</span>
                                     @endif
+                                </td>
+                                <td class="px-4 py-3 text-right" onclick="event.stopPropagation();">
+                                    <form method="POST" action="{{ route('admin.viral-packages.destroy', $p) }}"
+                                          onsubmit="return confirm('Delete the viral package for {{ $p->client?->name }}? The Drive folder will also be removed. This cannot be undone.');"
+                                          class="inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" title="Delete package"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 rounded-md transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach

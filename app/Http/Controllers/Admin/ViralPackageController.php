@@ -40,6 +40,24 @@ class ViralPackageController extends Controller
         return view('admin.viral-packages.index', compact('packages', 'stats', 'salesReps', 'clients'));
     }
 
+    public function destroy(ViralPackage $viralPackage, \App\Services\GoogleDriveService $drive): \Illuminate\Http\RedirectResponse
+    {
+        if ($viralPackage->drive_folder_id) {
+            try {
+                $drive->deleteFile($viralPackage->drive_folder_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $clientName = $viralPackage->client?->name ?? 'package';
+        $viralPackage->delete();
+
+        return redirect()
+            ->route('admin.viral-packages.index')
+            ->with('success', "Package for {$clientName} deleted.");
+    }
+
     public function show(ViralPackage $viralPackage): View
     {
         $viralPackage->load([
