@@ -1,6 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">New viral package</x-slot>
-    <x-slot name="title">New viral package</x-slot>
+    <x-slot name="header">Add client to viral package</x-slot>
+    <x-slot name="title">Add client</x-slot>
 
     <div class="p-6 max-w-4xl" x-data="viralPackageForm()">
 
@@ -8,12 +8,12 @@
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            Back to packages
+            Back to viral package
         </a>
 
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-                <h2 class="text-sm font-medium text-gray-100">New viral package</h2>
+                <h2 class="text-sm font-medium text-gray-100">Add client to viral package</h2>
                 <p class="text-xs text-gray-500 mt-0.5">Pick a client. We'll auto-create 7 deliverable slots: 1 Article, 5 Social posts, 1 Reel.</p>
             </div>
 
@@ -105,7 +105,7 @@
 
                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
                     <a href="{{ route('sales.viral-packages.index') }}" class="px-4 py-2 text-sm text-gray-300 hover:bg-ink-700 rounded-lg transition-colors">Cancel</a>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">Create package</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">Add client</button>
                 </div>
             </form>
         </div>

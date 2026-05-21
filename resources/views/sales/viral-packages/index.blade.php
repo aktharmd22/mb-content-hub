@@ -1,12 +1,12 @@
 <x-app-layout>
-    <x-slot name="header">Viral packages</x-slot>
-    <x-slot name="title">Viral packages</x-slot>
+    <x-slot name="header">Viral package</x-slot>
+    <x-slot name="title">Viral package</x-slot>
 
     <div class="p-6">
 
         <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
             <div>
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Viral packages</h2>
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Viral package</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">One package per client. 1 Article · 5 Posts · 1 Reel.</p>
             </div>
             <a href="{{ route('sales.viral-packages.create') }}"
@@ -14,7 +14,7 @@
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                New viral package
+                Add client
             </a>
         </div>
 
@@ -44,8 +44,8 @@
                     <svg class="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">No viral packages yet.</p>
-                    <a href="{{ route('sales.viral-packages.create') }}" class="text-xs text-indigo-400 hover:underline">Create your first one</a>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">No clients added yet.</p>
+                    <a href="{{ route('sales.viral-packages.create') }}" class="text-xs text-indigo-400 hover:underline">Add your first client</a>
                 </div>
             @else
                 <ul class="divide-y divide-gray-100 dark:divide-gray-800">

@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="header">Viral packages</x-slot>
-    <x-slot name="title">Viral packages</x-slot>
+    <x-slot name="header">Viral package</x-slot>
+    <x-slot name="title">Viral package</x-slot>
 
     <div class="p-6">
 
         <div class="mb-6">
-            <h2 class="text-lg font-medium text-gray-100">Viral packages</h2>
+            <h2 class="text-lg font-medium text-gray-100">Viral package</h2>
             <p class="text-sm text-gray-500 mt-0.5">Read-only overview of every package across the business.</p>
         </div>
 
