@@ -69,16 +69,16 @@
 
                     {{-- Empty state --}}
                     <div x-show="assets.length === 0" x-cloak
-                         class="border-2 border-dashed border-ink-700 rounded-xl px-6 py-10 text-center">
-                        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center">
+                         class="border-2 border-dashed border-ink-700 rounded-xl px-8 sm:px-10 py-12 text-center">
+                        <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center">
                             <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                             </svg>
                         </div>
-                        <p class="text-sm text-gray-300 mb-1">No reference assets attached yet</p>
-                        <p class="text-xs text-gray-500 mb-4">Tech team will work better with photos, brand guides, briefs, or links.</p>
+                        <p class="text-sm font-medium text-gray-200 mb-2">No reference assets attached yet</p>
+                        <p class="text-xs text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">Tech team will work better with photos, brand guides, briefs, or links.</p>
                         <button type="button" @click="addAsset()"
-                                class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
+                                class="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
