@@ -62,6 +62,24 @@
             @endif
         </div>
 
+        @if(! $package->drive_folder_id && ! $package->isCompleted())
+            <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6 flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-amber-200">No Drive folder created yet</p>
+                    <p class="text-xs text-amber-100/80 mt-0.5">This package has no Google Drive folder. Uploads will fail until one is created. This usually means admin hasn't configured the "Viral Packages Drive folder ID" in Settings → General.</p>
+                </div>
+                <form method="POST" action="{{ route('sales.viral-packages.retry-drive-setup', $package) }}" class="flex-shrink-0">
+                    @csrf
+                    <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-md transition-colors whitespace-nowrap">
+                        Retry Drive setup
+                    </button>
+                </form>
+            </div>
+        @endif
+
         {{-- Deliverables grid --}}
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
             <h3 class="text-sm font-medium text-gray-100 mb-4">7 deliverables</h3>

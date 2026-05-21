@@ -151,6 +151,29 @@ class ViralPackageController extends Controller
         return back()->with('success', "Correction requested for {$deliverable->title}.");
     }
 
+    public function retryDriveSetup(ViralPackage $viralPackage): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        if ($viralPackage->drive_folder_id) {
+            return back()->with('info', 'Drive folder already exists.');
+        }
+
+        $parentId = \App\Models\Setting::get('drive_folder_viral_packages');
+        if (! $parentId) {
+            return back()->with('error', 'Drive folder ID is not configured. Ask admin to set it in Settings → General.');
+        }
+
+        try {
+            $this->service->retryDriveFolders($viralPackage);
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Could not create Drive folder: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Drive folder created for this package.');
+    }
+
     public function markDelivered(ViralPackage $viralPackage): RedirectResponse
     {
         $this->ensureOwn($viralPackage);

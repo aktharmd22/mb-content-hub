@@ -115,6 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/viral-packages/{viralPackage}/deliverables/{deliverable}/download',    [\App\Http\Controllers\Sales\ViralPackageController::class, 'downloadDeliverable'])->name('viral-packages.deliverables.download');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/approve',    [\App\Http\Controllers\Sales\ViralPackageController::class, 'approveDeliverable'])->name('viral-packages.deliverables.approve');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/correction', [\App\Http\Controllers\Sales\ViralPackageController::class, 'requestCorrection'])->name('viral-packages.deliverables.correction');
+        Route::post('/viral-packages/{viralPackage}/retry-drive-setup',                     [\App\Http\Controllers\Sales\ViralPackageController::class, 'retryDriveSetup'])->name('viral-packages.retry-drive-setup');
         Route::post('/viral-packages/{viralPackage}/mark-delivered',                        [\App\Http\Controllers\Sales\ViralPackageController::class, 'markDelivered'])->name('viral-packages.mark-delivered');
     });
 

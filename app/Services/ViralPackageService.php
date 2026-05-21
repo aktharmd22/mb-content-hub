@@ -411,6 +411,15 @@ class ViralPackageService
         $this->attachAssets($package->fresh(), $assets, $actor);
     }
 
+    /**
+     * Public re-trigger of Drive folder creation for an existing package whose folder
+     * wasn't created the first time (typically because the admin setting was missing).
+     */
+    public function retryDriveFolders(ViralPackage $package): void
+    {
+        $this->ensureDriveFolders($package);
+    }
+
     private function recordHistory(ViralPackageDeliverable $deliverable, ?string $from, string $to, ?User $actor, ?string $notes = null): void
     {
         ViralPackageHistory::create([
