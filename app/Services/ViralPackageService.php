@@ -228,13 +228,25 @@ class ViralPackageService
 
         return DB::transaction(function () use ($deliverable, $reason, $correctionAssets, $actor) {
             $from = $deliverable->stage;
+
+            // 1. Move the rejected deliverable file (if any) into the Corrections folder.
+            //    The original file's drive_file_id is preserved as a ViralPackageAsset so
+            //    tech team can still download the rejected version for reference.
+            $this->archiveRejectedFileToCorrections($deliverable, $actor);
+
+            // 2. Clear the deliverable's file pointer so the slot looks "empty" — tech
+            //    will upload a fresh corrected version which goes back to Deliverables/.
             $deliverable->update([
-                'stage' => 'in_progress',
-                'notes' => $reason,
+                'stage'          => 'in_progress',
+                'notes'          => $reason,
+                'drive_file_id'  => null,
+                'drive_filename' => null,
+                'mime_type'      => null,
+                'file_size'      => null,
             ]);
             $this->recordHistory($deliverable, $from, 'in_progress', $actor, "Correction requested: {$reason}");
 
-            // Optional correction assets — saved to Correction needed/{deliverable title}/
+            // 3. Save any reference files/links sales attached, also into Corrections/
             if (! empty($correctionAssets)) {
                 $this->attachCorrectionAssets($deliverable, $correctionAssets, $actor);
             }
@@ -243,6 +255,53 @@ class ViralPackageService
 
             return $deliverable->fresh();
         });
+    }
+
+    /**
+     * Move the deliverable's current Drive file into the package's Corrections/{title}/
+     * folder, and create a ViralPackageAsset record so it remains visible/downloadable.
+     */
+    private function archiveRejectedFileToCorrections(ViralPackageDeliverable $deliverable, User $actor): void
+    {
+        if (! $deliverable->drive_file_id) {
+            return;
+        }
+
+        $package = $deliverable->package;
+        $this->ensureDriveFolders($package);
+        $package->refresh();
+
+        if (! $package->drive_corrections_folder_id) {
+            return; // Drive not configured — leave the file where it is
+        }
+
+        // Create (or reuse — Drive allows duplicate folder names, but in practice we get one per round) subfolder per deliverable
+        $correctionFolderId = null;
+        try {
+            $correctionFolderId = $this->drive->createFolder($deliverable->title, $package->drive_corrections_folder_id);
+        } catch (\Throwable $e) {
+            report($e);
+            return;
+        }
+
+        try {
+            $this->drive->moveFile($deliverable->drive_file_id, $correctionFolderId);
+        } catch (\Throwable $e) {
+            report($e);
+            return;
+        }
+
+        // Record as a viral package asset so tech can download / preview the rejected version.
+        ViralPackageAsset::create([
+            'viral_package_id'  => $package->id,
+            'type'              => 'file',
+            'name'              => 'Rejected: ' . $deliverable->title . ' (' . now()->format('M j, H:i') . ')',
+            'drive_file_id'     => $deliverable->drive_file_id,
+            'original_filename' => $deliverable->drive_filename,
+            'mime_type'         => $deliverable->mime_type,
+            'file_size'         => $deliverable->file_size,
+            'created_by'        => $actor->id,
+        ]);
     }
 
     /**
