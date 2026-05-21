@@ -24,7 +24,7 @@ class ViralPackageService
      * Create a new viral package for a client, auto-seeding the 7 deliverable slots
      * (1 article + 5 social posts + 1 reel) and attaching any reference assets.
      */
-    public function createPackage(int $clientId, array $assets = [], ?User $actor = null): ViralPackage
+    public function createPackage(int $clientId, int $techTeamId, array $assets = [], ?User $actor = null): ViralPackage
     {
         $actor ??= Auth::user();
 
@@ -34,11 +34,21 @@ class ViralPackageService
 
         $client = Client::findOrFail($clientId);
 
-        return DB::transaction(function () use ($client, $actor, $assets) {
+        // Verify the assigned tech is actually a tech_team member
+        $techMember = User::where('id', $techTeamId)
+            ->where('role', 'tech_team')
+            ->where('is_active', true)
+            ->first();
+        if (! $techMember) {
+            throw new WorkflowException('Selected tech team member is not valid.');
+        }
+
+        return DB::transaction(function () use ($client, $techMember, $actor, $assets) {
             // 1. Create the package row
             $package = ViralPackage::create([
                 'client_id'    => $client->id,
                 'sales_rep_id' => $actor->id,
+                'tech_team_id' => $techMember->id,
                 'status'       => 'active',
             ]);
 
@@ -53,11 +63,35 @@ class ViralPackageService
                 $this->attachAssets($package, $assets, $actor);
             }
 
-            // 5. Fire event for tech team notification
+            // 5. Fire event for tech team notification (only the assigned person gets pinged)
             event(new ViralPackageEvent($package, 'created', $actor));
 
-            return $package->fresh(['deliverables', 'assets', 'client']);
+            return $package->fresh(['deliverables', 'assets', 'client', 'techTeam']);
         });
+    }
+
+    /**
+     * Reassign a package to a different tech team member.
+     */
+    public function reassignTechTeam(ViralPackage $package, int $newTechTeamId, ?User $actor = null): ViralPackage
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['sales', 'admin'], 'reassign a viral package');
+
+        if ($actor->role === 'sales' && $package->sales_rep_id !== $actor->id) {
+            throw WorkflowException::notAuthorized($actor, 'reassign this package');
+        }
+
+        $newTech = User::where('id', $newTechTeamId)
+            ->where('role', 'tech_team')
+            ->where('is_active', true)
+            ->first();
+        if (! $newTech) {
+            throw new WorkflowException('Selected tech team member is not valid.');
+        }
+
+        $package->update(['tech_team_id' => $newTech->id]);
+        return $package->fresh();
     }
 
     /**

@@ -26,8 +26,11 @@ class SendViralPackageNotifications
 
     private function onCreated($package): void
     {
-        $techTeam = User::where('role', 'tech_team')->where('is_active', true)->get();
-        Notification::send($techTeam, new ViralPackageNotification($package, 'created'));
+        // Notify only the assigned tech team member, not the entire team
+        $tech = $package->techTeam;
+        if ($tech) {
+            $tech->notify(new ViralPackageNotification($package, 'created'));
+        }
     }
 
     private function onDeliverableSubmitted($package, ?int $deliverableId): void
@@ -42,8 +45,11 @@ class SendViralPackageNotifications
     private function onCorrectionRequested($package, ?int $deliverableId): void
     {
         $deliverable = $deliverableId ? ViralPackageDeliverable::find($deliverableId) : null;
-        $techTeam = User::where('role', 'tech_team')->where('is_active', true)->get();
-        Notification::send($techTeam, new ViralPackageNotification($package, 'correction_requested', $deliverable));
+        // Notify only the assigned tech team member
+        $tech = $package->techTeam;
+        if ($tech) {
+            $tech->notify(new ViralPackageNotification($package, 'correction_requested', $deliverable));
+        }
     }
 
     private function onAllApproved($package): void
@@ -56,8 +62,8 @@ class SendViralPackageNotifications
 
     private function onCompleted($package): void
     {
-        $recipients = collect([$package->salesRep])
-            ->merge(User::where('role', 'tech_team')->where('is_active', true)->get())
+        // Notify sales rep + the assigned tech team member only
+        $recipients = collect([$package->salesRep, $package->techTeam])
             ->filter()
             ->unique('id');
 

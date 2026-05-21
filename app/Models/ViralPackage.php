@@ -14,6 +14,7 @@ class ViralPackage extends Model
     protected $fillable = [
         'client_id',
         'sales_rep_id',
+        'tech_team_id',
         'status',
         'drive_folder_id',
         'drive_folder_name',
@@ -38,6 +39,11 @@ class ViralPackage extends Model
     public function salesRep(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sales_rep_id');
+    }
+
+    public function techTeam(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'tech_team_id');
     }
 
     public function assets(): HasMany

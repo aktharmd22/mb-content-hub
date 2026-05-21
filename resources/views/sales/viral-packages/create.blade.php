@@ -20,19 +20,36 @@
             <form method="POST" action="{{ route('sales.viral-packages.store') }}" enctype="multipart/form-data" class="px-6 py-5 space-y-5">
                 @csrf
 
-                <div>
-                    <label for="client_id" class="block text-xs font-medium text-gray-300 mb-1.5">
-                        Client <span class="text-rose-500">*</span>
-                    </label>
-                    <select id="client_id" name="client_id" required
-                            class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">— Select an existing client —</option>
-                        @foreach($clients as $c)
-                            <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->name }}{{ $c->company ? " — {$c->company}" : '' }}</option>
-                        @endforeach
-                    </select>
-                    @error('client_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
-                    <p class="mt-1 text-xs text-gray-500">Need a new client? Add them in <a href="{{ route('sales.clients.create') }}" class="text-indigo-400 hover:underline">Clients</a> first.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="client_id" class="block text-xs font-medium text-gray-300 mb-1.5">
+                            Client <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="client_id" name="client_id" required
+                                class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">— Select an existing client —</option>
+                            @foreach($clients as $c)
+                                <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->name }}{{ $c->company ? " — {$c->company}" : '' }}</option>
+                            @endforeach
+                        </select>
+                        @error('client_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
+                        <p class="mt-1 text-xs text-gray-500">Need a new client? <a href="{{ route('sales.clients.create') }}" class="text-indigo-400 hover:underline">Add in Clients</a> first.</p>
+                    </div>
+
+                    <div>
+                        <label for="tech_team_id" class="block text-xs font-medium text-gray-300 mb-1.5">
+                            Assign to tech team member <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="tech_team_id" name="tech_team_id" required
+                                class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">— Select a team member —</option>
+                            @foreach($techTeam as $t)
+                                <option value="{{ $t->id }}" @selected(old('tech_team_id') == $t->id)>{{ $t->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('tech_team_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
+                        <p class="mt-1 text-xs text-gray-500">Only this person will see and work on this package.</p>
+                    </div>
                 </div>
 
                 <div class="pt-5 border-t border-gray-100 dark:border-gray-800">

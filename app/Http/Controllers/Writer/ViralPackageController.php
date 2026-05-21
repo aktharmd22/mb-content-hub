@@ -21,10 +21,11 @@ class ViralPackageController extends Controller
 
     public function index(Request $request): View
     {
-        // Show packages with at least one non-approved deliverable (i.e. something to work on).
+        // Show only packages assigned to this tech team member (admins see all).
         $packages = ViralPackage::query()
-            ->with(['client', 'salesRep', 'deliverables'])
+            ->with(['client', 'salesRep', 'techTeam', 'deliverables'])
             ->where('status', 'active')
+            ->when(! auth()->user()->isAdmin(), fn ($q) => $q->where('tech_team_id', auth()->id()))
             ->whereHas('deliverables', fn ($q) => $q->whereIn('stage', ['pending', 'in_progress']))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = trim((string) $request->get('q'));
@@ -39,9 +40,12 @@ class ViralPackageController extends Controller
 
     public function show(ViralPackage $viralPackage): View
     {
+        $this->ensureAssigned($viralPackage);
+
         $viralPackage->load([
             'client',
             'salesRep',
+            'techTeam',
             'assets.creator',
             'deliverables.assignee',
             'deliverables.history.changedBy',
@@ -52,6 +56,7 @@ class ViralPackageController extends Controller
 
     public function pickUp(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
+        $this->ensureAssigned($viralPackage);
         $this->ensureBelongs($deliverable, $viralPackage);
 
         try {
@@ -65,6 +70,7 @@ class ViralPackageController extends Controller
 
     public function submit(Request $request, ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
+        $this->ensureAssigned($viralPackage);
         $this->ensureBelongs($deliverable, $viralPackage);
 
         $validated = $request->validate([
@@ -86,6 +92,8 @@ class ViralPackageController extends Controller
 
     public function downloadAsset(ViralPackage $viralPackage, ViralPackageAsset $asset, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
     {
+        $this->ensureAssigned($viralPackage);
+
         if ($asset->viral_package_id !== $viralPackage->id) {
             abort(404);
         }
@@ -109,11 +117,13 @@ class ViralPackageController extends Controller
 
     public function downloadAllAssets(ViralPackage $viralPackage, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
     {
+        $this->ensureAssigned($viralPackage);
         return $this->buildAssetsZip($viralPackage, $drive);
     }
 
     public function downloadDeliverable(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
     {
+        $this->ensureAssigned($viralPackage);
         $this->ensureBelongs($deliverable, $viralPackage);
 
         if (! $deliverable->drive_file_id) {
@@ -135,6 +145,15 @@ class ViralPackageController extends Controller
     {
         if ($deliverable->viral_package_id !== $package->id) {
             abort(404);
+        }
+    }
+
+    private function ensureAssigned(ViralPackage $package): void
+    {
+        $user = auth()->user();
+        if ($user->isAdmin()) return;
+        if ($package->tech_team_id !== $user->id) {
+            throw new \Illuminate\Auth\Access\AuthorizationException('This package is not assigned to you.');
         }
     }
 

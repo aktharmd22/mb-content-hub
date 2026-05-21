@@ -33,6 +33,50 @@
                 </div>
             </div>
 
+            {{-- Tech team assignment row --}}
+            @if(! $package->isCompleted())
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3 flex-wrap"
+                     x-data="{ reassignOpen: false }">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-7 h-7 bg-indigo-500/15 text-indigo-300 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                            {{ strtoupper(substr($package->techTeam?->name ?? '?', 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Assigned tech team</p>
+                            <p class="text-sm font-medium text-gray-100">{{ $package->techTeam?->name ?? 'Unassigned' }}</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="reassignOpen = !reassignOpen"
+                            class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Reassign</button>
+
+                    <form x-show="reassignOpen" x-cloak method="POST" action="{{ route('sales.viral-packages.reassign', $package) }}"
+                          class="w-full flex items-center gap-2 mt-2">
+                        @csrf
+                        <select name="tech_team_id" required
+                                class="flex-1 px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100">
+                            <option value="">— Pick a team member —</option>
+                            @foreach($techTeam as $t)
+                                <option value="{{ $t->id }}" @selected($package->tech_team_id === $t->id)>{{ $t->name }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg">Save</button>
+                        <button type="button" @click="reassignOpen = false" class="px-3 py-2 text-sm text-gray-400 hover:text-gray-200">Cancel</button>
+                    </form>
+                </div>
+            @else
+                @if($package->techTeam)
+                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2">
+                        <div class="w-7 h-7 bg-indigo-500/15 text-indigo-300 rounded-full flex items-center justify-center text-xs font-semibold">
+                            {{ strtoupper(substr($package->techTeam->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Delivered by</p>
+                            <p class="text-sm font-medium text-gray-100">{{ $package->techTeam->name }}</p>
+                        </div>
+                    </div>
+                @endif
+            @endif
+
             @if($package->canBeMarkedDelivered())
                 <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3 flex-wrap">
                     <div class="flex items-center gap-2 text-sm text-emerald-300">

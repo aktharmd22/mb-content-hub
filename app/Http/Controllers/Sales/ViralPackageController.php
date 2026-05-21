@@ -40,14 +40,19 @@ class ViralPackageController extends Controller
 
     public function create(): View
     {
-        $clients = Client::orderBy('name')->get();
-        return view('sales.viral-packages.create', compact('clients'));
+        $clients  = Client::orderBy('name')->get();
+        $techTeam = \App\Models\User::where('role', 'tech_team')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        return view('sales.viral-packages.create', compact('clients', 'techTeam'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'client_id'         => ['required', 'integer', 'exists:clients,id'],
+            'tech_team_id'      => ['required', 'integer', 'exists:users,id'],
             'assets'            => ['nullable', 'array'],
             'assets.*.type'     => ['nullable', 'in:file,link'],
             'assets.*.name'     => ['nullable', 'string', 'max:255'],
@@ -58,7 +63,11 @@ class ViralPackageController extends Controller
         $assets = $this->buildAssetsPayload($request);
 
         try {
-            $package = $this->service->createPackage((int) $validated['client_id'], $assets);
+            $package = $this->service->createPackage(
+                (int) $validated['client_id'],
+                (int) $validated['tech_team_id'],
+                $assets
+            );
         } catch (DriveException|WorkflowException $e) {
             return back()->withInput()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
@@ -68,7 +77,24 @@ class ViralPackageController extends Controller
 
         return redirect()
             ->route('sales.viral-packages.show', $package)
-            ->with('success', "Viral package created for {$package->client->name}.");
+            ->with('success', "Viral package created for {$package->client->name} (assigned to {$package->techTeam?->name}).");
+    }
+
+    public function reassign(Request $request, ViralPackage $viralPackage): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        $validated = $request->validate([
+            'tech_team_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        try {
+            $this->service->reassignTechTeam($viralPackage, (int) $validated['tech_team_id']);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Tech team member reassigned.');
     }
 
     public function show(ViralPackage $viralPackage): View
@@ -78,12 +104,18 @@ class ViralPackageController extends Controller
         $viralPackage->load([
             'client',
             'salesRep',
+            'techTeam',
             'assets.creator',
             'deliverables.assignee',
             'deliverables.history.changedBy',
         ]);
 
-        return view('sales.viral-packages.show', ['package' => $viralPackage]);
+        $techTeam = \App\Models\User::where('role', 'tech_team')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('sales.viral-packages.show', ['package' => $viralPackage, 'techTeam' => $techTeam]);
     }
 
     public function addAssets(Request $request, ViralPackage $viralPackage): RedirectResponse
