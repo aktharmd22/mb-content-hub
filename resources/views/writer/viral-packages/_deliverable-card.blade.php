@@ -18,7 +18,7 @@
 @endphp
 
 <div class="bg-ink-850 border border-ink-700 rounded-xl p-5 transition-colors hover:border-ink-600"
-     x-data="{ uploadOpen: false, fileName: '', fileSize: '' }">
+     x-data="{ uploadOpen: false, fileName: '', fileSize: '', historyOpen: false }">
 
     {{-- Title row --}}
     <div class="flex items-start justify-between gap-3 mb-4">
@@ -123,6 +123,39 @@
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium rounded-lg">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             Approved by sales
+        </div>
+    @endif
+
+    {{-- Review history (collapsible) --}}
+    @if($d->history->isNotEmpty())
+        <div class="mt-3 pt-3 border-t border-ink-700">
+            <button type="button" @click="historyOpen = !historyOpen"
+                    class="flex items-center justify-between w-full text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Review history ({{ $d->history->count() }})
+                </span>
+                <svg :class="historyOpen ? 'rotate-180' : ''" class="w-3 h-3 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <ol x-show="historyOpen" x-cloak class="mt-3 space-y-3">
+                @foreach($d->history->sortByDesc('changed_at') as $h)
+                    <li class="flex gap-2.5">
+                        <div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0
+                            {{ $h->to_stage === 'approved' ? 'bg-emerald-500' : ($h->to_stage === 'review' ? 'bg-amber-500' : ($h->to_stage === 'in_progress' ? 'bg-indigo-500' : 'bg-gray-500')) }}"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-300">
+                                <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $h->to_stage)) }}</span>
+                                <span class="text-gray-500">·</span>
+                                <span class="text-gray-500">{{ $h->changedBy?->name ?? 'system' }}</span>
+                            </p>
+                            <p class="text-[10px] text-gray-500">{{ $h->changed_at->diffForHumans() }}</p>
+                            @if($h->notes)
+                                <p class="text-xs text-gray-400 mt-1 italic">"{{ $h->notes }}"</p>
+                            @endif
+                        </div>
+                    </li>
+                @endforeach
+            </ol>
         </div>
     @endif
 </div>

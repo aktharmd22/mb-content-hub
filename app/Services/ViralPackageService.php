@@ -313,6 +313,11 @@ class ViralPackageService
                 $package->update(['drive_reel_folder_id' => $this->drive->createFolder('Reel', $deliverablesFolderId)]);
             }
 
+            // Corrections folder (top-level inside package folder)
+            if (! $package->drive_corrections_folder_id) {
+                $package->update(['drive_corrections_folder_id' => $this->drive->createFolder('Corrections', $packageFolderId)]);
+            }
+
             $package->refresh();
         } catch (\Throwable $e) {
             report($e);
@@ -402,17 +407,20 @@ class ViralPackageService
         }
 
         $package = $deliverable->package;
-        $parentFolderId = $package->drive_folder_id;
-        if (! $parentFolderId) {
-            return;
-        }
 
-        // Create or reuse "Correction needed" subfolder
+        // Ensure top-level Drive folders exist (including the "Corrections" parent folder)
+        $this->ensureDriveFolders($package);
+        $package->refresh();
+
+        // Inside the Corrections folder, create a subfolder per deliverable.
+        // Reused on subsequent correction rounds — they all land in the same place.
         $correctionFolderId = null;
-        try {
-            $correctionFolderId = $this->drive->createFolder('Correction needed - ' . $deliverable->title, $parentFolderId);
-        } catch (\Throwable $e) {
-            report($e);
+        if ($package->drive_corrections_folder_id) {
+            try {
+                $correctionFolderId = $this->drive->createFolder($deliverable->title, $package->drive_corrections_folder_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         foreach ($assets as $asset) {

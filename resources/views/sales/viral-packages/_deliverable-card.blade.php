@@ -61,10 +61,38 @@
         </div>
 
         <form x-show="correctionOpen" x-cloak method="POST" action="{{ route('sales.viral-packages.deliverables.correction', ['viralPackage' => $package, 'deliverable' => $d]) }}"
-              enctype="multipart/form-data" class="mt-3 space-y-2">
+              enctype="multipart/form-data"
+              x-data="{ corrFile: '', corrFileSize: '' }"
+              class="mt-3 space-y-2">
             @csrf
             <textarea name="reason" required rows="3" maxlength="1000" placeholder="What needs to change?"
                       class="w-full px-3 py-2 text-xs bg-ink-800 border border-ink-600 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"></textarea>
+
+            <div>
+                <label :for="`corr-file-{{ $d->id }}`"
+                       :class="corrFile ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-600 hover:border-amber-500/60 hover:bg-amber-500/5'"
+                       class="flex items-center gap-2 px-3 py-2 border-2 border-dashed rounded-md cursor-pointer transition-colors">
+                    <svg x-show="!corrFile" class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                    </svg>
+                    <svg x-show="corrFile" x-cloak class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                        <p x-show="!corrFile" class="text-[11px] text-gray-400">Attach reference file (optional)</p>
+                        <p x-show="corrFile" x-cloak class="text-[11px] text-gray-100 truncate" x-text="corrFile"></p>
+                        <p x-show="corrFile" x-cloak class="text-[10px] text-gray-500" x-text="corrFileSize"></p>
+                    </div>
+                    <span x-show="corrFile" x-cloak class="text-[10px] text-rose-400 hover:text-rose-300 cursor-pointer"
+                          @click.prevent.stop="corrFile = ''; corrFileSize = ''; document.getElementById('corr-file-{{ $d->id }}').value = '';">×</span>
+                </label>
+                <input type="file" id="corr-file-{{ $d->id }}"
+                       name="correction_assets[0][file]"
+                       @change="if ($event.target.files[0]) { corrFile = $event.target.files[0].name; corrFileSize = ($event.target.files[0].size/1024/1024).toFixed(2) + ' MB'; }"
+                       class="hidden"/>
+                <input type="hidden" name="correction_assets[0][type]" value="file"/>
+            </div>
+
             <div class="flex justify-end gap-2">
                 <button type="button" @click="correctionOpen = false" class="text-xs text-gray-500 hover:text-gray-300">Cancel</button>
                 <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-md">Send for correction</button>

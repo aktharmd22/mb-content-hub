@@ -22,6 +22,7 @@ class ViralPackage extends Model
         'drive_article_folder_id',
         'drive_posts_folder_id',
         'drive_reel_folder_id',
+        'drive_corrections_folder_id',
         'completed_at',
     ];
 
