@@ -100,20 +100,31 @@
                 handleAssetFile = (i, f) => { if (!f) return; assets[i].fileName = f.name; assets[i].fileSize = (f.size/1024/1024).toFixed(2) + ' MB'; };
                 clearAssetFile = (i) => { assets[i].fileName = ''; assets[i].fileSize = ''; };
              ">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
                 <div>
                     <h3 class="text-sm font-medium text-gray-100">Reference assets</h3>
                     <p class="text-xs text-gray-500 mt-0.5">{{ $package->assets->count() }} {{ Str::plural('item', $package->assets->count()) }} attached</p>
                 </div>
-                @if(! $package->isCompleted())
-                    <button type="button" @click="addOpen = !addOpen; if (addOpen && assets.length === 0) addAsset();"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Add more
-                    </button>
-                @endif
+                <div class="flex items-center gap-2">
+                    @if($package->assets->isNotEmpty())
+                        <a href="{{ route('sales.viral-packages.assets.download-all', $package) }}"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ink-800 hover:bg-ink-700 text-gray-300 text-xs font-medium rounded-lg transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download all (zip)
+                        </a>
+                    @endif
+                    @if(! $package->isCompleted())
+                        <button type="button" @click="addOpen = !addOpen; if (addOpen && assets.length === 0) addAsset();"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add more
+                        </button>
+                    @endif
+                </div>
             </div>
 
             {{-- Add-more form --}}

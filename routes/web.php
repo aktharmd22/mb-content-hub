@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/viral-packages/{viralPackage}',                                        [\App\Http\Controllers\Sales\ViralPackageController::class, 'show'])->name('viral-packages.show');
         Route::delete('/viral-packages/{viralPackage}',                                     [\App\Http\Controllers\Sales\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
         Route::post('/viral-packages/{viralPackage}/assets',                                [\App\Http\Controllers\Sales\ViralPackageController::class, 'addAssets'])->name('viral-packages.assets.store');
+        Route::get('/viral-packages/{viralPackage}/assets-zip',                             [\App\Http\Controllers\Sales\ViralPackageController::class, 'downloadAllAssets'])->name('viral-packages.assets.download-all');
         Route::get('/viral-packages/{viralPackage}/assets/{asset}',                         [\App\Http\Controllers\Sales\ViralPackageController::class, 'downloadAsset'])->name('viral-packages.assets.download');
         Route::get('/viral-packages/{viralPackage}/deliverables/{deliverable}/download',    [\App\Http\Controllers\Sales\ViralPackageController::class, 'downloadDeliverable'])->name('viral-packages.deliverables.download');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/approve',    [\App\Http\Controllers\Sales\ViralPackageController::class, 'approveDeliverable'])->name('viral-packages.deliverables.approve');
@@ -139,6 +140,7 @@ Route::middleware('auth')->group(function () {
         // Viral Packages
         Route::get('/viral-packages',                                                    [\App\Http\Controllers\Writer\ViralPackageController::class, 'index'])->name('viral-packages.index');
         Route::get('/viral-packages/{viralPackage}',                                     [\App\Http\Controllers\Writer\ViralPackageController::class, 'show'])->name('viral-packages.show');
+        Route::get('/viral-packages/{viralPackage}/assets-zip',                          [\App\Http\Controllers\Writer\ViralPackageController::class, 'downloadAllAssets'])->name('viral-packages.assets.download-all');
         Route::get('/viral-packages/{viralPackage}/assets/{asset}',                      [\App\Http\Controllers\Writer\ViralPackageController::class, 'downloadAsset'])->name('viral-packages.assets.download');
         Route::get('/viral-packages/{viralPackage}/deliverables/{deliverable}/download', [\App\Http\Controllers\Writer\ViralPackageController::class, 'downloadDeliverable'])->name('viral-packages.deliverables.download');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/pick-up', [\App\Http\Controllers\Writer\ViralPackageController::class, 'pickUp'])->name('viral-packages.deliverables.pick-up');

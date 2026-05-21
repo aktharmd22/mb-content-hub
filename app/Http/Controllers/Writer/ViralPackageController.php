@@ -107,6 +107,11 @@ class ViralPackageController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend();
     }
 
+    public function downloadAllAssets(ViralPackage $viralPackage, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
+    {
+        return $this->buildAssetsZip($viralPackage, $drive);
+    }
+
     public function downloadDeliverable(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
     {
         $this->ensureBelongs($deliverable, $viralPackage);
@@ -131,5 +136,67 @@ class ViralPackageController extends Controller
         if ($deliverable->viral_package_id !== $package->id) {
             abort(404);
         }
+    }
+
+    private function buildAssetsZip(ViralPackage $package, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
+    {
+        $fileAssets = $package->assets->where('type', 'file')->filter(fn ($a) => ! empty($a->drive_file_id));
+        $linkAssets = $package->assets->where('type', 'link');
+
+        if ($fileAssets->isEmpty() && $linkAssets->isEmpty()) {
+            return back()->with('error', 'No assets to download.');
+        }
+
+        $zipPath = tempnam(sys_get_temp_dir(), 'viral_assets_') . '.zip';
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            @unlink($zipPath);
+            return back()->with('error', 'Could not create zip file.');
+        }
+
+        $tempFiles = [];
+        $usedNames = [];
+
+        foreach ($fileAssets as $asset) {
+            $tempPath = tempnam(sys_get_temp_dir(), 'asset_');
+            try {
+                $drive->downloadFile($asset->drive_file_id, $tempPath);
+                $name = $asset->original_filename ?: ($asset->name ?: 'asset_' . $asset->id);
+                // Handle duplicate filenames by appending (1), (2), etc.
+                $baseName = pathinfo($name, PATHINFO_FILENAME);
+                $ext      = pathinfo($name, PATHINFO_EXTENSION);
+                $finalName = $name;
+                $counter   = 1;
+                while (in_array($finalName, $usedNames, true)) {
+                    $finalName = $baseName . ' (' . $counter . ')' . ($ext ? '.' . $ext : '');
+                    $counter++;
+                }
+                $usedNames[] = $finalName;
+                $zip->addFile($tempPath, $finalName);
+                $tempFiles[] = $tempPath;
+            } catch (\Throwable $e) {
+                report($e);
+                @unlink($tempPath);
+            }
+        }
+
+        if ($linkAssets->isNotEmpty()) {
+            $linksContent = "Reference links\n===============\n\n";
+            foreach ($linkAssets as $link) {
+                $linksContent .= ($link->name ?: 'Link') . ': ' . $link->url . "\n";
+            }
+            $zip->addFromString('Links.txt', $linksContent);
+        }
+
+        $zip->close();
+
+        foreach ($tempFiles as $tf) {
+            @unlink($tf);
+        }
+
+        $clientName   = $package->client?->name ?? 'package';
+        $downloadName = preg_replace('/[^A-Za-z0-9 _-]/', '_', $clientName) . ' assets.zip';
+
+        return response()->download($zipPath, $downloadName)->deleteFileAfterSend();
     }
 }
