@@ -52,14 +52,14 @@
                     </div>
                 </div>
 
-                <div class="pt-5 border-t border-gray-100 dark:border-gray-800">
-                    <div class="flex items-center justify-between mb-2">
+                <div class="pt-6 mt-2 border-t border-gray-100 dark:border-gray-800">
+                    <div class="flex items-start justify-between gap-3 mb-5">
                         <div>
                             <h3 class="text-sm font-medium text-gray-100">Reference assets <span class="text-gray-500 font-normal text-xs">(optional)</span></h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Photos, brand guide, brief — anything tech needs. Saved in the package's "Reference Assets" Drive folder.</p>
+                            <p class="text-xs text-gray-500 mt-1 leading-relaxed">Photos, brand guide, brief — anything tech needs. Saved in the package's "Reference Assets" Drive folder.</p>
                         </div>
                         <button type="button" x-show="assets.length > 0" @click="addAsset()"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -212,9 +212,9 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <div class="flex items-center justify-end gap-2 pt-6 mt-4 border-t border-gray-100 dark:border-gray-800">
                     <a href="{{ route('sales.viral-packages.index') }}" class="px-4 py-2 text-sm text-gray-300 hover:bg-ink-700 rounded-lg transition-colors">Cancel</a>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">Add client</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">Add client</button>
                 </div>
             </form>
         </div>
