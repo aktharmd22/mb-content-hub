@@ -95,10 +95,9 @@ class ViralPackageService
             throw new WorkflowException("This deliverable can't be submitted from '{$deliverable->stage}' stage.");
         }
 
-        $package = $deliverable->package;
-        $deliverablesFolderId = $this->ensureDeliverablesFolder($package);
+        $targetFolderId = $this->folderForDeliverable($deliverable);
 
-        if (! $deliverablesFolderId) {
+        if (! $targetFolderId) {
             throw new DriveException('Could not access the Drive folder for this package.');
         }
 
@@ -114,7 +113,7 @@ class ViralPackageService
         $filename = $deliverable->title . '.' . $file->getClientOriginalExtension();
 
         try {
-            $driveFileId = $this->drive->uploadFile($file->getRealPath(), $deliverablesFolderId, $filename);
+            $driveFileId = $this->drive->uploadFile($file->getRealPath(), $targetFolderId, $filename);
         } catch (\Throwable $e) {
             report($e);
             throw new DriveException('Upload failed: ' . $e->getMessage());
@@ -266,9 +265,9 @@ class ViralPackageService
     }
 
     /**
-     * Create the package's Drive folder + Assets/Deliverables subfolders.
-     * Best effort — won't throw if Drive isn't configured, since the package
-     * can still function (file uploads will just be skipped).
+     * Create the package's Drive folder + Assets / Deliverables subfolders,
+     * and inside Deliverables also create Article / Social Posts / Reel subfolders
+     * so each kind has its own home. Best-effort — won't throw if Drive misconfigured.
      */
     private function ensureDriveFolders(ViralPackage $package): void
     {
@@ -278,22 +277,68 @@ class ViralPackageService
         }
 
         $package->loadMissing('client');
-        $folderName = $package->client->name . ' — ' . now()->format('Y-m-d');
 
         try {
-            $packageFolderId = $this->drive->createFolder($folderName, $parentId);
-            $assetsFolderId  = $this->drive->createFolder('Reference Assets', $packageFolderId);
-            $deliverablesFolderId = $this->drive->createFolder('Deliverables', $packageFolderId);
+            // Top-level package folder
+            $packageFolderId = $package->drive_folder_id;
+            if (! $packageFolderId) {
+                $folderName = $package->client->name . ' — ' . now()->format('Y-m-d');
+                $packageFolderId = $this->drive->createFolder($folderName, $parentId);
+                $package->update([
+                    'drive_folder_id'   => $packageFolderId,
+                    'drive_folder_name' => $folderName,
+                ]);
+            }
 
-            $package->update([
-                'drive_folder_id'              => $packageFolderId,
-                'drive_folder_name'            => $folderName,
-                'drive_assets_folder_id'       => $assetsFolderId,
-                'drive_deliverables_folder_id' => $deliverablesFolderId,
-            ]);
+            // Reference Assets
+            if (! $package->drive_assets_folder_id) {
+                $package->update(['drive_assets_folder_id' => $this->drive->createFolder('Reference Assets', $packageFolderId)]);
+            }
+
+            // Deliverables (parent for the 3 kind subfolders)
+            $deliverablesFolderId = $package->drive_deliverables_folder_id;
+            if (! $deliverablesFolderId) {
+                $deliverablesFolderId = $this->drive->createFolder('Deliverables', $packageFolderId);
+                $package->update(['drive_deliverables_folder_id' => $deliverablesFolderId]);
+            }
+
+            // Per-kind subfolders inside Deliverables
+            if (! $package->drive_article_folder_id) {
+                $package->update(['drive_article_folder_id' => $this->drive->createFolder('Article', $deliverablesFolderId)]);
+            }
+            if (! $package->drive_posts_folder_id) {
+                $package->update(['drive_posts_folder_id' => $this->drive->createFolder('Social Posts', $deliverablesFolderId)]);
+            }
+            if (! $package->drive_reel_folder_id) {
+                $package->update(['drive_reel_folder_id' => $this->drive->createFolder('Reel', $deliverablesFolderId)]);
+            }
+
+            $package->refresh();
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    /**
+     * Return the Drive folder ID where this deliverable's file should be uploaded.
+     * Routes to the kind-specific subfolder (Article / Social Posts / Reel).
+     * Falls back to the generic Deliverables folder if kind subfolders aren't set up yet.
+     */
+    private function folderForDeliverable(ViralPackageDeliverable $deliverable): ?string
+    {
+        $package = $deliverable->package;
+        // Make sure all kind subfolders exist (lazy creation if missing)
+        if (! $package->drive_article_folder_id || ! $package->drive_posts_folder_id || ! $package->drive_reel_folder_id) {
+            $this->ensureDriveFolders($package);
+            $package->refresh();
+        }
+
+        return match ($deliverable->kind) {
+            'article'     => $package->drive_article_folder_id ?: $package->drive_deliverables_folder_id,
+            'social_post' => $package->drive_posts_folder_id   ?: $package->drive_deliverables_folder_id,
+            'reel'        => $package->drive_reel_folder_id    ?: $package->drive_deliverables_folder_id,
+            default       => $package->drive_deliverables_folder_id,
+        };
     }
 
     private function ensureDeliverablesFolder(ViralPackage $package): ?string
@@ -301,7 +346,6 @@ class ViralPackageService
         if ($package->drive_deliverables_folder_id) {
             return $package->drive_deliverables_folder_id;
         }
-        // Try to create on demand if it's missing
         $this->ensureDriveFolders($package);
         return $package->fresh()->drive_deliverables_folder_id;
     }
