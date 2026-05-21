@@ -104,7 +104,7 @@
         @if($article)
             <section class="mb-8">
                 <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Article</h3>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @include('writer.viral-packages._deliverable-card', ['package' => $package, 'd' => $article])
                 </div>
             </section>
@@ -124,7 +124,7 @@
         @if($reel)
             <section class="mb-8">
                 <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Reel</h3>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @include('writer.viral-packages._deliverable-card', ['package' => $package, 'd' => $reel])
                 </div>
             </section>
