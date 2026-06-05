@@ -43,9 +43,24 @@ class ArticleController extends Controller
         return view('admin.articles.index', compact('articles', 'stages', 'clients', 'salesReps', 'writers'));
     }
 
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request): \Symfony\Component\HttpFoundation\Response
     {
-        $articles = Article::with(['client', 'salesRep', 'techWriter', 'techLead'])
+        $format = $request->get('format', 'csv');
+
+        $articles = $this->buildExportQuery($request)->get();
+
+        $title = $this->buildExportTitle($request);
+
+        return match ($format) {
+            'xlsx', 'excel' => $this->exportExcel($articles, $title),
+            'pdf'           => $this->exportPdf($articles, $title),
+            default         => $this->exportCsv($articles, $title),
+        };
+    }
+
+    private function buildExportQuery(Request $request)
+    {
+        return Article::with(['client', 'salesRep', 'techWriter', 'techLead', 'articleType'])
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = trim((string) $request->get('q'));
                 $q->where(function ($w) use ($term) {
@@ -59,40 +74,96 @@ class ArticleController extends Controller
             ->when($request->filled('tech_writer_id'), fn ($q) => $q->where('tech_writer_id', $request->get('tech_writer_id')))
             ->when($request->filled('from'), fn ($q) => $q->where('submitted_at', '>=', $request->get('from')))
             ->when($request->filled('to'),   fn ($q) => $q->where('submitted_at', '<=', $request->get('to') . ' 23:59:59'))
-            ->orderByDesc('submitted_at')
-            ->get();
+            ->orderByDesc('submitted_at');
+    }
 
-        $filename = 'articles-' . now()->format('Y-m-d-His') . '.csv';
+    private function buildExportTitle(Request $request): string
+    {
+        if ($request->get('stage') === \App\Enums\ArticleStage::PUBLISHED->value) {
+            return 'Published articles';
+        }
+        if ($request->filled('stage')) {
+            return ucfirst(str_replace('_', ' ', $request->get('stage'))) . ' articles';
+        }
+        return 'All articles';
+    }
+
+    private function exportCsv($articles, string $title): StreamedResponse
+    {
+        $filename = $this->slug($title) . '-' . now()->format('Y-m-d-His') . '.csv';
 
         return response()->streamDownload(function () use ($articles) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, [
-                'Code', 'Title', 'Client', 'Sales rep', 'Writer', 'Tech lead',
-                'Stage', 'Priority', 'Deadline', 'Word target',
-                'Submitted at', 'Published at', 'Published URL',
-            ]);
-
+            // UTF-8 BOM so Excel opens accented characters correctly
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, $this->exportColumns());
             foreach ($articles as $a) {
-                fputcsv($out, [
-                    $a->article_code,
-                    $a->title,
-                    $a->client?->name,
-                    $a->salesRep?->name,
-                    $a->techWriter?->name,
-                    $a->techLead?->name,
-                    $a->current_stage->label(),
-                    $a->priority,
-                    $a->deadline?->format('Y-m-d'),
-                    $a->word_count_target,
-                    $a->submitted_at?->format('Y-m-d H:i'),
-                    $a->published_at?->format('Y-m-d H:i'),
-                    $a->published_url,
-                ]);
+                fputcsv($out, $this->exportRow($a));
             }
             fclose($out);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function exportExcel($articles, string $title): \Illuminate\Http\Response
+    {
+        // HTML-table-as-XLS — Excel and Google Sheets open this natively.
+        // No external library required, supports formatting and Unicode.
+        $filename = $this->slug($title) . '-' . now()->format('Y-m-d-His') . '.xls';
+
+        $html = view('admin.articles.export-excel', [
+            'articles' => $articles,
+            'title'    => $title,
+            'columns'  => $this->exportColumns(),
+        ])->render();
+
+        return response($html, 200, [
+            'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    private function exportPdf($articles, string $title): \Illuminate\Http\Response
+    {
+        // Print-friendly HTML view that auto-triggers the browser's print dialog.
+        // Browser-generated PDFs are higher quality than DomPDF and don't add dependencies.
+        return response()->view('admin.articles.export-pdf', [
+            'articles'     => $articles,
+            'title'        => $title,
+            'generated_at' => now(),
+        ]);
+    }
+
+    private function exportColumns(): array
+    {
+        return [
+            'Code', 'Title', 'Type', 'Client', 'Sales rep', 'Writer',
+            'Stage', 'Priority', 'Deadline', 'Word target',
+            'Submitted at', 'Published at', 'Published URL',
+        ];
+    }
+
+    private function exportRow(Article $a): array
+    {
+        return [
+            $a->article_code,
+            $a->title,
+            $a->articleType?->name,
+            $a->client?->name,
+            $a->salesRep?->name,
+            $a->techWriter?->name,
+            $a->current_stage->label(),
+            $a->priority,
+            $a->deadline?->format('Y-m-d'),
+            $a->word_count_target,
+            $a->submitted_at?->format('Y-m-d H:i'),
+            $a->published_at?->format('Y-m-d H:i'),
+            $a->published_url,
+        ];
+    }
+
+    private function slug(string $s): string
+    {
+        return strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', trim($s))) ?: 'articles';
     }
 
     public function destroy(Article $article, \App\Services\GoogleDriveService $drive): RedirectResponse

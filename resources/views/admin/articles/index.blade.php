@@ -9,13 +9,62 @@
                 <h2 class="text-lg font-medium text-gray-100">All articles</h2>
                 <p class="text-sm text-gray-500 mt-0.5">Filter, search, and bulk-manage every article in the system.</p>
             </div>
-            <a href="{{ route('admin.articles.export', request()->query()) }}"
-               class="inline-flex items-center gap-2 px-3 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                Export CSV
-            </a>
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" @click.outside="open = false"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     class="absolute right-0 top-full mt-1 w-64 bg-ink-850 border border-ink-700 rounded-lg shadow-xl shadow-black/50 py-1 z-20">
+                    <div class="px-3 py-2 border-b border-ink-700">
+                        <p class="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Current filters</p>
+                    </div>
+                    <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'csv'])) }}"
+                       class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <div>
+                            <p>CSV</p>
+                            <p class="text-[10px] text-gray-500">Spreadsheet · universal</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'xlsx'])) }}"
+                       class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div>
+                            <p>Excel</p>
+                            <p class="text-[10px] text-gray-500">Opens in Excel / Google Sheets</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'pdf'])) }}" target="_blank"
+                       class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
+                        <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <div>
+                            <p>PDF</p>
+                            <p class="text-[10px] text-gray-500">Opens print view → Save as PDF</p>
+                        </div>
+                    </a>
+                    <div class="border-t border-ink-700 mt-1 pt-1">
+                        <p class="px-3 pt-1 pb-1 text-[10px] uppercase tracking-wider text-gray-500 font-medium">Published only</p>
+                        <a href="{{ route('admin.articles.export', ['stage' => 'published', 'format' => 'xlsx']) }}"
+                           class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            All published as Excel
+                        </a>
+                        <a href="{{ route('admin.articles.export', ['stage' => 'published', 'format' => 'pdf']) }}" target="_blank"
+                           class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            All published as PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Filters -->
