@@ -47,6 +47,16 @@
         </span>
         <span x-show="sidebarOpen" class="truncate">Activity</span>
     </a>
+    <a href="{{ route('admin.reports.index') }}" title="Reports & history"
+       class="sidebar-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+        <span class="flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4M9 17h6M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-4M9 17l-4 4m6-4l-4 4"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 13l3-3 2 2 4-4"/>
+            </svg>
+        </span>
+        <span x-show="sidebarOpen" class="truncate">Reports</span>
+    </a>
     <a href="{{ route('admin.users.index') }}" title="Users"
        class="sidebar-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
         <span class="flex-shrink-0">{!! $icons['users'] !!}</span>
