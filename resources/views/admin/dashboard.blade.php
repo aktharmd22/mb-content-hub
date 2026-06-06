@@ -60,24 +60,82 @@
         </div>
 
         @if($stuckArticles->isNotEmpty())
-            <div class="bg-rose-500/10 border border-rose-500/30 rounded-lg p-4 mb-6">
-                <div class="flex items-start gap-3">
-                    <svg class="w-4 h-4 text-rose-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-rose-200">{{ $stuckArticles->count() }} article{{ $stuckArticles->count() > 1 ? 's' : '' }} stuck &gt; 3 days</p>
-                        <ul class="mt-2 space-y-1">
-                            @foreach($stuckArticles as $a)
-                                <li class="text-xs">
-                                    <a href="{{ route('admin.articles.index', ['q' => $a->article_code]) }}" class="text-rose-300 hover:underline">
-                                        {{ $a->article_code }} · {{ $a->title }}
-                                    </a>
-                                    <span class="text-rose-400">— {{ $a->current_stage->label() }} for {{ (int) $a->stage_entered_at->diffInDays(now()) }}d</span>
-                                </li>
-                            @endforeach
-                        </ul>
+            @php
+                // Group stuck articles by stage so admin can see clusters at a glance
+                $stuckByStage = $stuckArticles->groupBy(fn ($a) => $a->current_stage->value);
+
+                // Stage owner hint — who needs to take action
+                $stageOwner = [
+                    'inbox'           => 'Tech team to pick up',
+                    'assigned'        => 'Tech writer to start',
+                    'in_progress'     => 'Tech writer working',
+                    'internal_review' => 'Tech lead to review',
+                    'client_approval' => 'Sales to confirm with client',
+                    'revisions'       => 'Tech writer to revise',
+                    'approved'        => 'Tech team to publish',
+                    'published'       => '—',
+                ];
+
+                $severity = function ($days) {
+                    if ($days >= 14) return ['label' => 'Critical', 'color' => 'bg-rose-500/20 text-rose-300 border-rose-500/40', 'days' => 'text-rose-300'];
+                    if ($days >= 7)  return ['label' => 'High',     'color' => 'bg-amber-500/20 text-amber-300 border-amber-500/40', 'days' => 'text-amber-300'];
+                    return ['label' => 'Moderate', 'color' => 'bg-yellow-500/15 text-yellow-200 border-yellow-500/30', 'days' => 'text-yellow-200'];
+                };
+            @endphp
+
+            <div class="bg-ink-850 border border-ink-700 rounded-xl overflow-hidden mb-6">
+                {{-- Header --}}
+                <div class="flex items-center justify-between gap-3 px-5 py-4 bg-rose-500/5 border-b border-rose-500/20">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-rose-500/15 text-rose-300 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-100">{{ $stuckArticles->count() }} article{{ $stuckArticles->count() > 1 ? 's' : '' }} stuck &gt; 3 days</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Grouped by stage — nudge the right team to unblock.</p>
+                        </div>
                     </div>
+                    <a href="{{ route('admin.articles.index') }}" class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap">View all articles →</a>
+                </div>
+
+                {{-- Stage groups --}}
+                <div class="divide-y divide-ink-700">
+                    @foreach($stuckByStage as $stageValue => $stageArticles)
+                        @php $stage = \App\Enums\ArticleStage::from($stageValue); @endphp
+                        <div class="px-5 py-3">
+                            <div class="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <x-stage-badge :stage="$stage" />
+                                    <span class="text-xs text-gray-500">{{ $stageArticles->count() }} {{ Str::plural('article', $stageArticles->count()) }}</span>
+                                </div>
+                                <span class="text-[11px] text-gray-500 italic">{{ $stageOwner[$stageValue] ?? '—' }}</span>
+                            </div>
+
+                            <ul class="space-y-1.5">
+                                @foreach($stageArticles->sortByDesc(fn ($a) => $a->stage_entered_at->diffInDays(now())) as $a)
+                                    @php
+                                        $days = (int) $a->stage_entered_at->diffInDays(now());
+                                        $sev  = $severity($days);
+                                    @endphp
+                                    <li>
+                                        <a href="{{ route('admin.articles.index', ['q' => $a->article_code]) }}"
+                                           class="group flex items-center justify-between gap-3 px-3 py-2 bg-ink-900/40 hover:bg-ink-900 border border-ink-700/50 rounded-lg transition-colors">
+                                            <div class="min-w-0 flex-1 flex items-center gap-3">
+                                                <span class="text-[11px] font-mono text-gray-500">{{ $a->article_code }}</span>
+                                                <span class="text-sm text-gray-200 truncate group-hover:text-white">{{ $a->title }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 flex-shrink-0">
+                                                <span class="text-xs font-semibold {{ $sev['days'] }} tabular-nums">{{ $days }}d</span>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider border {{ $sev['color'] }}">{{ $sev['label'] }}</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         @endif
