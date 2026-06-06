@@ -11,57 +11,69 @@
             </div>
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" @click.outside="open = false"
-                        class="inline-flex items-center gap-2 px-3 py-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/20 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     Export
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <svg :class="open ? 'rotate-180' : ''" class="w-3 h-3 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
+
                 <div x-show="open" x-cloak
-                     x-transition:enter="transition ease-out duration-100"
-                     x-transition:enter-start="opacity-0 scale-95"
-                     x-transition:enter-end="opacity-100 scale-100"
-                     class="absolute right-0 top-full mt-1 w-64 bg-ink-850 border border-ink-700 rounded-lg shadow-xl shadow-black/50 py-1 z-20">
-                    <div class="px-3 py-2 border-b border-ink-700">
-                        <p class="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Current filters</p>
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute right-0 top-full mt-2 w-[360px] bg-ink-850 border border-ink-700 rounded-xl shadow-2xl shadow-black/60 overflow-hidden z-20">
+
+                    {{-- Section: Current filtered view --}}
+                    <div class="p-3 border-b border-ink-700 bg-ink-900/40">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <p class="text-[11px] uppercase tracking-wider text-gray-300 font-bold">Current filtered view</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'csv'])) }}"
+                               class="flex flex-col items-center justify-center gap-1.5 px-2 py-3 bg-ink-800 hover:bg-ink-700 border border-ink-600 hover:border-gray-500 text-gray-100 rounded-lg transition-all group">
+                                <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-200 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                                <span class="text-xs font-semibold">CSV</span>
+                            </a>
+                            <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'xlsx'])) }}"
+                               class="flex flex-col items-center justify-center gap-1.5 px-2 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-100 rounded-lg transition-all group">
+                                <svg class="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span class="text-xs font-semibold text-emerald-200">Excel</span>
+                            </a>
+                            <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'pdf'])) }}" target="_blank"
+                               class="flex flex-col items-center justify-center gap-1.5 px-2 py-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 hover:border-rose-500/50 text-rose-100 rounded-lg transition-all group">
+                                <svg class="w-5 h-5 text-rose-400 group-hover:text-rose-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <span class="text-xs font-semibold text-rose-200">PDF</span>
+                            </a>
+                        </div>
+                        @if(request()->hasAny(['q', 'stage', 'client_id', 'sales_rep_id', 'tech_writer_id', 'from', 'to']))
+                            <p class="text-[10px] text-indigo-300/70 mt-2.5 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Filters applied — only matching rows will export
+                            </p>
+                        @endif
                     </div>
-                    <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'csv'])) }}"
-                       class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <div>
-                            <p>CSV</p>
-                            <p class="text-[10px] text-gray-500">Spreadsheet · universal</p>
+
+                    {{-- Section: Published only quick exports --}}
+                    <div class="p-3">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <p class="text-[11px] uppercase tracking-wider text-gray-300 font-bold">Published articles only</p>
                         </div>
-                    </a>
-                    <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'xlsx'])) }}"
-                       class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <div>
-                            <p>Excel</p>
-                            <p class="text-[10px] text-gray-500">Opens in Excel / Google Sheets</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="{{ route('admin.articles.export', ['stage' => 'published', 'format' => 'xlsx']) }}"
+                               class="flex items-center gap-2 px-3 py-2.5 bg-ink-800 hover:bg-emerald-500/15 border border-ink-600 hover:border-emerald-500/40 text-gray-100 rounded-lg transition-all group">
+                                <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span class="text-xs font-medium">Excel</span>
+                            </a>
+                            <a href="{{ route('admin.articles.export', ['stage' => 'published', 'format' => 'pdf']) }}" target="_blank"
+                               class="flex items-center gap-2 px-3 py-2.5 bg-ink-800 hover:bg-rose-500/15 border border-ink-600 hover:border-rose-500/40 text-gray-100 rounded-lg transition-all group">
+                                <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <span class="text-xs font-medium">PDF</span>
+                            </a>
                         </div>
-                    </a>
-                    <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'pdf'])) }}" target="_blank"
-                       class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
-                        <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                        <div>
-                            <p>PDF</p>
-                            <p class="text-[10px] text-gray-500">Opens print view → Save as PDF</p>
-                        </div>
-                    </a>
-                    <div class="border-t border-ink-700 mt-1 pt-1">
-                        <p class="px-3 pt-1 pb-1 text-[10px] uppercase tracking-wider text-gray-500 font-medium">Published only</p>
-                        <a href="{{ route('admin.articles.export', ['stage' => 'published', 'format' => 'xlsx']) }}"
-                           class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            All published as Excel
-                        </a>
-                        <a href="{{ route('admin.articles.export', ['stage' => 'published', 'format' => 'pdf']) }}" target="_blank"
-                           class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-200 hover:bg-ink-700 transition-colors">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            All published as PDF
-                        </a>
                     </div>
                 </div>
             </div>
