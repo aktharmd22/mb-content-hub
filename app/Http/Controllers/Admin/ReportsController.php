@@ -20,40 +20,124 @@ class ReportsController extends Controller
 {
     public function index(Request $request): View
     {
-        $totals = [
-            'articles_submitted' => Article::count(),
-            'articles_published' => Article::where('current_stage', ArticleStage::PUBLISHED->value)->count(),
-            'clients_served'     => Article::distinct('client_id')->whereNotNull('client_id')->count('client_id'),
-            'viral_packages'     => ViralPackage::count(),
-            'viral_delivered'    => ViralPackage::where('status', 'completed')->count(),
-            'total_users'        => User::where('is_active', true)->count(),
-        ];
+        // Optional month filter (format: YYYY-MM)
+        $selectedMonth = null;
+        if ($request->filled('month') && preg_match('/^\d{4}-\d{2}$/', $request->get('month'))) {
+            try {
+                $selectedMonth = Carbon::createFromFormat('Y-m', $request->get('month'))->startOfMonth();
+            } catch (\Throwable) {
+                $selectedMonth = null;
+            }
+        }
 
-        $monthly = $this->articlesPerMonth(12);
-        $weekly  = $this->articlesPerWeek(12);
-        $yearly  = $this->articlesPerYear();
+        // List of months that actually have activity (for the filter dropdown)
+        $availableMonths = $this->availableMonths();
 
+        // Totals — scoped to month if filter is active, otherwise lifetime
+        $totals = $this->totals($selectedMonth);
+
+        if ($selectedMonth) {
+            // Month-focused view: show daily breakdown for that month
+            $dailyBreakdown = $this->articlesPerDay($selectedMonth);
+            $monthly = null;
+            $weekly  = null;
+        } else {
+            $dailyBreakdown = null;
+            $monthly = $this->articlesPerMonth(12);
+            $weekly  = $this->articlesPerWeek(12);
+        }
+
+        $yearly       = $this->articlesPerYear();
         $viralMonthly = $this->viralPackagesPerMonth(12);
 
-        $topClients = $this->topClients(15);
-        $salesPerf  = $this->salesPerformance();
-        $writerPerf = $this->writerPerformance();
-        $typeMix    = $this->articleTypeDistribution();
+        $topClients = $this->topClients(15, $selectedMonth);
+        $salesPerf  = $this->salesPerformance($selectedMonth);
+        $writerPerf = $this->writerPerformance($selectedMonth);
+        $typeMix    = $this->articleTypeDistribution($selectedMonth);
 
-        $transitionStats = $this->stageTransitionStats();
+        $transitionStats = $this->stageTransitionStats($selectedMonth);
 
         return view('admin.reports.index', compact(
             'totals',
             'monthly',
             'weekly',
             'yearly',
+            'dailyBreakdown',
             'viralMonthly',
             'topClients',
             'salesPerf',
             'writerPerf',
             'typeMix',
             'transitionStats',
+            'selectedMonth',
+            'availableMonths',
         ));
+    }
+
+    private function availableMonths(): array
+    {
+        return Article::query()
+            ->whereNotNull('submitted_at')
+            ->selectRaw("DATE_FORMAT(submitted_at, '%Y-%m') as ym, DATE_FORMAT(submitted_at, '%M %Y') as label, COUNT(*) as cnt")
+            ->groupBy('ym', 'label')
+            ->orderByDesc('ym')
+            ->get()
+            ->map(fn ($r) => ['value' => $r->ym, 'label' => $r->label, 'count' => (int) $r->cnt])
+            ->toArray();
+    }
+
+    private function totals(?Carbon $month): array
+    {
+        $articleQuery = Article::query();
+        $viralQuery   = ViralPackage::query();
+        $publishedQ   = Article::query()->where('current_stage', ArticleStage::PUBLISHED->value);
+
+        if ($month) {
+            $start = $month->copy()->startOfMonth();
+            $end   = $month->copy()->endOfMonth();
+            $articleQuery->whereBetween('submitted_at', [$start, $end]);
+            $publishedQ->whereBetween('published_at', [$start, $end]);
+            $viralQuery->whereBetween('created_at', [$start, $end]);
+        }
+
+        return [
+            'articles_submitted' => $articleQuery->count(),
+            'articles_published' => $publishedQ->count(),
+            'clients_served'     => (clone $articleQuery)->distinct('client_id')->whereNotNull('client_id')->count('client_id'),
+            'viral_packages'     => $viralQuery->count(),
+            'viral_delivered'    => (clone $viralQuery)->where('status', 'completed')->count(),
+            'total_users'        => User::where('is_active', true)->count(),
+        ];
+    }
+
+    private function articlesPerDay(Carbon $month): array
+    {
+        $start = $month->copy()->startOfMonth();
+        $end   = $month->copy()->endOfMonth();
+        $daysInMonth = $month->daysInMonth;
+
+        $submitted = Article::query()
+            ->whereBetween('submitted_at', [$start, $end])
+            ->selectRaw("DAY(submitted_at) as day, COUNT(*) as cnt")
+            ->groupBy('day')
+            ->pluck('cnt', 'day');
+
+        $published = Article::query()
+            ->whereNotNull('published_at')
+            ->whereBetween('published_at', [$start, $end])
+            ->selectRaw("DAY(published_at) as day, COUNT(*) as cnt")
+            ->groupBy('day')
+            ->pluck('cnt', 'day');
+
+        $out = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $out[] = [
+                'period'    => $d,
+                'submitted' => (int) ($submitted[$d] ?? 0),
+                'published' => (int) ($published[$d] ?? 0),
+            ];
+        }
+        return $out;
     }
 
     public function exportCsv(Request $request): StreamedResponse
@@ -202,10 +286,18 @@ class ReportsController extends Controller
     // Breakdown queries
     // ──────────────────────────────────────────────────────────────────────────
 
-    private function topClients(int $limit): array
+    private function topClients(int $limit, ?Carbon $month = null): array
     {
-        return Client::query()
-            ->leftJoin('articles', 'articles.client_id', '=', 'clients.id')
+        $query = Client::query()
+            ->leftJoin('articles', 'articles.client_id', '=', 'clients.id');
+
+        if ($month) {
+            $start = $month->copy()->startOfMonth();
+            $end   = $month->copy()->endOfMonth();
+            $query->whereBetween('articles.submitted_at', [$start, $end]);
+        }
+
+        return $query
             ->selectRaw('clients.id, clients.name, clients.company,
                          COUNT(articles.id) as total_articles,
                          SUM(CASE WHEN articles.current_stage = "published" THEN 1 ELSE 0 END) as published')
@@ -223,11 +315,19 @@ class ReportsController extends Controller
             ->toArray();
     }
 
-    private function salesPerformance(): array
+    private function salesPerformance(?Carbon $month = null): array
     {
-        return User::query()
+        $query = User::query()
             ->where('users.role', 'sales')
-            ->leftJoin('articles', 'articles.sales_rep_id', '=', 'users.id')
+            ->leftJoin('articles', 'articles.sales_rep_id', '=', 'users.id');
+
+        if ($month) {
+            $start = $month->copy()->startOfMonth();
+            $end   = $month->copy()->endOfMonth();
+            $query->whereBetween('articles.submitted_at', [$start, $end]);
+        }
+
+        return $query
             ->selectRaw('users.id, users.name,
                          COUNT(articles.id) as submitted,
                          SUM(CASE WHEN articles.current_stage = "published" THEN 1 ELSE 0 END) as published')
@@ -247,11 +347,19 @@ class ReportsController extends Controller
             ->toArray();
     }
 
-    private function writerPerformance(): array
+    private function writerPerformance(?Carbon $month = null): array
     {
-        return User::query()
+        $query = User::query()
             ->where('users.role', 'tech_team')
-            ->leftJoin('articles', 'articles.tech_writer_id', '=', 'users.id')
+            ->leftJoin('articles', 'articles.tech_writer_id', '=', 'users.id');
+
+        if ($month) {
+            $start = $month->copy()->startOfMonth();
+            $end   = $month->copy()->endOfMonth();
+            $query->whereBetween('articles.submitted_at', [$start, $end]);
+        }
+
+        return $query
             ->selectRaw('users.id, users.name,
                          COUNT(articles.id) as assigned,
                          SUM(CASE WHEN articles.current_stage = "published" THEN 1 ELSE 0 END) as published')
@@ -271,10 +379,18 @@ class ReportsController extends Controller
             ->toArray();
     }
 
-    private function articleTypeDistribution(): array
+    private function articleTypeDistribution(?Carbon $month = null): array
     {
-        return ArticleType::query()
-            ->leftJoin('articles', 'articles.article_type_id', '=', 'article_types.id')
+        $query = ArticleType::query()
+            ->leftJoin('articles', 'articles.article_type_id', '=', 'article_types.id');
+
+        if ($month) {
+            $start = $month->copy()->startOfMonth();
+            $end   = $month->copy()->endOfMonth();
+            $query->whereBetween('articles.submitted_at', [$start, $end]);
+        }
+
+        return $query
             ->selectRaw('article_types.id, article_types.name,
                          COUNT(articles.id) as total,
                          SUM(CASE WHEN articles.current_stage = "published" THEN 1 ELSE 0 END) as published')
@@ -289,9 +405,17 @@ class ReportsController extends Controller
             ->toArray();
     }
 
-    private function stageTransitionStats(): array
+    private function stageTransitionStats(?Carbon $month = null): array
     {
-        $allTransitions = StageHistory::query()
+        $query = StageHistory::query();
+
+        if ($month) {
+            $start = $month->copy()->startOfMonth();
+            $end   = $month->copy()->endOfMonth();
+            $query->whereBetween('changed_at', [$start, $end]);
+        }
+
+        $allTransitions = $query
             ->selectRaw('to_stage, COUNT(*) as cnt')
             ->groupBy('to_stage')
             ->pluck('cnt', 'to_stage');
