@@ -128,28 +128,30 @@
                                     $sev  = $severity($days);
                                 @endphp
                                 <a href="{{ route('admin.articles.index', ['q' => $a->article_code]) }}"
-                                   class="group relative flex items-center gap-3 pl-5 pr-4 py-2.5 hover:bg-ink-800/50 transition-colors border-l-2 border-transparent hover:border-indigo-500/50">
-                                    <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 {{ $sev['stripe'] }} rounded-r"></span>
+                                   class="group flex items-stretch hover:bg-ink-800/50 transition-colors">
 
-                                    <span class="text-[11px] font-mono text-gray-500 w-16 flex-shrink-0">{{ $a->article_code }}</span>
+                                    {{-- Left severity stripe (flex slot, not absolute) --}}
+                                    <div class="w-1 {{ $sev['stripe'] }} flex-shrink-0"></div>
 
-                                    <span class="text-sm text-gray-200 group-hover:text-white truncate flex-1 min-w-0">{{ $a->title }}</span>
+                                    {{-- Content --}}
+                                    <div class="flex-1 flex items-center gap-3 px-4 py-2.5 min-w-0">
+                                        <span class="text-[11px] font-mono text-gray-500 group-hover:text-gray-300 w-[68px] flex-shrink-0 transition-colors">{{ $a->article_code }}</span>
 
-                                    @if($a->salesRep || $a->techWriter)
-                                        <span class="hidden md:inline-flex items-center gap-1 text-[11px] text-gray-500 flex-shrink-0">
-                                            @if($stageValue === 'client_approval' && $a->salesRep)
-                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                {{ $a->salesRep->name }}
-                                            @elseif($a->techWriter)
-                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                {{ $a->techWriter->name }}
-                                            @endif
-                                        </span>
-                                    @endif
+                                        <span class="text-sm text-gray-200 group-hover:text-white truncate flex-1 min-w-0">{{ $a->title }}</span>
 
-                                    <div class="flex items-baseline gap-0.5 flex-shrink-0 tabular-nums">
-                                        <span class="text-base font-semibold {{ $sev['days'] }}">{{ $days }}</span>
-                                        <span class="text-[10px] {{ $sev['days'] }} opacity-70">d</span>
+                                        @if($a->salesRep || $a->techWriter)
+                                            <span class="hidden md:inline-flex items-center gap-1 text-[11px] text-gray-500 flex-shrink-0">
+                                                @if($stageValue === 'client_approval' && $a->salesRep)
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    <span class="truncate max-w-[120px]">{{ $a->salesRep->name }}</span>
+                                                @elseif($a->techWriter)
+                                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    <span class="truncate max-w-[120px]">{{ $a->techWriter->name }}</span>
+                                                @endif
+                                            </span>
+                                        @endif
+
+                                        <span class="text-sm font-semibold {{ $sev['days'] }} tabular-nums whitespace-nowrap flex-shrink-0">{{ $days }}d</span>
                                     </div>
                                 </a>
                             @endforeach
