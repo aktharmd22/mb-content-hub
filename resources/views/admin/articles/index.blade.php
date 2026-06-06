@@ -4,12 +4,12 @@
 
     <div class="p-6">
 
-        <div class="flex items-center justify-between mb-6">
-            <div>
+        <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+            <div class="min-w-0">
                 <h2 class="text-lg font-medium text-gray-100">All articles</h2>
                 <p class="text-sm text-gray-500 mt-0.5">Filter, search, and bulk-manage every article in the system.</p>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap flex-shrink-0">
                 <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:inline">Export:</span>
 
                 <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'csv'])) }}"
