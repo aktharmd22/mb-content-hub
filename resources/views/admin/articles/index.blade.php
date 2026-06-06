@@ -13,7 +13,7 @@
                 <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:inline">Export:</span>
 
                 <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'csv'])) }}"
-                   class="inline-flex items-center gap-2 px-3.5 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-600 hover:border-gray-500 text-gray-100 text-sm font-medium rounded-lg transition-colors"
+                   class="inline-flex items-center gap-2 px-5 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-600 hover:border-gray-500 text-gray-100 text-sm font-medium rounded-lg transition-colors"
                    title="Download as CSV">
                     <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -22,7 +22,7 @@
                 </a>
 
                 <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'xlsx'])) }}"
-                   class="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-100 text-sm font-medium rounded-lg transition-colors"
+                   class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-100 text-sm font-medium rounded-lg transition-colors"
                    title="Download as Excel">
                     <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -32,7 +32,7 @@
 
                 <a href="{{ route('admin.articles.export', array_merge(request()->query(), ['format' => 'pdf'])) }}"
                    target="_blank"
-                   class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 hover:border-rose-500/50 text-rose-100 text-sm font-medium rounded-lg transition-colors"
+                   class="inline-flex items-center gap-2 px-5 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 hover:border-rose-500/50 text-rose-100 text-sm font-medium rounded-lg transition-colors"
                    title="Open print view to save as PDF">
                     <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
