@@ -8,19 +8,128 @@
         && (auth()->user()?->isAdmin() || $article->sales_rep_id === auth()->id());
 @endphp
 
-@if($assets->isNotEmpty())
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
-        <div class="flex items-center justify-between mb-4">
+@if($assets->isNotEmpty() || $canManageAssets)
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6"
+         x-data="{ addOpen: false, assetType: 'file', fileName: '', fileSize: '' }">
+        <div class="flex items-center justify-between gap-3 mb-4">
             <div>
                 <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">Assets</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {{ $assets->count() }} {{ Str::plural('item', $assets->count()) }} attached to this article
-                    @if($article->assets_folder_name)
-                        — folder: <span class="text-gray-700 dark:text-gray-300">{{ $article->assets_folder_name }}</span>
+                    @if($assets->isEmpty())
+                        No assets attached yet.
+                    @else
+                        {{ $assets->count() }} {{ Str::plural('item', $assets->count()) }} attached
+                        @if($article->assets_folder_name)
+                            — folder: <span class="text-gray-700 dark:text-gray-300">{{ $article->assets_folder_name }}</span>
+                        @endif
                     @endif
                 </p>
             </div>
+            @if($canManageAssets)
+                <button type="button" @click="addOpen = !addOpen"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add asset
+                </button>
+            @endif
         </div>
+
+        {{-- Add asset form (slides in when user clicks "Add asset") --}}
+        @if($canManageAssets)
+            <div x-show="addOpen" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="mb-4 p-4 bg-ink-800/40 border border-ink-700 rounded-lg">
+                <form method="POST" enctype="multipart/form-data"
+                      action="{{ route('sales.articles.assets.store', $article) }}"
+                      class="space-y-3">
+                    @csrf
+
+                    {{-- Type toggle --}}
+                    <div class="flex items-center gap-2">
+                        <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Type:</p>
+                        <div class="inline-flex bg-ink-900 border border-ink-700 rounded-md p-0.5">
+                            <button type="button" @click="assetType = 'file'"
+                                    :class="assetType === 'file' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                File
+                            </button>
+                            <button type="button" @click="assetType = 'link'"
+                                    :class="assetType === 'link' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                Link
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="type" :value="assetType"/>
+
+                    {{-- File picker --}}
+                    <template x-if="assetType === 'file'">
+                        <div>
+                            <label for="new-asset-file-{{ $article->id }}"
+                                   :class="fileName ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-600 hover:border-indigo-500/60 hover:bg-indigo-500/5'"
+                                   class="flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors">
+                                <svg x-show="!fileName" class="w-5 h-5 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                                <svg x-show="fileName" x-cloak class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div class="flex-1 min-w-0">
+                                    <p x-show="!fileName" class="text-sm text-gray-200 font-medium">Click to choose a file</p>
+                                    <p x-show="!fileName" class="text-xs text-gray-500 mt-0.5">Up to 200 MB</p>
+                                    <p x-show="fileName" x-cloak class="text-sm text-gray-100 truncate" x-text="fileName"></p>
+                                    <p x-show="fileName" x-cloak class="text-xs text-gray-500" x-text="fileSize"></p>
+                                </div>
+                            </label>
+                            <input type="file" id="new-asset-file-{{ $article->id }}" name="file"
+                                   @change="if ($event.target.files[0]) { fileName = $event.target.files[0].name; fileSize = ($event.target.files[0].size/1024/1024).toFixed(2) + ' MB'; }"
+                                   class="hidden"/>
+                        </div>
+                    </template>
+
+                    {{-- URL input --}}
+                    <template x-if="assetType === 'link'">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            <input type="url" name="url" placeholder="https://..."
+                                   class="w-full pl-10 pr-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
+                        </div>
+                    </template>
+
+                    {{-- Optional label --}}
+                    <input type="text" name="name" maxlength="255"
+                           placeholder="Label (optional)"
+                           class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
+
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" @click="addOpen = false; fileName = ''; fileSize = '';"
+                                class="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors">Cancel</button>
+                        <button type="submit"
+                                class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors">
+                            Upload &amp; attach
+                        </button>
+                    </div>
+                </form>
+            </div>
+        @endif
+
+        @if($assets->isEmpty())
+            <div class="text-center py-8 px-4 border-2 border-dashed border-ink-700 rounded-lg">
+                <svg class="w-10 h-10 text-gray-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                <p class="text-sm text-gray-400">No assets attached to this article</p>
+                <p class="text-xs text-gray-500 mt-1">Click <span class="text-indigo-400 font-medium">Add asset</span> above to upload a file or paste a link.</p>
+            </div>
+        @endif
 
         <ul class="divide-y divide-gray-100 dark:divide-gray-800 -mx-5">
             @foreach($assets as $asset)

@@ -248,6 +248,77 @@ class ArticleController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend();
     }
 
+    public function addAsset(Request $request, Article $article, ArticleWorkflowService $workflow, GoogleDriveService $drive): RedirectResponse
+    {
+        $this->ensureOwnArticle($article);
+
+        $request->validate([
+            'type' => ['required', 'in:file,link'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'url'  => ['nullable', 'url', 'max:500', 'required_if:type,link'],
+            'file' => ['nullable', 'file', 'max:204800', 'required_if:type,file'],
+        ]);
+
+        // Ensure the article has an assets folder on Drive — create it lazily if missing.
+        if (! $article->assets_folder_drive_id) {
+            $assetsParent = \App\Models\Setting::get('drive_folder_assets');
+            if ($assetsParent) {
+                try {
+                    $folderName = $article->title ?: $article->article_code;
+                    $folderId   = $drive->createFolder($folderName, $assetsParent);
+                    $article->update([
+                        'assets_folder_drive_id' => $folderId,
+                        'assets_folder_name'     => $folderName,
+                    ]);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        }
+
+        $type = $request->get('type');
+        $name = $request->get('name');
+
+        if ($type === 'link') {
+            \App\Models\ArticleAsset::create([
+                'article_id' => $article->id,
+                'type'       => 'link',
+                'name'       => $name,
+                'url'        => $request->get('url'),
+                'created_by' => auth()->id(),
+            ]);
+            return back()->with('success', 'Link asset added.');
+        }
+
+        // File upload
+        $file = $request->file('file');
+        $folderId = $article->fresh()->assets_folder_drive_id;
+        if (! $folderId) {
+            return back()->with('error', 'Could not access the Drive folder for this article. Ask admin to configure Drive settings.');
+        }
+
+        $filename = trim((string) $name) ?: $file->getClientOriginalName();
+        try {
+            $driveFileId = $drive->uploadFile($file->getRealPath(), $folderId, $filename);
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Could not upload asset: ' . $e->getMessage());
+        }
+
+        \App\Models\ArticleAsset::create([
+            'article_id'        => $article->id,
+            'type'              => 'file',
+            'name'              => $filename,
+            'drive_file_id'     => $driveFileId,
+            'original_filename' => $file->getClientOriginalName(),
+            'mime_type'         => $file->getMimeType(),
+            'file_size'         => $file->getSize(),
+            'created_by'        => auth()->id(),
+        ]);
+
+        return back()->with('success', "{$filename} uploaded.");
+    }
+
     public function replaceAsset(Request $request, Article $article, ArticleAsset $asset, GoogleDriveService $drive): RedirectResponse
     {
         $this->ensureOwnArticle($article);
