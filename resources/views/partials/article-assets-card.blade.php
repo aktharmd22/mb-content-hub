@@ -2,6 +2,10 @@
     /** @var \App\Models\Article $article */
     /** @var string $routeName */
     $assets = $article->assets;
+    // Sales (owner) and admin can manage assets — only on sales views where edit routes exist
+    $canManageAssets = isset($routeName)
+        && str_starts_with($routeName, 'sales.')
+        && (auth()->user()?->isAdmin() || $article->sales_rep_id === auth()->id());
 @endphp
 
 @if($assets->isNotEmpty())
@@ -73,21 +77,60 @@
                         </p>
                     </div>
 
-                    <a href="{{ route($routeName, ['article' => $article, 'asset' => $asset]) }}"
-                       @if($asset->type === 'link') target="_blank" rel="noopener" @endif
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
-                        @if($asset->type === 'link')
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                            </svg>
-                            Open
-                        @else
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Download
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <a href="{{ route($routeName, ['article' => $article, 'asset' => $asset]) }}"
+                           @if($asset->type === 'link') target="_blank" rel="noopener" @endif
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg transition-colors whitespace-nowrap">
+                            @if($asset->type === 'link')
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                Open
+                            @else
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Download
+                            @endif
+                        </a>
+
+                        @if($canManageAssets && $asset->type === 'file')
+                            {{-- Replace file: hidden input triggered by the "Replace" button --}}
+                            <form method="POST" enctype="multipart/form-data"
+                                  action="{{ route('sales.articles.assets.replace', ['article' => $article, 'asset' => $asset]) }}"
+                                  class="inline-flex"
+                                  x-data="{ submitting: false }"
+                                  x-ref="replaceForm_{{ $asset->id }}">
+                                @csrf
+                                <input type="file" name="file"
+                                       id="replace-asset-{{ $asset->id }}"
+                                       class="hidden"
+                                       @change="if ($event.target.files[0]) { if (confirm('Replace this file with ' + $event.target.files[0].name + '? The old file will be deleted from Drive.')) { submitting = true; $el.form.submit(); } else { $el.value = ''; } }"/>
+                                <label for="replace-asset-{{ $asset->id }}"
+                                       title="Replace file"
+                                       class="inline-flex items-center justify-center w-8 h-8 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg cursor-pointer transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                </label>
+                            </form>
                         @endif
-                    </a>
+
+                        @if($canManageAssets)
+                            <form method="POST"
+                                  action="{{ route('sales.articles.assets.destroy', ['article' => $article, 'asset' => $asset]) }}"
+                                  onsubmit="return confirm('Delete this asset? The file will also be removed from Drive. This cannot be undone.');"
+                                  class="inline-flex">
+                                @csrf @method('DELETE')
+                                <button type="submit" title="Delete asset"
+                                        class="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 rounded-lg transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                 </li>
             @endforeach
         </ul>

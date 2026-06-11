@@ -101,6 +101,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/articles/{article}',          [\App\Http\Controllers\Sales\ArticleController::class, 'destroy'])->name('articles.destroy');
         Route::get('/articles/{article}/download',    [\App\Http\Controllers\Sales\ArticleController::class, 'download'])->name('articles.download');
         Route::get('/articles/{article}/assets/{asset}', [\App\Http\Controllers\Sales\ArticleController::class, 'downloadAsset'])->name('articles.assets.download');
+        Route::post('/articles/{article}/assets/{asset}/replace', [\App\Http\Controllers\Sales\ArticleController::class, 'replaceAsset'])->name('articles.assets.replace');
+        Route::delete('/articles/{article}/assets/{asset}', [\App\Http\Controllers\Sales\ArticleController::class, 'destroyAsset'])->name('articles.assets.destroy');
         Route::post('/articles/{article}/comment',    [\App\Http\Controllers\Sales\ArticleController::class, 'comment'])->name('articles.comment');
         Route::post('/articles/{article}/client-approved', [\App\Http\Controllers\Sales\ArticleController::class, 'clientApproved'])->name('articles.client-approved');
         Route::post('/articles/{article}/request-revision', [\App\Http\Controllers\Sales\ArticleController::class, 'requestRevision'])->name('articles.request-revision');

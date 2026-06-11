@@ -248,6 +248,80 @@ class ArticleController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend();
     }
 
+    public function replaceAsset(Request $request, Article $article, ArticleAsset $asset, GoogleDriveService $drive): RedirectResponse
+    {
+        $this->ensureOwnArticle($article);
+
+        if ($asset->article_id !== $article->id) {
+            abort(404);
+        }
+
+        if ($asset->type !== 'file') {
+            return back()->with('error', 'Only file assets can be replaced. Delete and re-add links.');
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'max:204800'],
+        ]);
+
+        $newFile = $request->file('file');
+        $folderId = $article->assets_folder_drive_id;
+
+        if (! $folderId) {
+            return back()->with('error', 'This article has no assets folder yet.');
+        }
+
+        // Best-effort: delete the old Drive file before uploading the new one (keeps folder clean)
+        if ($asset->drive_file_id) {
+            try {
+                $drive->deleteFile($asset->drive_file_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        // Upload the replacement
+        $filename = $newFile->getClientOriginalName();
+        try {
+            $newDriveFileId = $drive->uploadFile($newFile->getRealPath(), $folderId, $filename);
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Could not upload replacement: ' . $e->getMessage());
+        }
+
+        $asset->update([
+            'drive_file_id'     => $newDriveFileId,
+            'original_filename' => $filename,
+            'mime_type'         => $newFile->getMimeType(),
+            'file_size'         => $newFile->getSize(),
+        ]);
+
+        return back()->with('success', "Asset replaced — old file removed, '{$filename}' uploaded.");
+    }
+
+    public function destroyAsset(Article $article, ArticleAsset $asset, GoogleDriveService $drive): RedirectResponse
+    {
+        $this->ensureOwnArticle($article);
+
+        if ($asset->article_id !== $article->id) {
+            abort(404);
+        }
+
+        // Best-effort: remove the Drive file too
+        if ($asset->drive_file_id) {
+            try {
+                $drive->deleteFile($asset->drive_file_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $assetName = $asset->name ?: $asset->original_filename ?: 'Asset';
+        $asset->delete();
+
+        return back()->with('success', "{$assetName} removed.");
+    }
+
     private function ensureOwnArticle(Article $article): void
     {
         $user = auth()->user();
