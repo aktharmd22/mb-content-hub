@@ -83,7 +83,7 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
+                                        <div class="flex items-center gap-1.5 mt-1 text-xs text-gray-500 flex-wrap">
                                             @if($isInbox)
                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Available</span>
                                             @endif
@@ -96,7 +96,18 @@
                                             @endif
                                             @if($a->salesRep)
                                                 <span>·</span>
-                                                <span>by {{ $a->salesRep->name }}</span>
+                                                <span>Sales: <span class="text-gray-300">{{ $a->salesRep->name }}</span></span>
+                                            @endif
+                                            <span>·</span>
+                                            @if($a->techWriter)
+                                                <span>Writer:
+                                                    <span class="inline-flex items-center gap-1 text-emerald-300">
+                                                        <span class="w-3 h-3 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[8px] font-bold">{{ strtoupper(substr($a->techWriter->name, 0, 1)) }}</span>
+                                                        {{ $a->techWriter->name }}
+                                                    </span>
+                                                </span>
+                                            @else
+                                                <span class="text-amber-400 italic">Unassigned</span>
                                             @endif
                                             @if($a->submitted_at)
                                                 <span>·</span>

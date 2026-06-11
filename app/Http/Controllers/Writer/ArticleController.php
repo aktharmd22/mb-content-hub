@@ -28,7 +28,7 @@ class ArticleController extends Controller
         // Show: (a) articles assigned to me + (b) Inbox articles waiting to be picked up.
         // The view marks Inbox rows as "available" so they're visually distinct from your work.
         $articles = Article::query()
-            ->with(['client', 'salesRep', 'articleType'])
+            ->with(['client', 'salesRep', 'articleType', 'techWriter'])
             ->where(function ($q) use ($userId) {
                 $q->where('tech_writer_id', $userId)
                   ->orWhere('current_stage', ArticleStage::INBOX->value);
