@@ -88,24 +88,24 @@
                         <a href="{{ route('inbox.index', ['open' => $c->id]) }}"
                            x-show="q === '' || '{{ $searchKey }}'.includes(q.toLowerCase())"
                            class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {{ $isActive ? 'bg-indigo-500/15 ring-1 ring-indigo-500/30' : 'hover:bg-ink-800/60' }}">
-                            {{-- Avatar --}}
-                            <div class="relative flex-shrink-0">
-                                <div class="w-11 h-11 rounded-full bg-gradient-to-br
+                            {{-- Avatar (circular) --}}
+                            <div style="position: relative; flex-shrink: 0;">
+                                <div style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); overflow: hidden;"
+                                     class="bg-gradient-to-br
                                     @if($c->participants->count() > 2) from-pink-500 to-violet-600
                                     @elseif($other && $other->role === 'admin') from-rose-500 to-orange-600
                                     @elseif($other && $other->role === 'sales') from-indigo-500 to-violet-600
                                     @elseif($other && $other->role === 'tech_team') from-emerald-500 to-teal-600
                                     @else from-slate-500 to-slate-600
-                                    @endif
-                                    flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                                    @endif">
                                     @if($c->participants->count() > 2)
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     @else
                                         {{ strtoupper(substr($other?->name ?? '?', 0, 1)) }}
                                     @endif
                                 </div>
                                 @if($unread > 0 && ! $isActive)
-                                    <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-ink-900 shadow">{{ $unread > 9 ? '9+' : $unread }}</span>
+                                    <span style="position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; background: #f43f5e; color: white; font-size: 9px; font-weight: 700; border-radius: 9999px; display: flex; align-items: center; justify-content: center; border: 2px solid #0f172a;">{{ $unread > 9 ? '9+' : $unread }}</span>
                                 @endif
                             </div>
 
