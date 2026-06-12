@@ -69,7 +69,7 @@
                 <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Send To</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.15s;"
-                           :style="target === 'admin_pool' ? 'border-color: #6366f1; background: rgba(99,102,241,0.08);' : ''">
+                           :style="target === 'admin_pool' ? 'border-color: #6366f1;' : ''">
                         <input type="radio" name="target" value="admin_pool" x-model="target"
                                {{ old('target') === 'admin_pool' ? 'checked' : '' }}
                                style="margin-top: 2px; accent-color: #6366f1;"/>
@@ -79,7 +79,7 @@
                         </div>
                     </label>
                     <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.15s;"
-                           :style="target === 'specific' ? 'border-color: #6366f1; background: rgba(99,102,241,0.08);' : ''">
+                           :style="target === 'specific' ? 'border-color: #6366f1;' : ''">
                         <input type="radio" name="target" value="specific" x-model="target"
                                {{ old('target', 'specific') === 'specific' ? 'checked' : '' }}
                                style="margin-top: 2px; accent-color: #6366f1;"/>
