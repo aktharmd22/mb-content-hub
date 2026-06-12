@@ -1,5 +1,6 @@
 <!-- Global search overlay -->
 <div x-show="searchOpen" x-cloak
+     style="display: none;"
      x-transition:enter="transition ease-out duration-150"
      x-transition:enter-start="opacity-0"
      x-transition:enter-end="opacity-100"

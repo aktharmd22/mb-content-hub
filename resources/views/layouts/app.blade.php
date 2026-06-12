@@ -38,6 +38,7 @@
 
     <!-- Mobile backdrop -->
     <div x-show="mobileMenuOpen" x-cloak
+         style="display: none;"
          @click="mobileMenuOpen = false"
          x-transition:enter="transition-opacity ease-linear duration-200"
          x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"

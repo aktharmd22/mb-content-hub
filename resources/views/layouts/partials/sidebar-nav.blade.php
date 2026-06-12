@@ -171,7 +171,12 @@
 
 {{-- Inbox (all roles) --}}
 @php
-    $inboxUnread = app(\App\Services\InboxService::class)->totalUnreadFor(auth()->user());
+    try {
+        $inboxUnread = app(\App\Services\InboxService::class)->totalUnreadFor(auth()->user());
+    } catch (\Throwable $e) {
+        $inboxUnread = 0;
+        report($e);
+    }
 @endphp
 <a href="{{ route('inbox.index') }}" title="Inbox"
    class="sidebar-link {{ request()->routeIs('inbox*') ? 'active' : '' }} relative">
