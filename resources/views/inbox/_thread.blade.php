@@ -231,10 +231,28 @@
                             $lastInGroup = ! $nextMsg || $nextMsg->user_id !== $msg->user_id || $nextMsg->created_at->format('Y-m-d') !== $date;
                         @endphp
                         @if($lastInGroup)
-                            <div style="display: flex; align-items: center; gap: 0.375rem; {{ $isOwn ? 'flex-direction: row-reverse;' : '' }}" class="mt-1 px-1">
-                                <span class="text-[10px] text-gray-500">{{ $msg->created_at->format('g:i A') }}</span>
+                            @php
+                                $role = $msg->user?->role;
+                                $roleLabel = match($role) {
+                                    'admin'        => 'Admin',
+                                    'sales'        => 'Sales',
+                                    'tech_team'    => 'Tech Team',
+                                    'content_team' => 'Content Team',
+                                    default        => strtoupper(str_replace('_', ' ', (string) $role)),
+                                };
+                                $roleClass = match($role) {
+                                    'admin'        => 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+                                    'sales'        => 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+                                    'tech_team'    => 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                                    'content_team' => 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                                    default        => 'bg-gray-500/15 text-gray-300 border-gray-500/30',
+                                };
+                            @endphp
+                            <div style="display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap; {{ $isOwn ? 'flex-direction: row-reverse;' : '' }}" class="mt-1.5 px-1">
+                                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border {{ $roleClass }}">{{ $roleLabel }}</span>
+                                <span class="text-[10px] font-medium text-gray-300">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
                                 <span class="text-[10px] text-gray-600">·</span>
-                                <span class="text-[10px] font-medium text-gray-400">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
+                                <span class="text-[10px] text-gray-500">{{ $msg->created_at->format('g:i A') }}</span>
                                 @if($isOwn)
                                     <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -305,13 +323,6 @@
                     </button>
                 </div>
 
-                <p class="text-[10px] text-gray-600 px-2 flex items-center gap-2">
-                    <kbd class="px-1.5 py-0.5 bg-ink-800 border border-ink-700 rounded text-[9px] text-gray-500 font-mono">Enter</kbd> send
-                    <span class="text-gray-700">·</span>
-                    <kbd class="px-1.5 py-0.5 bg-ink-800 border border-ink-700 rounded text-[9px] text-gray-500 font-mono">Shift+Enter</kbd> new line
-                    <span class="text-gray-700">·</span>
-                    <span>Max 50MB attachment</span>
-                </p>
             </form>
         </div>
     @else
