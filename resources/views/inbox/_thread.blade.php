@@ -98,12 +98,14 @@
     @endif
 
     {{-- ==================== Messages stream ==================== --}}
+    @php $initialLastId = $conversation->messages->last()?->id ?? 0; @endphp
     <div class="flex-1 overflow-y-auto px-6 py-6" id="messages-scroll"
+         x-data="threadPoller({{ $conversation->id }}, {{ $initialLastId }})"
+         x-init="init()"
          style="background-image: radial-gradient(circle at 20% 20%, rgba(99,102,241,0.04) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(168,85,247,0.04) 0%, transparent 50%);">
 
-        @if($msgCount === 0)
-            {{-- Empty state — inviting hero --}}
-            <div class="h-full flex flex-col items-center justify-center text-center px-6">
+        {{-- Empty hero — hidden once any message exists --}}
+        <div id="empty-hero" style="{{ $msgCount === 0 ? 'display:flex' : 'display:none' }}; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 1.5rem;">
                 <div class="relative mb-6">
                     <div class="w-24 h-24 rounded-3xl bg-gradient-to-br
                         @if($others->count() > 1) from-pink-500/20 to-violet-500/20
@@ -139,8 +141,10 @@
                         </button>
                     @endforeach
                 </div>
-            </div>
-        @else
+        </div>
+
+        {{-- Messages stream — always render the container so AJAX append works even when empty --}}
+        <div id="messages-stream">
             @php $prevSender = null; $prevDate = null; @endphp
             @foreach($conversation->messages as $msg)
                 @php
@@ -241,7 +245,7 @@
                     </div>
                 </div>
             @endforeach
-        @endif
+        </div>
     </div>
 
     {{-- ==================== Compose area ==================== --}}
@@ -249,7 +253,8 @@
         <div class="border-t border-ink-700 bg-ink-850 px-4 py-3 flex-shrink-0">
             <form method="POST" enctype="multipart/form-data"
                   action="{{ route('inbox.messages.store', $conversation) }}"
-                  x-data="{ attachmentName: '', body: '' }"
+                  x-data="{ attachmentName: '', body: '', sending: false }"
+                  @submit.prevent="sendAjax($el)"
                   class="flex flex-col gap-2">
                 @csrf
 
@@ -284,7 +289,7 @@
                     <textarea id="message-input-{{ $conversation->id }}" name="body" rows="1" maxlength="5000"
                               x-model="body"
                               placeholder="Type a message..."
-                              @keydown.enter.prevent="if (! $event.shiftKey && (body.trim() || attachmentName)) { $el.form.submit(); }"
+                              @keydown.enter.prevent="if (! $event.shiftKey && (body.trim() || attachmentName)) { sendAjax($el.form); }"
                               @input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 128)+'px';"
                               class="flex-1 min-w-0 px-2 py-2 text-sm bg-transparent border-0 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-0 resize-none max-h-32 leading-relaxed"></textarea>
 
@@ -320,9 +325,81 @@
 </div>
 
 <script>
-    // Auto-scroll to bottom of messages on load
-    setTimeout(() => {
-        const scroll = document.getElementById('messages-scroll');
-        if (scroll) scroll.scrollTop = scroll.scrollHeight;
-    }, 50);
+    // Alpine component: polls /inbox/{id}/stream for new messages every 3s
+    function threadPoller(conversationId, initialLastId) {
+        return {
+            conversationId: conversationId,
+            lastId: initialLastId,
+            pollTimer: null,
+            init() {
+                this.scrollToBottom();
+                this.pollTimer = setInterval(() => this.fetchNew(), 3000);
+                // Stop polling when navigating away
+                window.addEventListener('beforeunload', () => clearInterval(this.pollTimer));
+            },
+            scrollToBottom() {
+                const scroll = document.getElementById('messages-scroll');
+                if (scroll) scroll.scrollTop = scroll.scrollHeight;
+            },
+            async fetchNew() {
+                try {
+                    const r = await fetch(`/inbox/${this.conversationId}/stream?after=${this.lastId}`, {
+                        headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                    });
+                    if (!r.ok) return;
+                    const html = (await r.text()).trim();
+                    if (!html) return;
+                    const stream = document.getElementById('messages-stream');
+                    if (!stream) return;
+                    stream.insertAdjacentHTML('beforeend', html);
+                    // Hide empty hero once any message exists
+                    const hero = document.getElementById('empty-hero');
+                    if (hero) hero.style.display = 'none';
+                    // Update lastId from the last appended bubble
+                    const all = stream.querySelectorAll('[data-message-id]');
+                    if (all.length) {
+                        this.lastId = parseInt(all[all.length - 1].dataset.messageId);
+                    }
+                    this.scrollToBottom();
+                } catch (e) { /* silent */ }
+            },
+        };
+    }
+
+    // Global AJAX send — called from compose form
+    async function sendAjax(form) {
+        const alp = Alpine.$data(form);
+        if (alp.sending) return;
+        if (!alp.body.trim() && !alp.attachmentName) return;
+        alp.sending = true;
+
+        const fd = new FormData(form);
+        try {
+            const r = await fetch(form.action, {
+                method: 'POST',
+                body: fd,
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (r.ok) {
+                // Clear form
+                alp.body = '';
+                alp.attachmentName = '';
+                const ta = form.querySelector('textarea[name=body]');
+                if (ta) { ta.value = ''; ta.style.height = 'auto'; }
+                const fi = form.querySelector('input[type=file]');
+                if (fi) fi.value = '';
+                // Fetch new messages (will pick up the one we just sent)
+                const scrollDiv = document.getElementById('messages-scroll');
+                const poller = scrollDiv ? Alpine.$data(scrollDiv) : null;
+                if (poller && poller.fetchNew) await poller.fetchNew();
+            } else {
+                const data = await r.json().catch(() => ({}));
+                alert(data.error || 'Failed to send. Try again.');
+            }
+        } catch (e) {
+            alert('Network error. Please try again.');
+        } finally {
+            alp.sending = false;
+        }
+    }
 </script>

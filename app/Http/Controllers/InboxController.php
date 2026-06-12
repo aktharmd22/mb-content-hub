@@ -86,7 +86,7 @@ class InboxController extends Controller
             ->with('success', 'Conversation started.');
     }
 
-    public function sendMessage(Request $request, InboxConversation $conversation): RedirectResponse
+    public function sendMessage(Request $request, InboxConversation $conversation)
     {
         $this->ensureParticipant($conversation);
 
@@ -96,21 +96,56 @@ class InboxController extends Controller
         ]);
 
         if (empty($data['body']) && ! $request->hasFile('attachment')) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'error' => 'Message body or attachment is required.'], 422);
+            }
             return back()->with('error', 'Message body or attachment is required.');
         }
 
         try {
-            $this->service->sendMessage(
+            $msg = $this->service->sendMessage(
                 conversation: $conversation,
                 body:         $data['body'] ?? '',
                 attachment:   $request->file('attachment'),
             );
         } catch (\Throwable $e) {
             report($e);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'error' => 'Could not send message: ' . $e->getMessage()], 500);
+            }
             return back()->with('error', 'Could not send message: ' . $e->getMessage());
         }
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['ok' => true, 'id' => $msg?->id]);
+        }
         return redirect()->route('inbox.index', ['open' => $conversation->id]);
+    }
+
+    /**
+     * Live polling endpoint — returns HTML for any new messages with id > after.
+     */
+    public function stream(Request $request, InboxConversation $conversation)
+    {
+        $this->ensureParticipant($conversation);
+
+        $after = $request->integer('after', 0);
+
+        $messages = $conversation->messages()
+            ->where('id', '>', $after)
+            ->with('user')
+            ->orderBy('id')
+            ->get();
+
+        if ($messages->isNotEmpty()) {
+            $this->service->markRead($conversation, auth()->user());
+        }
+
+        return view('inbox._stream', [
+            'messages'     => $messages,
+            'conversation' => $conversation,
+            'user'         => auth()->user(),
+        ]);
     }
 
     public function togglePin(InboxConversation $conversation): RedirectResponse
