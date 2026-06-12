@@ -184,13 +184,6 @@
                     </div>
 
                     <div class="max-w-[70%] {{ $isOwn ? 'items-end' : 'items-start' }} flex flex-col">
-                        @if(! $sameSender || $newDay)
-                            <div class="flex items-baseline gap-1.5 mb-1 px-1 {{ $isOwn ? 'flex-row-reverse' : '' }}">
-                                <span class="text-[11px] font-semibold text-gray-300">{{ $isOwn ? 'You' : $msg->user?->name }}</span>
-                                <span class="text-[10px] text-gray-600">{{ $msg->created_at->format('g:i A') }}</span>
-                            </div>
-                        @endif
-
                         <div class="rounded-2xl px-4 py-2.5 shadow-sm
                             {{ $isOwn
                                 ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-md'
@@ -226,6 +219,24 @@
                                 </a>
                             @endif
                         </div>
+
+                        {{-- Name + time + delivery indicator (BELOW bubble, like reference) --}}
+                        @php
+                            $nextMsg = $conversation->messages[$loop->index + 1] ?? null;
+                            $lastInGroup = ! $nextMsg || $nextMsg->user_id !== $msg->user_id || $nextMsg->created_at->format('Y-m-d') !== $date;
+                        @endphp
+                        @if($lastInGroup)
+                            <div class="flex items-center gap-1.5 mt-1 px-1 {{ $isOwn ? 'flex-row-reverse' : '' }}">
+                                <span class="text-[10px] text-gray-500">{{ $msg->created_at->format('g:i A') }}</span>
+                                <span class="text-[10px] text-gray-600">·</span>
+                                <span class="text-[10px] font-medium text-gray-400">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
+                                @if($isOwn)
+                                    <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endforeach

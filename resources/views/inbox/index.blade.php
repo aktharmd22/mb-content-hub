@@ -107,7 +107,14 @@
                                             {{ $c->displayTitle($user) }}
                                         </p>
                                         @if($lastMsg)
-                                            <span class="text-[10px] text-gray-500 flex-shrink-0 whitespace-nowrap">{{ $lastMsg->created_at->diffForHumans(short: true) }}</span>
+                                            <div class="flex items-center gap-1 flex-shrink-0">
+                                                <span class="text-[10px] {{ $unread > 0 && ! $isActive ? 'text-indigo-400 font-semibold' : 'text-gray-500' }} whitespace-nowrap">{{ $lastMsg->created_at->diffForHumans(short: true) }}</span>
+                                                @if($lastMsg->user_id === $user->id)
+                                                    <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                @endif
+                                            </div>
                                         @endif
                                     </div>
 
