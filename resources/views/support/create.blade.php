@@ -13,7 +13,7 @@
         </div>
 
         <form method="POST" action="{{ route('support.store') }}"
-              x-data="{ target: 'specific', assignee: '' }"
+              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}' }"
               style="background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px;">
             @csrf
 
@@ -71,6 +71,7 @@
                     <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.15s;"
                            :style="target === 'admin_pool' ? 'border-color: #6366f1; background: rgba(99,102,241,0.08);' : ''">
                         <input type="radio" name="target" value="admin_pool" x-model="target"
+                               {{ old('target') === 'admin_pool' ? 'checked' : '' }}
                                style="margin-top: 2px; accent-color: #6366f1;"/>
                         <div>
                             <p class="text-sm font-semibold text-gray-200">Admin team (general)</p>
@@ -80,6 +81,7 @@
                     <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.15s;"
                            :style="target === 'specific' ? 'border-color: #6366f1; background: rgba(99,102,241,0.08);' : ''">
                         <input type="radio" name="target" value="specific" x-model="target"
+                               {{ old('target', 'specific') === 'specific' ? 'checked' : '' }}
                                style="margin-top: 2px; accent-color: #6366f1;"/>
                         <div>
                             <p class="text-sm font-semibold text-gray-200">Specific person</p>
