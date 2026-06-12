@@ -109,15 +109,35 @@
                                 @endif
                             </div>
 
+                            @php
+                                $rowRole = $other?->role;
+                                $rowRoleLabel = match($rowRole) {
+                                    'admin'        => 'Admin',
+                                    'sales'        => 'Sales',
+                                    'tech_team'    => 'Tech',
+                                    'content_team' => 'Content',
+                                    default        => null,
+                                };
+                                $rowRoleClass = match($rowRole) {
+                                    'admin'        => 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+                                    'sales'        => 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+                                    'tech_team'    => 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                                    'content_team' => 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                                    default        => 'bg-gray-500/15 text-gray-300 border-gray-500/30',
+                                };
+                            @endphp
                             {{-- Body --}}
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p class="text-sm font-semibold {{ $unread > 0 && ! $isActive ? 'text-white' : 'text-gray-200' }} truncate flex items-center gap-1">
+                                    <div class="flex items-center gap-1.5 min-w-0 flex-1">
                                         @if($isPinned)
                                             <svg class="w-3 h-3 text-amber-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4v6L5 14v2h10v-2l-4-4V4h2V2H7v2h2z"/></svg>
                                         @endif
-                                        {{ $title }}
-                                    </p>
+                                        <p class="text-sm font-semibold {{ $unread > 0 && ! $isActive ? 'text-white' : 'text-gray-200' }} truncate">{{ $title }}</p>
+                                        @if($rowRoleLabel)
+                                            <span style="font-size: 8px; padding: 1px 5px; line-height: 1.3;" class="rounded uppercase tracking-wide border flex-shrink-0 {{ $rowRoleClass }}">{{ $rowRoleLabel }}</span>
+                                        @endif
+                                    </div>
                                     @if($lastMsg)
                                         <span class="text-[10px] {{ $unread > 0 && ! $isActive ? 'text-indigo-400 font-semibold' : 'text-gray-500' }} whitespace-nowrap flex-shrink-0">{{ $lastMsg->created_at->diffForHumans(short: true) }}</span>
                                     @endif
