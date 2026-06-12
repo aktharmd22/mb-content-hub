@@ -134,13 +134,15 @@
                                             <svg class="w-3 h-3 text-amber-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4v6L5 14v2h10v-2l-4-4V4h2V2H7v2h2z"/></svg>
                                         @endif
                                         <p class="text-sm font-semibold {{ $unread > 0 && ! $isActive ? 'text-white' : 'text-gray-200' }} truncate">{{ $title }}</p>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 flex-shrink-0">
                                         @if($rowRoleLabel)
-                                            <span style="font-size: 8px; padding: 1px 5px; line-height: 1.3;" class="rounded uppercase tracking-wide border flex-shrink-0 {{ $rowRoleClass }}">{{ $rowRoleLabel }}</span>
+                                            <span style="font-size: 8px; padding: 1px 5px; line-height: 1.3;" class="rounded uppercase tracking-wide border {{ $rowRoleClass }}">{{ $rowRoleLabel }}</span>
+                                        @endif
+                                        @if($lastMsg)
+                                            <span class="text-[10px] {{ $unread > 0 && ! $isActive ? 'text-indigo-400 font-semibold' : 'text-gray-500' }} whitespace-nowrap">{{ $lastMsg->created_at->diffForHumans(short: true) }}</span>
                                         @endif
                                     </div>
-                                    @if($lastMsg)
-                                        <span class="text-[10px] {{ $unread > 0 && ! $isActive ? 'text-indigo-400 font-semibold' : 'text-gray-500' }} whitespace-nowrap flex-shrink-0">{{ $lastMsg->created_at->diffForHumans(short: true) }}</span>
-                                    @endif
                                 </div>
 
                                 <div class="flex items-center gap-1.5 mt-0.5">
