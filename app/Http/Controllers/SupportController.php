@@ -199,6 +199,10 @@ class SupportController extends Controller
         abort_unless(auth()->user()->isAdmin(), 403, 'Only admins can delete tickets.');
 
         $code = $ticket->code;
+
+        // Remove any notifications pointing at this ticket so badges/bells don't show orphans.
+        \Illuminate\Notifications\DatabaseNotification::where('data->ticket_id', $ticket->id)->delete();
+
         $ticket->replies()->delete();
         $ticket->delete();
 

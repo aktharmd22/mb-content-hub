@@ -176,13 +176,22 @@ class SupportService
     }
 
     /**
-     * Sidebar badge = number of UNREAD support notifications.
-     * Clears automatically once the user opens/reads them — only genuinely new activity shows.
+     * Sidebar badge = number of UNREAD support notifications for tickets that still exist.
+     * Clears once the user opens/reads them; orphaned notifications (deleted tickets) are ignored.
      */
     public function activeForBadge(User $user): int
     {
-        return $user->unreadNotifications()
+        $unread = $user->unreadNotifications()
             ->where('data->type', 'like', 'support%')
+            ->get(['id', 'data']);
+
+        if ($unread->isEmpty()) return 0;
+
+        $ticketIds = $unread->pluck('data.ticket_id')->filter()->unique()->values();
+        $existing  = SupportTicket::whereIn('id', $ticketIds)->pluck('id')->all();
+
+        return $unread
+            ->filter(fn ($n) => in_array($n->data['ticket_id'] ?? null, $existing, true))
             ->count();
     }
 
