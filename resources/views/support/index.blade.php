@@ -29,7 +29,7 @@
         };
     @endphp
 
-    <div class="p-6 max-w-7xl mx-auto">
+    <div class="p-6 w-full">
         {{-- Header --}}
         <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
             <div>
