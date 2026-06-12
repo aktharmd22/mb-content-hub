@@ -280,6 +280,22 @@
                         @endif
                     </dl>
                 </div>
+
+                @if($isAdmin)
+                    <div style="{{ $card }} padding: 16px; border-color: rgba(244,63,94,0.15);">
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2.5">Danger zone</p>
+                        <form method="POST" action="{{ route('support.destroy', $ticket) }}"
+                              onsubmit="return confirm('Delete ticket {{ $ticket->code }} permanently? This removes all its replies.');">
+                            @csrf @method('DELETE')
+                            <button type="submit"
+                                    style="width: 100%; padding: 9px 12px; background: rgba(244,63,94,0.12); color: #fca5a5; border-radius: 9px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                                    class="hover:bg-rose-500/20 transition-colors">
+                                <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3"/></svg>
+                                Delete ticket
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

@@ -193,4 +193,19 @@ class SupportController extends Controller
 
         return back()->with('success', 'Ticket bounced back to Admin pool.');
     }
+
+    public function destroy(Request $request, SupportTicket $ticket): RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Only admins can delete tickets.');
+
+        $code = $ticket->code;
+        $ticket->replies()->delete();
+        $ticket->delete();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return redirect()->route('support.index')->with('success', "Ticket {$code} deleted.");
+    }
 }

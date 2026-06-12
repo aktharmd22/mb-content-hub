@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/support/{ticket}/priority',         [\App\Http\Controllers\SupportController::class, 'updatePriority'])->name('support.priority');
     Route::patch('/support/{ticket}/assign',           [\App\Http\Controllers\SupportController::class, 'assign'])->name('support.assign');
     Route::patch('/support/{ticket}/bounce',           [\App\Http\Controllers\SupportController::class, 'bounce'])->name('support.bounce');
+    Route::delete('/support/{ticket}',                  [\App\Http\Controllers\SupportController::class, 'destroy'])->name('support.destroy');
 
     // Notifications (all roles)
     Route::get('/notifications',                       [NotificationController::class, 'index'])->name('notifications.index');

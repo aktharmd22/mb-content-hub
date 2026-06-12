@@ -122,10 +122,11 @@
                         [$sBg, $sLabel] = $statusStyle[$t->status] ?? ['bg-gray-500/15 text-gray-400 border-gray-500/30', ucfirst($t->status)];
                         [$pBg, $pLabel] = $priorityStyle[$t->priority] ?? ['bg-gray-500/15 text-gray-400 border-gray-500/30', ucfirst($t->priority)];
                     @endphp
+                    <div style="position: relative;">
                     <a href="{{ route('support.show', $t) }}"
                        style="display: block; padding: 16px 20px; background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 12px; transition: all 0.15s;"
                        class="hover:bg-ink-800 hover:border-indigo-500/40">
-                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                        <div class="flex items-start justify-between gap-4 flex-wrap" style="{{ $isAdmin ? 'padding-right: 28px;' : '' }}">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap mb-1.5">
                                     <span style="font-family: ui-monospace, monospace; font-size: 11px; color: #818cf8; font-weight: 600;">{{ $t->code }}</span>
@@ -162,6 +163,16 @@
                             </div>
                         </div>
                     </a>
+                    @if($isAdmin)
+                        <button type="button"
+                                onclick="deleteTicket('{{ $t->id }}', '{{ $t->code }}', this)"
+                                title="Delete ticket"
+                                style="position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: rgba(244,63,94,0.1); color: #f87171; border-radius: 8px; z-index: 5;"
+                                class="hover:bg-rose-500/25 transition-colors">
+                            <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3"/></svg>
+                        </button>
+                    @endif
+                    </div>
                 @endforeach
             </div>
 
@@ -171,6 +182,31 @@
     </div>
 
     <script>
+        async function deleteTicket(id, code, btn) {
+            if (!confirm(`Delete ticket ${code} permanently? This removes all its replies.`)) return;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                const r = await fetch(`/support/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                if (r.ok) {
+                    // Remove the row from the DOM.
+                    const row = btn.closest('[style*="position: relative"]');
+                    if (row) row.remove();
+                } else {
+                    const data = await r.json().catch(() => ({}));
+                    alert(data.error || 'Could not delete ticket.');
+                }
+            } catch (e) {
+                alert('Network error.');
+            }
+        }
+
         function supportPoller() {
             return {
                 pollHandle: null,
