@@ -18,8 +18,10 @@
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </a>
 
-            <div class="relative flex-shrink-0">
-                <div class="w-11 h-11 rounded-full bg-gradient-to-br
+            {{-- Circular profile avatar (larger) --}}
+            <div style="position: relative; flex-shrink: 0;">
+                <div style="width: 48px; height: 48px; border-radius: 9999px; display: flex; align-items: center; justify-content: center;"
+                     class="bg-gradient-to-br
                     @if($others->count() > 1)
                         from-pink-500 to-violet-600
                     @elseif($headerOther && $headerOther->role === 'admin')
@@ -31,35 +33,55 @@
                     @else
                         from-slate-500 to-slate-600
                     @endif
-                    flex items-center justify-center text-white font-semibold text-base shadow-lg">
+                    text-white font-bold text-lg shadow-lg ring-2 ring-ink-850">
                     @if($others->count() > 1)
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     @else
                         {{ strtoupper(substr($headerOther?->name ?? '?', 0, 1)) }}
                     @endif
                 </div>
-                <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-ink-850 rounded-full"></span>
+                <span style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background: #10b981; border: 2px solid #1f2937; border-radius: 9999px;"></span>
             </div>
 
-            <div class="min-w-0">
-                <p class="text-sm font-semibold text-gray-100 truncate">{{ $conversation->displayTitle($user) }}</p>
-                <p class="text-[11px] text-gray-500 truncate">
+            {{-- Username + meta --}}
+            <div class="min-w-0 flex-1">
+                <p class="text-base font-bold text-gray-100 truncate leading-tight">{{ $conversation->displayTitle($user) }}</p>
+                <p class="text-[11px] text-gray-500 truncate mt-0.5">
                     @if($others->count() > 1)
-                        {{ $conversation->participants->count() }} members ·
-                        @foreach($others->take(3) as $p)
-                            <span class="text-gray-400">{{ $p->user?->name }}</span>@if(! $loop->last), @endif
-                        @endforeach
+                        {{ $conversation->participants->count() }} members
                     @else
                         <span class="inline-flex items-center gap-1">
                             <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                            {{ ucwords(str_replace('_', ' ', $headerOther?->role ?? '')) }}
+                            Online
                         </span>
                     @endif
                 </p>
             </div>
         </div>
 
-        <div class="flex items-center gap-1 flex-shrink-0">
+        {{-- Right side: role badge + pin --}}
+        <div class="flex items-center gap-2 flex-shrink-0">
+            @if($others->count() === 1 && $headerOther)
+                @php
+                    $hRole = $headerOther->role;
+                    $hRoleLabel = match($hRole) {
+                        'admin'        => 'Admin',
+                        'sales'        => 'Sales',
+                        'tech_team'    => 'Tech Team',
+                        'content_team' => 'Content Team',
+                        default        => strtoupper(str_replace('_', ' ', (string) $hRole)),
+                    };
+                    $hRoleClass = match($hRole) {
+                        'admin'        => 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+                        'sales'        => 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+                        'tech_team'    => 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                        'content_team' => 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                        default        => 'bg-gray-500/15 text-gray-300 border-gray-500/30',
+                    };
+                @endphp
+                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border {{ $hRoleClass }}">{{ $hRoleLabel }}</span>
+            @endif
+
             @if($participant)
                 <form method="POST" action="{{ route('inbox.pin', $conversation) }}" class="inline">
                     @csrf
