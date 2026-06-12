@@ -27,31 +27,17 @@
                 @error('subject') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            {{-- Category + Priority --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Category</label>
-                    <select name="category" required
-                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
-                            class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
-                        <option value="general" {{ old('category') === 'general' ? 'selected' : '' }}>General</option>
-                        <option value="technical" {{ old('category') === 'technical' ? 'selected' : '' }}>Technical</option>
-                        <option value="account" {{ old('category') === 'account' ? 'selected' : '' }}>Account</option>
-                        <option value="billing" {{ old('category') === 'billing' ? 'selected' : '' }}>Billing</option>
-                        <option value="content" {{ old('category') === 'content' ? 'selected' : '' }}>Content</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Priority</label>
-                    <select name="priority" required
-                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
-                            class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
-                        <option value="low" {{ old('priority') === 'low' ? 'selected' : '' }}>Low</option>
-                        <option value="normal" {{ old('priority', 'normal') === 'normal' ? 'selected' : '' }}>Normal</option>
-                        <option value="high" {{ old('priority') === 'high' ? 'selected' : '' }}>High</option>
-                        <option value="urgent" {{ old('priority') === 'urgent' ? 'selected' : '' }}>Urgent</option>
-                    </select>
-                </div>
+            {{-- Priority --}}
+            <div class="mb-4">
+                <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Priority</label>
+                <select name="priority" required
+                        style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
+                        class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                    <option value="low" {{ old('priority') === 'low' ? 'selected' : '' }}>Low</option>
+                    <option value="normal" {{ old('priority', 'normal') === 'normal' ? 'selected' : '' }}>Normal</option>
+                    <option value="high" {{ old('priority') === 'high' ? 'selected' : '' }}>High</option>
+                    <option value="urgent" {{ old('priority') === 'urgent' ? 'selected' : '' }}>Urgent</option>
+                </select>
             </div>
 
             {{-- Description --}}

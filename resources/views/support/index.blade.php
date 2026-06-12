@@ -131,7 +131,6 @@
                                     <span style="font-family: ui-monospace, monospace; font-size: 11px; color: #818cf8; font-weight: 600;">{{ $t->code }}</span>
                                     <span style="font-size: 9px; padding: 2px 6px; border: 1px solid; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;" class="{{ $pBg }}">{{ $pLabel }}</span>
                                     <span style="font-size: 10px; padding: 2px 8px; border: 1px solid; border-radius: 999px; font-weight: 600;" class="{{ $sBg }}">{{ $sLabel }}</span>
-                                    <span style="font-size: 10px; padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 999px; color: #94a3b8;">{{ $t->categoryLabel() }}</span>
                                 </div>
                                 <h3 class="text-sm font-semibold text-gray-100 mb-1 truncate">{{ $t->subject }}</h3>
                                 <p class="text-xs text-gray-500 line-clamp-1">{{ Str::limit($t->description, 120) }}</p>

@@ -80,7 +80,6 @@ class SupportController extends Controller
         $data = $request->validate([
             'subject'     => ['required', 'string', 'max:200'],
             'description' => ['required', 'string', 'max:5000'],
-            'category'    => ['required', 'in:technical,account,billing,content,general'],
             'priority'    => ['required', 'in:low,normal,high,urgent'],
             'target'      => ['required', 'in:admin_pool,specific'],
             'assignee_id' => ['nullable', 'integer', 'exists:users,id', 'required_if:target,specific'],

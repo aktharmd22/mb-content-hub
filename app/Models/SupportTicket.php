@@ -13,7 +13,7 @@ class SupportTicket extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'code', 'subject', 'description', 'category', 'priority', 'status',
+        'code', 'subject', 'description', 'priority', 'status',
         'reporter_id', 'assignee_id',
         'last_activity_at', 'resolved_at', 'closed_at',
     ];
@@ -73,10 +73,5 @@ class SupportTicket extends Model
             'closed'        => 'Closed',
             default         => ucfirst($this->status),
         };
-    }
-
-    public function categoryLabel(): string
-    {
-        return ucfirst($this->category);
     }
 }

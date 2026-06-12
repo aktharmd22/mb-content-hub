@@ -27,7 +27,6 @@ class SupportService
                 'code'             => $this->nextCode(),
                 'subject'          => $data['subject'],
                 'description'      => $data['description'],
-                'category'         => $data['category'] ?? 'general',
                 'priority'         => $data['priority'] ?? 'normal',
                 'status'           => 'open',
                 'reporter_id'      => $reporter->id,

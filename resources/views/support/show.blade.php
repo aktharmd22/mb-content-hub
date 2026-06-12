@@ -64,7 +64,6 @@
                         <span style="font-family: ui-monospace, monospace; font-size: 12px; color: #818cf8; font-weight: 700;">{{ $ticket->code }}</span>
                         <span style="{{ $chip }}" class="{{ $pBg }}">{{ $pLabel }}</span>
                         <span style="font-size: 11px; padding: 3px 11px; border-radius: 999px; font-weight: 600;" class="{{ $sBg }}">{{ $sLabel }}</span>
-                        <span style="font-size: 10px; padding: 3px 10px; background: rgba(148,163,184,0.08); border-radius: 999px; color: #94a3b8;">{{ $ticket->categoryLabel() }}</span>
                     </div>
                     <h1 class="text-xl font-bold text-gray-100">{{ $ticket->subject }}</h1>
                 </div>
@@ -263,10 +262,6 @@
                 <div style="{{ $card }} padding: 16px;">
                     <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2.5">Details</p>
                     <dl class="space-y-2 text-xs">
-                        <div class="flex justify-between gap-2">
-                            <dt class="text-gray-500">Category</dt>
-                            <dd class="text-gray-300 font-medium">{{ $ticket->categoryLabel() }}</dd>
-                        </div>
                         <div class="flex justify-between gap-2">
                             <dt class="text-gray-500">Opened</dt>
                             <dd class="text-gray-300">{{ $ticket->created_at->format('M j, g:i A') }}</dd>
