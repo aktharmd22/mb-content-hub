@@ -159,7 +159,8 @@
                 @if($newDay)
                     <div class="flex items-center gap-3 my-6">
                         <div class="flex-1 h-px bg-gradient-to-r from-transparent via-ink-700 to-transparent"></div>
-                        <span class="px-3 py-1 bg-ink-800 border border-ink-700 rounded-full text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+                        <span class="px-3 py-1 bg-ink-800 border border-ink-700 rounded-full text-[10px] text-gray-400 uppercase tracking-wider font-semibold"
+                              data-utc="{{ $msg->created_at->toIso8601String() }}" data-utc-format="day">
                             @if($date === now()->format('Y-m-d'))
                                 Today
                             @elseif($date === now()->subDay()->format('Y-m-d'))
@@ -252,7 +253,7 @@
                                 <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border {{ $roleClass }}">{{ $roleLabel }}</span>
                                 <span class="text-[10px] font-medium text-gray-300">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
                                 <span class="text-[10px] text-gray-600">·</span>
-                                <span class="text-[10px] text-gray-500">{{ $msg->created_at->format('g:i A') }}</span>
+                                <span class="text-[10px] text-gray-500" data-utc="{{ $msg->created_at->toIso8601String() }}" data-utc-format="time">{{ $msg->created_at->format('g:i A') }}</span>
                                 @if($isOwn)
                                     <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -336,6 +337,29 @@
 </div>
 
 <script>
+    // Convert all [data-utc] elements to the user's local timezone (browser local).
+    // Works for both India (IST) and Malaysia (MYT) users automatically.
+    function formatLocalTimes(root) {
+        root = root || document;
+        root.querySelectorAll('[data-utc]').forEach(el => {
+            if (el.dataset.utcDone === '1') return;
+            const d = new Date(el.dataset.utc);
+            if (isNaN(d.getTime())) return;
+            const fmt = el.dataset.utcFormat || 'time';
+            if (fmt === 'time') {
+                el.textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            } else if (fmt === 'day') {
+                const now = new Date();
+                const yest = new Date(now); yest.setDate(now.getDate() - 1);
+                const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+                if (sameDay(d, now)) el.textContent = 'Today';
+                else if (sameDay(d, yest)) el.textContent = 'Yesterday';
+                else el.textContent = d.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+            }
+            el.dataset.utcDone = '1';
+        });
+    }
+
     // Alpine component: polls /inbox/{id}/stream for new messages every 3s
     function threadPoller(conversationId, initialLastId) {
         return {
@@ -343,6 +367,7 @@
             lastId: initialLastId,
             pollTimer: null,
             init() {
+                formatLocalTimes();
                 this.scrollToBottom();
                 this.pollTimer = setInterval(() => this.fetchNew(), 3000);
                 // Stop polling when navigating away
@@ -363,6 +388,7 @@
                     const stream = document.getElementById('messages-stream');
                     if (!stream) return;
                     stream.insertAdjacentHTML('beforeend', html);
+                    formatLocalTimes(stream);
                     // Hide empty hero once any message exists
                     const hero = document.getElementById('empty-hero');
                     if (hero) hero.style.display = 'none';

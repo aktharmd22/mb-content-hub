@@ -65,7 +65,7 @@
                 <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border {{ $roleClass }}">{{ $roleLabel }}</span>
                 <span class="text-[10px] font-medium text-gray-300">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
                 <span class="text-[10px] text-gray-600">·</span>
-                <span class="text-[10px] text-gray-500">{{ $msg->created_at->format('g:i A') }}</span>
+                <span class="text-[10px] text-gray-500" data-utc="{{ $msg->created_at->toIso8601String() }}" data-utc-format="time">{{ $msg->created_at->format('g:i A') }}</span>
                 @if($isOwn)
                     <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
