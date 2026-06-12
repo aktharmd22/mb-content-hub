@@ -89,7 +89,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" name="q" value="{{ $q }}" placeholder="Search by code or subject..."
-                       style="width: 100%; padding: 8px 12px 8px 36px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; color: #f1f5f9; font-size: 13px;"
+                       style="width: 100%; padding: 8px 12px 8px 36px; background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 13px;"
                        class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/50"/>
             </div>
         </form>
@@ -97,7 +97,7 @@
         {{-- Ticket list (live region) --}}
         <div id="support-live-list">
         @if($tickets->isEmpty())
-            <div style="padding: 80px 24px; text-align: center; background: #1e293b; border: 1px dashed #334155; border-radius: 16px;">
+            <div style="padding: 80px 24px; text-align: center; background: #1e293b; border: 1px dashed rgba(148,163,184,0.12); border-radius: 16px;">
                 <div style="width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 50%; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15)); display: flex; align-items: center; justify-content: center;">
                     <svg style="width: 28px; height: 28px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -115,7 +115,7 @@
                         [$pBg, $pLabel] = $priorityStyle[$t->priority] ?? ['bg-gray-500/15 text-gray-400 border-gray-500/30', ucfirst($t->priority)];
                     @endphp
                     <a href="{{ route('support.show', $t) }}"
-                       style="display: block; padding: 16px 20px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; transition: all 0.15s;"
+                       style="display: block; padding: 16px 20px; background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 12px; transition: all 0.15s;"
                        class="hover:bg-ink-800 hover:border-indigo-500/40">
                         <div class="flex items-start justify-between gap-4 flex-wrap">
                             <div class="flex-1 min-w-0">

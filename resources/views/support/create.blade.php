@@ -14,7 +14,7 @@
 
         <form method="POST" action="{{ route('support.store') }}"
               x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}' }"
-              style="background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px;">
+              style="background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 16px; padding: 24px;">
             @csrf
 
             {{-- Subject --}}
@@ -22,7 +22,7 @@
                 <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Subject</label>
                 <input type="text" name="subject" value="{{ old('subject') }}" maxlength="200" required
                        placeholder="Short description of the issue"
-                       style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f1f5f9; font-size: 14px;"
+                       style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
                        class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/50"/>
                 @error('subject') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -32,7 +32,7 @@
                 <div>
                     <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Category</label>
                     <select name="category" required
-                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f1f5f9; font-size: 14px;"
+                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
                             class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
                         <option value="general" {{ old('category') === 'general' ? 'selected' : '' }}>General</option>
                         <option value="technical" {{ old('category') === 'technical' ? 'selected' : '' }}>Technical</option>
@@ -44,7 +44,7 @@
                 <div>
                     <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Priority</label>
                     <select name="priority" required
-                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f1f5f9; font-size: 14px;"
+                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
                             class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
                         <option value="low" {{ old('priority') === 'low' ? 'selected' : '' }}>Low</option>
                         <option value="normal" {{ old('priority', 'normal') === 'normal' ? 'selected' : '' }}>Normal</option>
@@ -59,7 +59,7 @@
                 <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Description</label>
                 <textarea name="description" rows="6" maxlength="5000" required
                           placeholder="What's the issue? Steps to reproduce, what you expected, what happened..."
-                          style="width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f1f5f9; font-size: 14px; resize: vertical;"
+                          style="width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px; resize: vertical;"
                           class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/50">{{ old('description') }}</textarea>
                 @error('description') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -68,7 +68,7 @@
             <div class="mb-6">
                 <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Send To</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.15s;"
+                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid rgba(148,163,184,0.12); border-radius: 10px; cursor: pointer; transition: all 0.15s;"
                            :style="target === 'admin_pool' ? 'border-color: #6366f1;' : ''">
                         <input type="radio" name="target" value="admin_pool" x-model="target"
                                {{ old('target') === 'admin_pool' ? 'checked' : '' }}
@@ -78,7 +78,7 @@
                             <p class="text-xs text-gray-500 mt-0.5">Any available admin will pick it up.</p>
                         </div>
                     </label>
-                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; cursor: pointer; transition: all 0.15s;"
+                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #0f172a; border: 2px solid rgba(148,163,184,0.12); border-radius: 10px; cursor: pointer; transition: all 0.15s;"
                            :style="target === 'specific' ? 'border-color: #6366f1;' : ''">
                         <input type="radio" name="target" value="specific" x-model="target"
                                {{ old('target', 'specific') === 'specific' ? 'checked' : '' }}
@@ -92,7 +92,7 @@
 
                 <div x-show="target === 'specific'" x-cloak style="display: none;" class="mt-3">
                     <select name="assignee_id" x-model="assignee"
-                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #f1f5f9; font-size: 14px;"
+                            style="width: 100%; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px;"
                             class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
                         <option value="">— Pick a teammate —</option>
                         @foreach($assignableUsers as $u)
