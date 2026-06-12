@@ -185,10 +185,16 @@
         </svg>
     </span>
     <span x-show="sidebarOpen" class="truncate flex-1">Support</span>
-    @if($supportActive > 0)
-        <span x-show="sidebarOpen" class="ml-auto inline-flex items-center justify-center px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold text-white bg-rose-500 rounded-full">{{ $supportActive > 9 ? '9+' : $supportActive }}</span>
-        <span x-show="!sidebarOpen" class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
-    @endif
+    {{-- Live-updated by notification poll, which dispatches `support-count` (see notification-bell.blade.php) --}}
+    <span x-data="{ count: {{ $supportActive }} }"
+          @support-count.window="count = $event.detail"
+          style="display: contents;">
+        <span x-show="sidebarOpen && count > 0"
+              x-text="count > 9 ? '9+' : count"
+              class="ml-auto inline-flex items-center justify-center px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold text-white bg-rose-500 rounded-full"></span>
+        <span x-show="!sidebarOpen && count > 0"
+              class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+    </span>
 </a>
 
 {{-- Profile (all roles) --}}

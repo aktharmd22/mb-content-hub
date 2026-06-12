@@ -127,6 +127,11 @@
 
                     // Always update the dropdown items so they're fresh when reopened.
                     this.items = data.items;
+
+                    // Live-update the sidebar Support badge from the same poll.
+                    if (typeof data.support_active !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('support-count', { detail: data.support_active }));
+                    }
                 } catch (e) {
                     console.warn('[bell] poll failed', e);
                 }

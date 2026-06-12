@@ -30,9 +30,18 @@ class NotificationController extends Controller
             'type'       => $n->data['type'] ?? 'generic',
         ]);
 
+        // Live count for the sidebar Support badge (open/in-progress tickets visible to this user).
+        $supportActive = 0;
+        try {
+            $supportActive = app(\App\Services\SupportService::class)->activeForBadge($user);
+        } catch (\Throwable $e) {
+            // table may not exist yet — fail soft
+        }
+
         return response()->json([
-            'unread_count' => $user->unreadNotifications->count(),
-            'items'        => $unread,
+            'unread_count'   => $user->unreadNotifications->count(),
+            'items'          => $unread,
+            'support_active' => $supportActive,
         ]);
     }
 
