@@ -169,6 +169,28 @@
     </a>
 @endif
 
+{{-- Support (all roles) --}}
+@php
+    try {
+        $supportActive = app(\App\Services\SupportService::class)->activeForBadge(auth()->user());
+    } catch (\Throwable $e) {
+        $supportActive = 0;
+    }
+@endphp
+<a href="{{ route('support.index') }}" title="Support"
+   class="sidebar-link {{ request()->routeIs('support.*') ? 'active' : '' }} relative">
+    <span class="flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636A9 9 0 105.636 18.364 9 9 0 0018.364 5.636zM9 12a3 3 0 116 0 3 3 0 01-6 0zm10.95-5.464l-3.536 3.536M7.05 16.95l-3.535 3.535m0-16.97l3.535 3.535m9.9 9.9l3.536 3.535"/>
+        </svg>
+    </span>
+    <span x-show="sidebarOpen" class="truncate flex-1">Support</span>
+    @if($supportActive > 0)
+        <span x-show="sidebarOpen" class="ml-auto inline-flex items-center justify-center px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold text-white bg-rose-500 rounded-full">{{ $supportActive > 9 ? '9+' : $supportActive }}</span>
+        <span x-show="!sidebarOpen" class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+    @endif
+</a>
+
 {{-- Profile (all roles) --}}
 <div class="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
     <a href="{{ route('profile.edit') }}" title="Profile"

@@ -22,6 +22,17 @@ Route::middleware('auth')->group(function () {
     // Global search (all roles)
     Route::get('/search',                              [SearchController::class, 'search'])->name('search');
 
+    // Support tickets (all roles)
+    Route::get('/support',                             [\App\Http\Controllers\SupportController::class, 'index'])->name('support.index');
+    Route::get('/support/create',                      [\App\Http\Controllers\SupportController::class, 'create'])->name('support.create');
+    Route::post('/support',                            [\App\Http\Controllers\SupportController::class, 'store'])->name('support.store');
+    Route::get('/support/{ticket}',                    [\App\Http\Controllers\SupportController::class, 'show'])->name('support.show');
+    Route::post('/support/{ticket}/reply',             [\App\Http\Controllers\SupportController::class, 'reply'])->name('support.reply');
+    Route::patch('/support/{ticket}/status',           [\App\Http\Controllers\SupportController::class, 'updateStatus'])->name('support.status');
+    Route::patch('/support/{ticket}/priority',         [\App\Http\Controllers\SupportController::class, 'updatePriority'])->name('support.priority');
+    Route::patch('/support/{ticket}/assign',           [\App\Http\Controllers\SupportController::class, 'assign'])->name('support.assign');
+    Route::patch('/support/{ticket}/bounce',           [\App\Http\Controllers\SupportController::class, 'bounce'])->name('support.bounce');
+
     // Notifications (all roles)
     Route::get('/notifications',                       [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/dropdown',              [NotificationController::class, 'dropdown'])->name('notifications.dropdown');
