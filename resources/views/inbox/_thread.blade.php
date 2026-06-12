@@ -374,12 +374,12 @@
         return {
             conversationId: conversationId,
             lastId: initialLastId,
+            isFetching: false,
             pollTimer: null,
             init() {
                 formatLocalTimes();
                 this.scrollToBottom();
                 this.pollTimer = setInterval(() => this.fetchNew(), 3000);
-                // Stop polling when navigating away
                 window.addEventListener('beforeunload', () => clearInterval(this.pollTimer));
             },
             scrollToBottom() {
@@ -387,6 +387,9 @@
                 if (scroll) scroll.scrollTop = scroll.scrollHeight;
             },
             async fetchNew() {
+                // Mutex — never run two concurrent fetches (prevents duplicate appends).
+                if (this.isFetching) return;
+                this.isFetching = true;
                 try {
                     const r = await fetch(`/inbox/${this.conversationId}/stream?after=${this.lastId}`, {
                         headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
@@ -396,18 +399,32 @@
                     if (!html) return;
                     const stream = document.getElementById('messages-stream');
                     if (!stream) return;
-                    stream.insertAdjacentHTML('beforeend', html);
-                    formatLocalTimes(stream);
-                    // Hide empty hero once any message exists
-                    const hero = document.getElementById('empty-hero');
-                    if (hero) hero.style.display = 'none';
-                    // Update lastId from the last appended bubble
-                    const all = stream.querySelectorAll('[data-message-id]');
-                    if (all.length) {
-                        this.lastId = parseInt(all[all.length - 1].dataset.messageId);
+
+                    // Parse incoming HTML and append ONLY messages whose ID isn't already in the DOM (defensive dedup).
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    let appended = false;
+                    let maxId = this.lastId;
+                    Array.from(temp.children).forEach(child => {
+                        const id = parseInt(child.dataset?.messageId || '0');
+                        if (id && !stream.querySelector(`[data-message-id="${id}"]`)) {
+                            stream.appendChild(child);
+                            if (id > maxId) maxId = id;
+                            appended = true;
+                        }
+                    });
+
+                    if (appended) {
+                        formatLocalTimes(stream);
+                        const hero = document.getElementById('empty-hero');
+                        if (hero) hero.style.display = 'none';
+                        this.lastId = maxId;
+                        this.scrollToBottom();
                     }
-                    this.scrollToBottom();
                 } catch (e) { /* silent */ }
+                finally {
+                    this.isFetching = false;
+                }
             },
         };
     }
