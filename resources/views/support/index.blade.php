@@ -27,6 +27,14 @@
             'tech_team' => 'Tech', 'content_team' => 'Content',
             default => strtoupper(str_replace('_', ' ', (string) $r)),
         };
+        // Inline avatar gradient (Tailwind gradient classes aren't all in the compiled bundle).
+        $avatarBg = fn($r) => match($r) {
+            'admin'        => 'linear-gradient(135deg, #f43f5e, #ea580c)',
+            'sales'        => 'linear-gradient(135deg, #6366f1, #7c3aed)',
+            'tech_team'    => 'linear-gradient(135deg, #10b981, #0d9488)',
+            'content_team' => 'linear-gradient(135deg, #f59e0b, #ea580c)',
+            default        => 'linear-gradient(135deg, #64748b, #475569)',
+        };
     @endphp
 
     <div class="p-6 w-full" x-data="supportPoller()" x-init="init()">
@@ -133,12 +141,7 @@
                                 <div class="flex items-center gap-2 text-xs">
                                     @php $rep = $t->reporter; @endphp
                                     <div title="Reporter: {{ $rep?->name }}" style="display: flex; align-items: center; gap: 6px;">
-                                        <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px;"
-                                             class="bg-gradient-to-br
-                                             @if($rep?->role === 'admin') from-rose-500 to-orange-600
-                                             @elseif($rep?->role === 'sales') from-indigo-500 to-violet-600
-                                             @elseif($rep?->role === 'tech_team') from-emerald-500 to-teal-600
-                                             @else from-slate-500 to-slate-600 @endif">
+                                        <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px; background: {{ $avatarBg($rep?->role) }};">
                                             {{ strtoupper(substr($rep?->name ?? '?', 0, 1)) }}
                                         </div>
                                         <span class="text-gray-400 hidden md:inline">{{ $rep?->name }}</span>
@@ -147,12 +150,7 @@
                                     @if($t->assignee)
                                         @php $asg = $t->assignee; @endphp
                                         <div title="Assigned: {{ $asg->name }}" style="display: flex; align-items: center; gap: 6px;">
-                                            <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px;"
-                                                 class="bg-gradient-to-br
-                                                 @if($asg->role === 'admin') from-rose-500 to-orange-600
-                                                 @elseif($asg->role === 'sales') from-indigo-500 to-violet-600
-                                                 @elseif($asg->role === 'tech_team') from-emerald-500 to-teal-600
-                                                 @else from-slate-500 to-slate-600 @endif">
+                                            <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px; background: {{ $avatarBg($asg->role) }};">
                                                 {{ strtoupper(substr($asg->name, 0, 1)) }}
                                             </div>
                                             <span class="text-gray-400 hidden md:inline">{{ $asg->name }}</span>

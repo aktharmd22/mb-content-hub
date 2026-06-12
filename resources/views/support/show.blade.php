@@ -29,12 +29,13 @@
             'content_team' => 'bg-amber-500/15 text-amber-300',
             default        => 'bg-gray-500/15 text-gray-300',
         };
+        // Inline gradient CSS (Tailwind gradient classes aren't all in the compiled bundle).
         $roleGradient = fn($r) => match($r) {
-            'admin' => 'from-rose-500 to-orange-600',
-            'sales' => 'from-indigo-500 to-violet-600',
-            'tech_team' => 'from-emerald-500 to-teal-600',
-            'content_team' => 'from-amber-500 to-orange-600',
-            default => 'from-slate-500 to-slate-600',
+            'admin'        => 'linear-gradient(135deg, #f43f5e, #ea580c)',
+            'sales'        => 'linear-gradient(135deg, #6366f1, #7c3aed)',
+            'tech_team'    => 'linear-gradient(135deg, #10b981, #0d9488)',
+            'content_team' => 'linear-gradient(135deg, #f59e0b, #ea580c)',
+            default        => 'linear-gradient(135deg, #64748b, #475569)',
         };
         [$sBg, $sLabel] = $statusStyle[$ticket->status];
         [$pBg, $pLabel] = $priorityStyle[$ticket->priority];
@@ -78,8 +79,7 @@
                 <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-600">From</span>
                 @php $rep = $ticket->reporter; @endphp
                 <div class="flex items-center gap-2">
-                    <div style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;"
-                         class="bg-gradient-to-br {{ $roleGradient($rep?->role) }}">
+                    <div style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px; background: {{ $roleGradient($rep?->role) }};">
                         {{ strtoupper(substr($rep?->name ?? '?', 0, 1)) }}
                     </div>
                     <div>
@@ -96,8 +96,7 @@
                 @if($ticket->assignee)
                     @php $asg = $ticket->assignee; @endphp
                     <div class="flex items-center gap-2">
-                        <div style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px;"
-                             class="bg-gradient-to-br {{ $roleGradient($asg->role) }}">
+                        <div style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px; background: {{ $roleGradient($asg->role) }};">
                             {{ strtoupper(substr($asg->name, 0, 1)) }}
                         </div>
                         <div>
@@ -126,8 +125,7 @@
 
                 {{-- Original description --}}
                 <div class="flex items-start gap-3 mb-5 pb-5" style="border-bottom: 1px solid rgba(148,163,184,0.06);">
-                    <div style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0;"
-                         class="bg-gradient-to-br {{ $roleGradient($rep?->role) }}">
+                    <div style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0; background: {{ $roleGradient($rep?->role) }};">
                         {{ strtoupper(substr($rep?->name ?? '?', 0, 1)) }}
                     </div>
                     <div class="flex-1 min-w-0">
@@ -153,8 +151,7 @@
                     @else
                         @php $u = $reply->user; @endphp
                         <div class="flex items-start gap-3 mb-4">
-                            <div style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0;"
-                                 class="bg-gradient-to-br {{ $roleGradient($u?->role) }}">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0; background: {{ $roleGradient($u?->role) }};">
                                 {{ strtoupper(substr($u?->name ?? '?', 0, 1)) }}
                             </div>
                             <div class="flex-1 min-w-0">
