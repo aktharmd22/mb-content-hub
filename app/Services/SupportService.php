@@ -176,15 +176,15 @@ class SupportService
         ];
     }
 
+    /**
+     * Sidebar badge = number of UNREAD support notifications.
+     * Clears automatically once the user opens/reads them — only genuinely new activity shows.
+     */
     public function activeForBadge(User $user): int
     {
-        $q = SupportTicket::whereNotIn('status', ['closed', 'resolved']);
-        if (! $user->isAdmin()) {
-            $q->where(function ($qq) use ($user) {
-                $qq->where('reporter_id', $user->id)->orWhere('assignee_id', $user->id);
-            });
-        }
-        return $q->count();
+        return $user->unreadNotifications()
+            ->where('data->type', 'like', 'support%')
+            ->count();
     }
 
     private function admins()

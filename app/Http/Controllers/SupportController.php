@@ -101,6 +101,13 @@ class SupportController extends Controller
         $user = auth()->user();
         abort_unless($ticket->canBeViewedBy($user), 403);
 
+        // Mark this ticket's unread notifications as read so the sidebar badge clears.
+        $user->unreadNotifications()
+            ->where('data->type', 'like', 'support%')
+            ->where('data->ticket_id', $ticket->id)
+            ->get()
+            ->each->markAsRead();
+
         $ticket->load(['reporter', 'assignee', 'replies.user']);
 
         $assignableUsers = $user->isAdmin()
