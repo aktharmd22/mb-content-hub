@@ -22,16 +22,6 @@ Route::middleware('auth')->group(function () {
     // Global search (all roles)
     Route::get('/search',                              [SearchController::class, 'search'])->name('search');
 
-    // Inbox (all roles)
-    Route::get('/inbox',                                    [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
-    Route::post('/inbox',                                   [\App\Http\Controllers\InboxController::class, 'store'])->name('inbox.store');
-    Route::post('/inbox/{conversation}/messages',           [\App\Http\Controllers\InboxController::class, 'sendMessage'])->name('inbox.messages.store');
-    Route::post('/inbox/{conversation}/pin',                [\App\Http\Controllers\InboxController::class, 'togglePin'])->name('inbox.pin');
-    Route::get('/inbox/{conversation}/messages/{message}/download', [\App\Http\Controllers\InboxController::class, 'downloadAttachment'])->name('inbox.attachment.download');
-    Route::get('/inbox/{conversation}/stream',              [\App\Http\Controllers\InboxController::class, 'stream'])->name('inbox.stream');
-    Route::delete('/inbox/{conversation}/messages/{message}', [\App\Http\Controllers\InboxController::class, 'deleteMessage'])->name('inbox.messages.delete');
-    Route::get('/inbox-unread-count',                       [\App\Http\Controllers\InboxController::class, 'unreadCount'])->name('inbox.unread');
-
     // Notifications (all roles)
     Route::get('/notifications',                       [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/dropdown',              [NotificationController::class, 'dropdown'])->name('notifications.dropdown');
