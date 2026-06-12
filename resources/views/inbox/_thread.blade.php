@@ -168,7 +168,8 @@
                     </div>
                 @endif
 
-                <div class="flex items-end gap-2.5 {{ $isOwn ? 'flex-row-reverse' : '' }} {{ $sameSender && ! $newDay ? 'mt-1' : 'mt-4' }}">
+                <div style="display: flex; align-items: flex-end; gap: 0.625rem; {{ $isOwn ? 'flex-direction: row-reverse;' : '' }}"
+                     class="{{ $sameSender && ! $newDay ? 'mt-1' : 'mt-4' }}">
                     {{-- Avatar (only on first of grouped messages) --}}
                     <div class="w-8 h-8 flex-shrink-0">
                         @if(! $sameSender || $newDay)
@@ -183,7 +184,7 @@
                         @endif
                     </div>
 
-                    <div class="max-w-[70%] {{ $isOwn ? 'items-end' : 'items-start' }} flex flex-col">
+                    <div style="display: flex; flex-direction: column; max-width: 70%; {{ $isOwn ? 'align-items: flex-end;' : 'align-items: flex-start;' }}">
                         <div class="rounded-2xl px-4 py-2.5 shadow-sm
                             {{ $isOwn
                                 ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-md'
@@ -226,7 +227,7 @@
                             $lastInGroup = ! $nextMsg || $nextMsg->user_id !== $msg->user_id || $nextMsg->created_at->format('Y-m-d') !== $date;
                         @endphp
                         @if($lastInGroup)
-                            <div class="flex items-center gap-1.5 mt-1 px-1 {{ $isOwn ? 'flex-row-reverse' : '' }}">
+                            <div style="display: flex; align-items: center; gap: 0.375rem; {{ $isOwn ? 'flex-direction: row-reverse;' : '' }}" class="mt-1 px-1">
                                 <span class="text-[10px] text-gray-500">{{ $msg->created_at->format('g:i A') }}</span>
                                 <span class="text-[10px] text-gray-600">·</span>
                                 <span class="text-[10px] font-medium text-gray-400">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
