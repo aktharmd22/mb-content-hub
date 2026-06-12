@@ -169,6 +169,24 @@
     </a>
 @endif
 
+{{-- Inbox (all roles) --}}
+@php
+    $inboxUnread = app(\App\Services\InboxService::class)->totalUnreadFor(auth()->user());
+@endphp
+<a href="{{ route('inbox.index') }}" title="Inbox"
+   class="sidebar-link {{ request()->routeIs('inbox*') ? 'active' : '' }} relative">
+    <span class="flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+    </span>
+    <span x-show="sidebarOpen" class="truncate flex-1">Inbox</span>
+    @if($inboxUnread > 0)
+        <span x-show="sidebarOpen" class="ml-auto inline-flex items-center justify-center px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold text-white bg-rose-500 rounded-full">{{ $inboxUnread > 9 ? '9+' : $inboxUnread }}</span>
+        <span x-show="!sidebarOpen" class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+    @endif
+</a>
+
 {{-- Profile (all roles) --}}
 <div class="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
     <a href="{{ route('profile.edit') }}" title="Profile"
