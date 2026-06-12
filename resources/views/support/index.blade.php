@@ -29,7 +29,7 @@
         };
     @endphp
 
-    <div class="p-6 w-full">
+    <div class="p-6 w-full" x-data="supportPoller()" x-init="init()">
         {{-- Header --}}
         <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
             <div>
@@ -48,8 +48,8 @@
             </a>
         </div>
 
-        {{-- Filter tabs --}}
-        <div class="flex flex-wrap items-center gap-2 mb-4">
+        {{-- Filter tabs (live region) --}}
+        <div id="support-live-tabs" class="flex flex-wrap items-center gap-2 mb-4">
             @php
                 $tabs = $isAdmin
                     ? [
@@ -94,7 +94,8 @@
             </div>
         </form>
 
-        {{-- Ticket list --}}
+        {{-- Ticket list (live region) --}}
+        <div id="support-live-list">
         @if($tickets->isEmpty())
             <div style="padding: 80px 24px; text-align: center; background: #1e293b; border: 1px dashed #334155; border-radius: 16px;">
                 <div style="width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 50%; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15)); display: flex; align-items: center; justify-content: center;">
@@ -169,5 +170,57 @@
 
             <div class="mt-6">{{ $tickets->links() }}</div>
         @endif
+        </div>
     </div>
+
+    <script>
+        function supportPoller() {
+            return {
+                pollHandle: null,
+                init() {
+                    this.startPolling();
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.hidden) {
+                            this.stopPolling();
+                        } else {
+                            this.poll();
+                            this.startPolling();
+                        }
+                    });
+                },
+                startPolling() {
+                    if (this.pollHandle) return;
+                    this.pollHandle = setInterval(() => this.poll(), 8000);
+                },
+                stopPolling() {
+                    if (this.pollHandle) { clearInterval(this.pollHandle); this.pollHandle = null; }
+                },
+                async poll() {
+                    try {
+                        // Re-fetch the current page (keeps filter + search via the live URL).
+                        const r = await fetch(window.location.href, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                            cache: 'no-store',
+                        });
+                        if (!r.ok) return;
+                        const html = await r.text();
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                        const newTabs = doc.getElementById('support-live-tabs');
+                        const newList = doc.getElementById('support-live-list');
+                        const curTabs = document.getElementById('support-live-tabs');
+                        const curList = document.getElementById('support-live-list');
+
+                        // Only swap if content actually changed (avoids flicker / scroll jumps).
+                        if (newTabs && curTabs && newTabs.innerHTML !== curTabs.innerHTML) {
+                            curTabs.innerHTML = newTabs.innerHTML;
+                        }
+                        if (newList && curList && newList.innerHTML !== curList.innerHTML) {
+                            curList.innerHTML = newList.innerHTML;
+                        }
+                    } catch (e) { /* silent */ }
+                },
+            };
+        }
+    </script>
 </x-app-layout>
