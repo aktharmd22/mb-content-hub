@@ -123,6 +123,32 @@ class InboxController extends Controller
     }
 
     /**
+     * Delete a message. Sender can delete their own; admins can delete any.
+     */
+    public function deleteMessage(Request $request, InboxConversation $conversation, \App\Models\InboxMessage $message)
+    {
+        $user = auth()->user();
+
+        if ($message->conversation_id !== $conversation->id) {
+            abort(404);
+        }
+
+        if (! $user->isAdmin() && $message->user_id !== $user->id) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'error' => 'Not allowed.'], 403);
+            }
+            abort(403);
+        }
+
+        $message->delete();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['ok' => true]);
+        }
+        return back();
+    }
+
+    /**
      * Live polling endpoint — returns HTML for any new messages with id > after.
      */
     public function stream(Request $request, InboxConversation $conversation)

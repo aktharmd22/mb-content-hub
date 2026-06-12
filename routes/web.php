@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inbox/{conversation}/pin',                [\App\Http\Controllers\InboxController::class, 'togglePin'])->name('inbox.pin');
     Route::get('/inbox/{conversation}/messages/{message}/download', [\App\Http\Controllers\InboxController::class, 'downloadAttachment'])->name('inbox.attachment.download');
     Route::get('/inbox/{conversation}/stream',              [\App\Http\Controllers\InboxController::class, 'stream'])->name('inbox.stream');
+    Route::delete('/inbox/{conversation}/messages/{message}', [\App\Http\Controllers\InboxController::class, 'deleteMessage'])->name('inbox.messages.delete');
     Route::get('/inbox-unread-count',                       [\App\Http\Controllers\InboxController::class, 'unreadCount'])->name('inbox.unread');
 
     // Notifications (all roles)

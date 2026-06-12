@@ -61,15 +61,23 @@
                     default        => 'bg-gray-500/15 text-gray-300 border-gray-500/30',
                 };
             @endphp
-            <div style="display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap; {{ $isOwn ? 'flex-direction: row-reverse;' : '' }}" class="mt-1.5 px-1">
-                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border {{ $roleClass }}">{{ $roleLabel }}</span>
-                <span class="text-[10px] font-medium text-gray-300">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
+            <div style="display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; {{ $isOwn ? 'flex-direction: row-reverse;' : '' }}" class="mt-1 px-1">
+                <span class="text-[11px] font-semibold text-gray-200">{{ $isOwn ? 'You' : ($msg->user?->name ?? 'Unknown') }}</span>
+                <span style="font-size: 8px; padding: 1px 5px; line-height: 1.3;" class="rounded uppercase tracking-wide border {{ $roleClass }}">{{ $roleLabel }}</span>
                 <span class="text-[10px] text-gray-600">·</span>
                 <span class="text-[10px] text-gray-500" data-utc="{{ $msg->created_at->toIso8601String() }}" data-utc-format="time">{{ $msg->created_at->format('g:i A') }}</span>
                 @if($isOwn)
                     <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
+                @endif
+                @if($isOwn || $user->isAdmin())
+                    <button type="button" onclick="deleteMessage({{ $conversation->id }}, {{ $msg->id }}, this)"
+                            class="ml-1 text-gray-600 hover:text-rose-400 transition-colors" title="Delete">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3"/>
+                        </svg>
+                    </button>
                 @endif
             </div>
         </div>
