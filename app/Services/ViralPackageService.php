@@ -236,6 +236,21 @@ class ViralPackageService
             throw new WorkflowException("Only deliverables in 'Ready for review' can be sent for correction.");
         }
 
+        // If sales attached file(s), make sure Drive can actually store them — otherwise
+        // the files would be silently dropped. Fail loudly BEFORE changing anything.
+        $hasFileAssets = collect($correctionAssets)
+            ->contains(fn ($a) => ($a['type'] ?? null) === 'file' && isset($a['file']));
+        if ($hasFileAssets) {
+            $this->ensureDriveFolders($package);
+            $package->refresh();
+            if (! $package->drive_corrections_folder_id) {
+                throw new WorkflowException(
+                    'Google Drive isn\'t set up for this package, so the attached file can\'t be saved. '
+                    . 'Remove the attachment and send the correction as text only, or ask an admin to configure Drive in Settings.'
+                );
+            }
+        }
+
         return DB::transaction(function () use ($deliverable, $reason, $correctionAssets, $actor) {
             $from = $deliverable->stage;
 
