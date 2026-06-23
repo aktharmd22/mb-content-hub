@@ -344,6 +344,30 @@
                     </div>
                 </div>
 
+                <div class="pt-3 border-t border-ink-700">
+                    <p class="text-xs font-medium text-gray-300 mb-1">Viral Packages</p>
+                    <p class="text-xs text-gray-500 mb-3">Parent folder where a subfolder is auto-created for each viral package.</p>
+                    <div class="flex items-center gap-3">
+                        <span class="w-32 text-xs text-gray-400 flex-shrink-0">Viral packages</span>
+                        <div class="flex-1">
+                            @include('admin.settings._folder-select', [
+                                'name'        => 'drive_folder_viral_packages',
+                                'currentId'   => old('drive_folder_viral_packages', $viralPackagesFolder ?? ''),
+                                'available'   => $availableFolders,
+                                'placeholder' => 'Not set',
+                            ])
+                        </div>
+                        @if(! empty($viralPackagesFolder))
+                            <a href="https://drive.google.com/drive/folders/{{ $viralPackagesFolder }}" target="_blank" rel="noopener"
+                               class="text-xs text-gray-500 hover:text-indigo-400 transition-colors" title="Open in Drive">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
                 <div class="flex justify-end pt-3">
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
                         Save folder IDs

@@ -139,18 +139,6 @@
                     </div>
                 </div>
 
-                <div class="pt-5 border-t border-ink-700">
-                    <label for="drive_folder_viral_packages" class="block text-xs font-medium text-gray-300 mb-1.5">
-                        Viral Packages Drive folder ID
-                    </label>
-                    <input id="drive_folder_viral_packages" name="drive_folder_viral_packages" type="text" maxlength="128"
-                           value="{{ old('drive_folder_viral_packages', $viralPackagesFolder ?? '') }}"
-                           placeholder="e.g. 1MzeYx4jMrgIPMhMy6QD-Dvc_xg_qq0dV"
-                           class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
-                    @error('drive_folder_viral_packages')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
-                    <p class="mt-1 text-xs text-gray-500">Paste the ID of the existing "Viral Package" folder in Google Drive (from the URL <span class="font-mono">drive.google.com/drive/folders/<span class="text-gray-400">THIS_PART</span></span>).</p>
-                </div>
-
                 <div class="flex justify-end pt-2 border-t border-ink-700">
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
                         Save changes

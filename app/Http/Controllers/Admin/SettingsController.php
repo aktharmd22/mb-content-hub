@@ -29,7 +29,6 @@ class SettingsController extends Controller
             'logoPath'            => \App\Models\Setting::get('app_logo_path'),
             'logoUrl'             => \App\Support\Branding::logoUrl(),
             'faviconUrl'          => \App\Support\Branding::faviconUrl(),
-            'viralPackagesFolder' => (string) \App\Models\Setting::get('drive_folder_viral_packages', ''),
         ]);
     }
 
@@ -39,7 +38,6 @@ class SettingsController extends Controller
             'default_deadline_days'         => ['required', 'integer', 'min:1', 'max:90'],
             'stuck_threshold_days'          => ['required', 'integer', 'min:1', 'max:30'],
             'app_brand_name'                => ['required', 'string', 'max:50'],
-            'drive_folder_viral_packages'   => ['nullable', 'string', 'max:128'],
         ]);
 
         foreach ($data as $key => $value) {
@@ -150,6 +148,7 @@ class SettingsController extends Controller
             'availableFolders'    => $availableFolders,
             'connection'          => $connection,
             'recentFiles'         => $recentFiles,
+            'viralPackagesFolder' => (string) Setting::get('drive_folder_viral_packages', ''),
         ]);
     }
 
@@ -279,7 +278,10 @@ class SettingsController extends Controller
 
     public function saveFolderIds(Request $request): RedirectResponse
     {
-        $rules = ['drive_folder_root' => ['nullable', 'string', 'max:128']];
+        $rules = [
+            'drive_folder_root'           => ['nullable', 'string', 'max:128'],
+            'drive_folder_viral_packages' => ['nullable', 'string', 'max:128'],
+        ];
         foreach (GoogleDriveService::STAGE_FOLDERS as $settingKey) {
             $rules[$settingKey] = ['nullable', 'string', 'max:128'];
         }
