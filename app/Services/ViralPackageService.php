@@ -92,6 +92,10 @@ class ViralPackageService
             throw WorkflowException::notAuthorized($actor, 'reassign this package');
         }
 
+        if ($package->isCompleted()) {
+            throw new WorkflowException('This package is already completed and cannot be reassigned.');
+        }
+
         $newTech = User::where('id', $newTechTeamId)
             ->where('role', 'tech_team')
             ->where('is_active', true)
