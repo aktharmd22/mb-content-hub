@@ -33,7 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/support/{ticket}/assign',           [\App\Http\Controllers\SupportController::class, 'assign'])->name('support.assign');
     Route::patch('/support/{ticket}/bounce',           [\App\Http\Controllers\SupportController::class, 'bounce'])->name('support.bounce');
     Route::delete('/support/{ticket}',                  [\App\Http\Controllers\SupportController::class, 'destroy'])->name('support.destroy');
-    Route::get('/support/{ticket}/attachment',          [\App\Http\Controllers\SupportController::class, 'downloadAttachment'])->name('support.attachment');
+    Route::get('/support/{ticket}/attachment/{attachment}', [\App\Http\Controllers\SupportController::class, 'downloadAttachment'])->name('support.attachment');
 
     // Notifications (all roles)
     Route::get('/notifications',                       [NotificationController::class, 'index'])->name('notifications.index');

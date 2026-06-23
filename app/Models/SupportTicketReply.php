@@ -12,7 +12,6 @@ class SupportTicketReply extends Model
 
     protected $fillable = [
         'ticket_id', 'user_id', 'body', 'is_system',
-        'attachment_path', 'attachment_name', 'attachment_size', 'attachment_mime',
     ];
 
     protected function casts(): array
@@ -22,9 +21,9 @@ class SupportTicketReply extends Model
         ];
     }
 
-    public function hasAttachment(): bool
+    public function attachments(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
-        return ! empty($this->attachment_path);
+        return $this->morphMany(SupportAttachment::class, 'attachable');
     }
 
     public function ticket(): BelongsTo

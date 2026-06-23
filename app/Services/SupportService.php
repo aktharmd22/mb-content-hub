@@ -31,10 +31,6 @@ class SupportService
                 'status'           => 'open',
                 'reporter_id'      => $reporter->id,
                 'assignee_id'      => $data['assignee_id'] ?? null,
-                'attachment_path'  => $data['attachment_path'] ?? null,
-                'attachment_name'  => $data['attachment_name'] ?? null,
-                'attachment_size'  => $data['attachment_size'] ?? null,
-                'attachment_mime'  => $data['attachment_mime'] ?? null,
                 'last_activity_at' => now(),
             ]);
 
@@ -44,18 +40,14 @@ class SupportService
         });
     }
 
-    public function reply(SupportTicket $ticket, User $author, string $body, array $attachment = []): SupportTicketReply
+    public function reply(SupportTicket $ticket, User $author, string $body): SupportTicketReply
     {
-        return DB::transaction(function () use ($ticket, $author, $body, $attachment) {
+        return DB::transaction(function () use ($ticket, $author, $body) {
             $reply = SupportTicketReply::create([
-                'ticket_id'       => $ticket->id,
-                'user_id'         => $author->id,
-                'body'            => $body,
-                'is_system'       => false,
-                'attachment_path' => $attachment['attachment_path'] ?? null,
-                'attachment_name' => $attachment['attachment_name'] ?? null,
-                'attachment_size' => $attachment['attachment_size'] ?? null,
-                'attachment_mime' => $attachment['attachment_mime'] ?? null,
+                'ticket_id' => $ticket->id,
+                'user_id'   => $author->id,
+                'body'      => $body,
+                'is_system' => false,
             ]);
 
             // Auto-progress: if reporter replies while waiting, move to in_progress; if assignee replies on open, move to in_progress.

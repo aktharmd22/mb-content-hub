@@ -13,7 +13,7 @@
         </div>
 
         <form method="POST" action="{{ route('support.store') }}" enctype="multipart/form-data"
-              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}', fileName: '' }"
+              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}', files: [] }"
               style="background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 16px; padding: 24px;">
             @csrf
 
@@ -50,38 +50,39 @@
                 @error('description') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            {{-- Attachment --}}
+            {{-- Attachments (multiple) --}}
             <div class="mb-4">
-                <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Attachment <span class="text-gray-600 normal-case font-normal">(optional, max 10MB)</span></label>
+                <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Attachments <span class="text-gray-600 normal-case font-normal">(optional, up to 10 files · 10MB each)</span></label>
 
-                {{-- Idle state: compact attach button --}}
-                <label x-show="!fileName"
-                       class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-lg cursor-pointer transition-colors hover:border-indigo-500/50"
+                {{-- Attach button --}}
+                <label class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-lg cursor-pointer transition-colors hover:border-indigo-500/50"
                        style="background: #0f172a; border: 1px solid rgba(148,163,184,0.14);">
-                    <input type="file" name="attachment" class="hidden"
-                           @change="fileName = $event.target.files[0]?.name || ''"/>
+                    <input type="file" name="attachments[]" multiple class="hidden"
+                           @change="files = Array.from($event.target.files).map(f => f.name)"/>
                     <svg class="w-4 h-4 flex-shrink-0" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                     </svg>
-                    <span class="text-sm font-medium text-gray-200">Attach a file</span>
-                    <span class="text-[11px] text-gray-500 hidden sm:inline">screenshots, docs, logs…</span>
+                    <span class="text-sm font-medium text-gray-200" x-text="files.length ? 'Change files' : 'Attach files'"></span>
+                    <span class="text-[11px] text-gray-500 hidden sm:inline" x-show="!files.length">screenshots, docs, logs…</span>
+                    <span class="text-[11px] text-indigo-300" x-show="files.length" x-text="files.length + ' selected'"></span>
                 </label>
 
-                {{-- Selected state: filename chip --}}
-                <div x-show="fileName" x-cloak
-                     class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg"
-                     style="background: #0f172a; border: 1px solid rgba(99,102,241,0.4);">
-                    <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(99,102,241,0.15);">
-                        <svg class="w-4 h-4" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </span>
-                    <span class="text-sm text-gray-100 font-medium truncate flex-1" x-text="fileName"></span>
+                {{-- Selected files list --}}
+                <div x-show="files.length" x-cloak class="mt-2 space-y-1.5">
+                    <template x-for="(f, i) in files" :key="i">
+                        <div class="flex items-center gap-3 px-3.5 py-2 rounded-lg"
+                             style="background: #0f172a; border: 1px solid rgba(99,102,241,0.3);">
+                            <span class="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style="background: rgba(99,102,241,0.15);">
+                                <svg class="w-3.5 h-3.5" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </span>
+                            <span class="text-sm text-gray-100 truncate flex-1" x-text="f"></span>
+                        </div>
+                    </template>
                     <button type="button"
-                            @click.prevent="fileName=''; $root.querySelector('input[type=file]').value=''"
-                            class="text-gray-500 hover:text-rose-400 flex-shrink-0" title="Remove">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+                            @click="files=[]; $root.querySelector('input[type=file]').value=''"
+                            class="text-[11px] text-gray-500 hover:text-rose-400 transition-colors">Clear all</button>
                 </div>
-                @error('attachment') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
+                @error('attachments.*') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Assign target --}}

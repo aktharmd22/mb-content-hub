@@ -15,13 +15,12 @@ class SupportTicket extends Model
     protected $fillable = [
         'code', 'subject', 'description', 'priority', 'status',
         'reporter_id', 'assignee_id',
-        'attachment_path', 'attachment_name', 'attachment_size', 'attachment_mime',
         'last_activity_at', 'resolved_at', 'closed_at',
     ];
 
-    public function hasAttachment(): bool
+    public function attachments(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
-        return ! empty($this->attachment_path);
+        return $this->morphMany(SupportAttachment::class, 'attachable');
     }
 
     protected function casts(): array
