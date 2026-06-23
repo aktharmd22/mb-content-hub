@@ -2,7 +2,7 @@
     <x-slot name="header">Admin dashboard</x-slot>
     <x-slot name="title">Dashboard</x-slot>
 
-    <div class="p-6">
+    <div class="p-6" data-live="admin-dashboard">
 
         <div class="mb-6">
             <h2 class="text-lg font-medium text-gray-100">Welcome back, {{ auth()->user()->name }}</h2>

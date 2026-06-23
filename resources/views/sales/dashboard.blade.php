@@ -2,7 +2,7 @@
     <x-slot name="header">Sales dashboard</x-slot>
     <x-slot name="title">Dashboard</x-slot>
 
-    <div class="p-6">
+    <div class="p-6" data-live="sales-dashboard">
 
         <div class="flex items-center justify-between mb-6">
             <div>
