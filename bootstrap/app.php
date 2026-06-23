@@ -42,4 +42,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return redirect()->to($target)->with('error', 'Your session timed out. Please try again.');
         });
+
+        // A file/upload bigger than the server's post_max_size makes PHP discard the whole
+        // request, which otherwise surfaces as a bare 413 or a misleading "field is required".
+        // Show a clear, friendly message instead.
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {
+            $msg = 'That file is too large to upload. Please choose a smaller file (the server limit is '
+                . (ini_get('upload_max_filesize') ?: 'a few MB') . ').';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 413);
+            }
+
+            $target = $request->headers->get('referer') ?: url()->previous();
+            return redirect()->to($target)->with('error', $msg);
+        });
     })->create();

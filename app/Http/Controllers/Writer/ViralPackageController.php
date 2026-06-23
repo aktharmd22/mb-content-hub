@@ -77,8 +77,11 @@ class ViralPackageController extends Controller
         $this->ensureBelongs($deliverable, $viralPackage);
 
         $validated = $request->validate([
-            'file'  => ['required', 'file', 'max:204800'],
+            'file'  => ['required', 'file', 'max:262144'], // 256 MB (matches .user.ini)
             'notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'file.max'      => 'The file is too large. Maximum upload size is 256 MB.',
+            'file.required' => 'Please choose a file to upload.',
         ]);
 
         try {
