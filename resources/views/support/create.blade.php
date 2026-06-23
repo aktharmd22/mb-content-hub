@@ -56,28 +56,29 @@
 
                 {{-- Idle state: compact attach button --}}
                 <label x-show="!fileName"
-                       style="display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; background: #0f172a; border: 1px solid rgba(148,163,184,0.14); border-radius: 10px; cursor: pointer;"
-                       class="hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-colors">
+                       class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-lg cursor-pointer transition-colors hover:border-indigo-500/50"
+                       style="background: #0f172a; border: 1px solid rgba(148,163,184,0.14);">
                     <input type="file" name="attachment" class="hidden"
                            @change="fileName = $event.target.files[0]?.name || ''"/>
-                    <svg style="width: 16px; height: 16px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-4 h-4 flex-shrink-0" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                     </svg>
                     <span class="text-sm font-medium text-gray-200">Attach a file</span>
-                    <span class="text-[11px] text-gray-500">screenshots, docs, logs…</span>
+                    <span class="text-[11px] text-gray-500 hidden sm:inline">screenshots, docs, logs…</span>
                 </label>
 
                 {{-- Selected state: filename chip --}}
                 <div x-show="fileName" x-cloak
-                     style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(99,102,241,0.4); border-radius: 10px;">
-                    <span style="width: 34px; height: 34px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <svg style="width: 16px; height: 16px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                     class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg"
+                     style="background: #0f172a; border: 1px solid rgba(99,102,241,0.4);">
+                    <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(99,102,241,0.15);">
+                        <svg class="w-4 h-4" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </span>
                     <span class="text-sm text-gray-100 font-medium truncate flex-1" x-text="fileName"></span>
                     <button type="button"
                             @click.prevent="fileName=''; $root.querySelector('input[type=file]').value=''"
                             class="text-gray-500 hover:text-rose-400 flex-shrink-0" title="Remove">
-                        <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 @error('attachment') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
