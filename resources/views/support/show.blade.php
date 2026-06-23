@@ -47,6 +47,13 @@
         $card  = 'background:#161d2b; border:1px solid rgba(148,163,184,0.08); border-radius:16px;';
         $field = 'width:100%; padding:9px 12px; background:#0f1623; border:1px solid rgba(148,163,184,0.10); border-radius:10px; color:#e2e8f0; font-size:13px; outline:none;';
         $chip  = 'font-size:9px; padding:2px 7px; border-radius:5px; text-transform:uppercase; letter-spacing:0.04em; font-weight:700;';
+
+        $fmtSize = function ($bytes) {
+            if (! $bytes) return '';
+            $u = ['B','KB','MB','GB']; $i = 0; $b = (float) $bytes;
+            while ($b >= 1024 && $i < 3) { $b /= 1024; $i++; }
+            return round($b, $i ? 1 : 0) . ' ' . $u[$i];
+        };
     @endphp
 
     <div class="p-6 w-full" style="max-width: 1100px; margin: 0 auto;">
@@ -136,6 +143,20 @@
                             <span class="text-[11px] text-gray-500">opened · {{ $ticket->created_at->diffForHumans() }}</span>
                         </div>
                         <p class="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{{ $ticket->description }}</p>
+                        @if($ticket->hasAttachment())
+                            <a href="{{ route('support.attachment', $ticket) }}"
+                               style="display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 12px; background: #0f1623; border: 1px solid rgba(148,163,184,0.12); border-radius: 10px; max-width: 320px;"
+                               class="hover:border-indigo-500/40 transition-colors">
+                                <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg style="width: 15px; height: 15px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-xs font-medium text-gray-200 truncate">{{ $ticket->attachment_name }}</span>
+                                    <span class="block text-[10px] text-gray-500">{{ $fmtSize($ticket->attachment_size) }} · Download</span>
+                                </span>
+                                <svg style="width: 14px; height: 14px; color: #64748b; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -161,9 +182,25 @@
                                     @endif
                                     <span class="text-[11px] text-gray-500">{{ $reply->created_at->diffForHumans() }}</span>
                                 </div>
-                                <div style="background: #0f1623; border-radius: 12px; padding: 11px 15px;">
-                                    <p class="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{{ $reply->body }}</p>
-                                </div>
+                                @if($reply->body)
+                                    <div style="background: #0f1623; border-radius: 12px; padding: 11px 15px;">
+                                        <p class="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{{ $reply->body }}</p>
+                                    </div>
+                                @endif
+                                @if($reply->hasAttachment())
+                                    <a href="{{ route('support.attachment', ['ticket' => $ticket, 'reply' => $reply->id]) }}"
+                                       style="display: inline-flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 12px; background: #0f1623; border: 1px solid rgba(148,163,184,0.12); border-radius: 10px; max-width: 320px;"
+                                       class="hover:border-indigo-500/40 transition-colors">
+                                        <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <svg style="width: 15px; height: 15px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block text-xs font-medium text-gray-200 truncate">{{ $reply->attachment_name }}</span>
+                                            <span class="block text-[10px] text-gray-500">{{ $fmtSize($reply->attachment_size) }} · Download</span>
+                                        </span>
+                                        <svg style="width: 14px; height: 14px; color: #64748b; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -173,16 +210,28 @@
 
                 {{-- Composer --}}
                 @if($ticket->canBeRepliedBy($user))
-                    <form method="POST" action="{{ route('support.reply', $ticket) }}" class="mt-6 pt-5" style="border-top: 1px solid rgba(148,163,184,0.06);">
+                    <form method="POST" action="{{ route('support.reply', $ticket) }}" enctype="multipart/form-data"
+                          x-data="{ fileName: '' }" class="mt-6 pt-5" style="border-top: 1px solid rgba(148,163,184,0.06);">
                         @csrf
                         <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Add reply</label>
-                        <textarea name="body" rows="3" maxlength="5000" required
+                        <textarea name="body" rows="3" maxlength="5000"
                                   placeholder="Type your response..."
                                   style="{{ $field }} resize: vertical; padding: 12px 14px;"
                                   onfocus="this.style.borderColor='rgba(99,102,241,0.5)';"
                                   onblur="this.style.borderColor='rgba(148,163,184,0.10)';"></textarea>
                         @error('body') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
-                        <div class="flex items-center justify-end mt-3">
+
+                        <div class="flex items-center justify-between gap-3 mt-3 flex-wrap">
+                            {{-- Attach --}}
+                            <label style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0f1623; border: 1px solid rgba(148,163,184,0.10); border-radius: 9px; cursor: pointer; font-size: 12px; color: #94a3b8;"
+                                   class="hover:text-gray-200 hover:border-indigo-500/40 transition-colors"
+                                   x-bind:style="fileName ? 'border-color: rgba(99,102,241,0.5); color: #a5b4fc;' : ''">
+                                <input type="file" name="attachment" class="hidden" @change="fileName = $event.target.files[0]?.name || ''"/>
+                                <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                <span x-text="fileName || 'Attach file'"></span>
+                                <span x-show="fileName" @click.prevent="fileName=''; $el.closest('label').querySelector('input[type=file]').value=''" class="text-gray-500 hover:text-rose-400 ml-1">✕</span>
+                            </label>
+
                             <button type="submit"
                                     style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 10px; font-weight: 600; font-size: 13px; box-shadow: 0 4px 14px rgba(99,102,241,0.35);"
                                     class="hover:opacity-90 transition-opacity">

@@ -12,8 +12,8 @@
             <p class="text-sm text-gray-500 mt-1">Describe the issue clearly so it can be resolved quickly.</p>
         </div>
 
-        <form method="POST" action="{{ route('support.store') }}"
-              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}' }"
+        <form method="POST" action="{{ route('support.store') }}" enctype="multipart/form-data"
+              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}', fileName: '' }"
               style="background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 16px; padding: 24px;">
             @csrf
 
@@ -48,6 +48,33 @@
                           style="width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid rgba(148,163,184,0.10); border-radius: 10px; color: #f1f5f9; font-size: 14px; resize: vertical;"
                           class="focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/50">{{ old('description') }}</textarea>
                 @error('description') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Attachment --}}
+            <div class="mb-4">
+                <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Attachment <span class="text-gray-600 normal-case font-normal">(optional, max 10MB)</span></label>
+                <label style="display: flex; align-items: center; gap: 12px; padding: 14px; background: #0f172a; border: 1px dashed rgba(148,163,184,0.25); border-radius: 10px; cursor: pointer; transition: all 0.15s;"
+                       class="hover:border-indigo-500/50"
+                       x-bind:style="fileName ? 'border-style: solid; border-color: rgba(99,102,241,0.5);' : ''">
+                    <input type="file" name="attachment" class="hidden"
+                           @change="fileName = $event.target.files[0]?.name || ''"/>
+                    <div style="width: 38px; height: 38px; border-radius: 9px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg style="width: 18px; height: 18px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm text-gray-200" x-show="!fileName">Click to attach a file</p>
+                        <p class="text-sm text-indigo-300 font-medium truncate" x-show="fileName" x-text="fileName"></p>
+                        <p class="text-[11px] text-gray-500 mt-0.5" x-show="!fileName">Screenshots, docs, logs — anything that helps.</p>
+                    </div>
+                    <button type="button" x-show="fileName"
+                            @click.prevent="fileName=''; $el.closest('label').querySelector('input[type=file]').value=''"
+                            class="text-gray-500 hover:text-rose-400 flex-shrink-0">
+                        <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </label>
+                @error('attachment') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Assign target --}}

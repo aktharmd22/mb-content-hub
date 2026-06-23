@@ -12,6 +12,7 @@ class SupportTicketReply extends Model
 
     protected $fillable = [
         'ticket_id', 'user_id', 'body', 'is_system',
+        'attachment_path', 'attachment_name', 'attachment_size', 'attachment_mime',
     ];
 
     protected function casts(): array
@@ -19,6 +20,11 @@ class SupportTicketReply extends Model
         return [
             'is_system' => 'boolean',
         ];
+    }
+
+    public function hasAttachment(): bool
+    {
+        return ! empty($this->attachment_path);
     }
 
     public function ticket(): BelongsTo

@@ -83,10 +83,15 @@ class SupportController extends Controller
             'priority'    => ['required', 'in:low,normal,high,urgent'],
             'target'      => ['required', 'in:admin_pool,specific'],
             'assignee_id' => ['nullable', 'integer', 'exists:users,id', 'required_if:target,specific'],
+            'attachment'  => ['nullable', 'file', 'max:10240'], // 10 MB
         ]);
 
         if ($data['target'] === 'admin_pool') {
             $data['assignee_id'] = null;
+        }
+
+        if ($request->hasFile('attachment')) {
+            $data = array_merge($data, $this->storeAttachment($request->file('attachment')));
         }
 
         $ticket = $this->service->create(auth()->user(), $data);
@@ -127,10 +132,19 @@ class SupportController extends Controller
         abort_if($ticket->status === 'closed', 422, 'Cannot reply on a closed ticket.');
 
         $data = $request->validate([
-            'body' => ['required', 'string', 'max:5000'],
+            'body'       => ['nullable', 'string', 'max:5000'],
+            'attachment' => ['nullable', 'file', 'max:10240'], // 10 MB
         ]);
 
-        $this->service->reply($ticket, $user, $data['body']);
+        if (empty($data['body']) && ! $request->hasFile('attachment')) {
+            return back()->with('error', 'Add a message or attach a file.');
+        }
+
+        $attachment = $request->hasFile('attachment')
+            ? $this->storeAttachment($request->file('attachment'))
+            : [];
+
+        $this->service->reply($ticket, $user, $data['body'] ?? '', $attachment);
 
         return back()->with('success', 'Reply added.');
     }
@@ -203,6 +217,13 @@ class SupportController extends Controller
         // Remove any notifications pointing at this ticket so badges/bells don't show orphans.
         \Illuminate\Notifications\DatabaseNotification::where('data->ticket_id', $ticket->id)->delete();
 
+        // Delete stored attachment files (ticket + replies).
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        if ($ticket->attachment_path) $disk->delete($ticket->attachment_path);
+        foreach ($ticket->replies as $r) {
+            if ($r->attachment_path) $disk->delete($r->attachment_path);
+        }
+
         $ticket->replies()->delete();
         $ticket->delete();
 
@@ -211,5 +232,43 @@ class SupportController extends Controller
         }
 
         return redirect()->route('support.index')->with('success', "Ticket {$code} deleted.");
+    }
+
+    /**
+     * Download a ticket or reply attachment (permission-checked).
+     */
+    public function downloadAttachment(SupportTicket $ticket, Request $request)
+    {
+        abort_unless($ticket->canBeViewedBy(auth()->user()), 403);
+
+        // Resolve which attachment: the ticket itself, or a specific reply.
+        $replyId = $request->integer('reply');
+        if ($replyId) {
+            $reply = $ticket->replies()->whereKey($replyId)->firstOrFail();
+            $path = $reply->attachment_path;
+            $name = $reply->attachment_name;
+        } else {
+            $path = $ticket->attachment_path;
+            $name = $ticket->attachment_name;
+        }
+
+        abort_unless($path && \Illuminate\Support\Facades\Storage::disk('local')->exists($path), 404);
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download($path, $name);
+    }
+
+    /**
+     * Store an uploaded support attachment privately. Returns metadata for the model.
+     */
+    private function storeAttachment(\Illuminate\Http\UploadedFile $file): array
+    {
+        $path = $file->store('support-attachments', 'local');
+
+        return [
+            'attachment_path' => $path,
+            'attachment_name' => $file->getClientOriginalName(),
+            'attachment_size' => $file->getSize(),
+            'attachment_mime' => $file->getMimeType(),
+        ];
     }
 }
