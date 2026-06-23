@@ -328,10 +328,11 @@ class ViralPackageService
             return false;
         }
 
-        // Record as a viral package asset so tech can download / preview the rejected version.
+        // Record as a package-level asset (NOT tied to the deliverable) so the deliverable
+        // card's "Reference files" stays focused on what sales attached; the archived
+        // rejected version lives in the package's Reference assets list.
         ViralPackageAsset::create([
             'viral_package_id'  => $package->id,
-            'deliverable_id'    => $deliverable->id,
             'type'              => 'file',
             'name'              => 'Rejected: ' . $deliverable->title . ' (' . now()->format('M j, H:i') . ')',
             'drive_file_id'     => $deliverable->drive_file_id,
