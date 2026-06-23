@@ -9,7 +9,7 @@
             @csrf
 
             <div>
-                <label for="username" class="label">Username</label>
+                <label for="username" class="label">Username or email</label>
                 <input
                     id="username"
                     type="text"
@@ -19,7 +19,7 @@
                     autofocus
                     autocomplete="username"
                     class="field"
-                    placeholder="your username"
+                    placeholder="username or email"
                 />
                 @error('username')
                     <p class="mt-1.5 text-xs text-rose-400">{{ $message }}</p>
