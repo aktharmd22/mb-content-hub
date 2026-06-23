@@ -589,7 +589,20 @@ class ViralPackageService
     {
         $actor ??= Auth::user();
         $this->ensureDriveFolders($package);
-        $this->attachAssets($package->fresh(), $assets, $actor);
+        $package = $package->fresh();
+
+        // If any file assets are present, Drive must be able to store them — otherwise
+        // they'd be silently skipped while the UI shows "added". Fail loudly instead.
+        $hasFileAssets = collect($assets)
+            ->contains(fn ($a) => ($a['type'] ?? null) === 'file' && isset($a['file']));
+        if ($hasFileAssets && ! $package->drive_assets_folder_id) {
+            throw new WorkflowException(
+                'Google Drive isn\'t set up for this package, so files can\'t be uploaded. '
+                . 'Add links instead, or ask an admin to configure Drive in Settings.'
+            );
+        }
+
+        $this->attachAssets($package, $assets, $actor);
     }
 
     /**

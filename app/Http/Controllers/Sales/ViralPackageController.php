@@ -146,6 +146,8 @@ class ViralPackageController extends Controller
 
         try {
             $this->service->attachAdditionalAssets($viralPackage, $assets);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             report($e);
             return back()->with('error', 'Could not upload assets: ' . $e->getMessage());
