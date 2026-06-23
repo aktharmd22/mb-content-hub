@@ -172,7 +172,9 @@ class ViralPackageController extends Controller
             return back()->with('error', 'No assets to download.');
         }
 
-        $zipPath = tempnam(sys_get_temp_dir(), 'viral_assets_') . '.zip';
+        $zipBase = tempnam(sys_get_temp_dir(), 'viral_assets_');
+        @unlink($zipBase); // tempnam created an empty file at this path; drop it so only the .zip remains
+        $zipPath = $zipBase . '.zip';
         $zip = new \ZipArchive();
         if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             @unlink($zipPath);
