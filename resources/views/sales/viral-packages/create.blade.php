@@ -2,6 +2,14 @@
     <x-slot name="header">Add client to viral package</x-slot>
     <x-slot name="title">Add client</x-slot>
 
+    @php
+        $clientOptions = $clients->map(fn ($c) => [
+            'id'    => $c->id,
+            'label' => $c->name . ($c->company ? " — {$c->company}" : ''),
+        ])->values();
+        $techOptions = $techTeam->map(fn ($t) => ['id' => $t->id, 'label' => $t->name])->values();
+    @endphp
+
     <div class="p-6 max-w-4xl" x-data="viralPackageForm()">
 
         <a href="{{ route('sales.viral-packages.index') }}" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 mb-3 transition-colors">
@@ -35,13 +43,30 @@
                             </div>
                             <input type="hidden" name="client_id" value=""/>
                         @else
-                            <select id="client_id" name="client_id" required
-                                    class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">— Select an existing client —</option>
-                                @foreach($clients as $c)
-                                    <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->name }}{{ $c->company ? " — {$c->company}" : '' }}</option>
-                                @endforeach
-                            </select>
+                            <div x-data="searchSelect(@js($clientOptions), '{{ old('client_id') }}')"
+                                 @click.outside="closeReset()" class="relative">
+                                <input type="hidden" name="client_id" :value="selectedId"/>
+                                <div @click="openMenu()"
+                                     class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg cursor-text transition-colors"
+                                     :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600'">
+                                    <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <input type="text" x-model="query" x-ref="input"
+                                           @focus="open = true" @input="open = true"
+                                           placeholder="— Select an existing client —"
+                                           class="flex-1 bg-transparent text-gray-100 placeholder-gray-500 focus:outline-none"/>
+                                    <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                                <div x-show="open" x-cloak x-transition.opacity.duration.100ms
+                                     class="absolute z-30 mt-1 w-full max-h-60 overflow-y-auto bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40">
+                                    <template x-for="opt in filtered" :key="opt.id">
+                                        <button type="button" @click="select(opt)"
+                                                class="w-full text-left px-3 py-2 text-sm transition-colors"
+                                                :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
+                                                x-text="opt.label"></button>
+                                    </template>
+                                    <p x-show="filtered.length === 0" class="px-3 py-2.5 text-xs text-gray-500">No clients match "<span x-text="query"></span>"</p>
+                                </div>
+                            </div>
                         @endif
                         @error('client_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
                         <p class="mt-1 text-xs text-gray-500">
@@ -57,13 +82,30 @@
                         <label for="tech_team_id" class="block text-xs font-medium text-gray-300 mb-1.5">
                             Assign to tech team member <span class="text-rose-500">*</span>
                         </label>
-                        <select id="tech_team_id" name="tech_team_id" required
-                                class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="">— Select a team member —</option>
-                            @foreach($techTeam as $t)
-                                <option value="{{ $t->id }}" @selected(old('tech_team_id') == $t->id)>{{ $t->name }}</option>
-                            @endforeach
-                        </select>
+                        <div x-data="searchSelect(@js($techOptions), '{{ old('tech_team_id') }}')"
+                             @click.outside="closeReset()" class="relative">
+                            <input type="hidden" name="tech_team_id" :value="selectedId"/>
+                            <div @click="openMenu()"
+                                 class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg cursor-text transition-colors"
+                                 :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600'">
+                                <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input type="text" x-model="query" x-ref="input"
+                                       @focus="open = true" @input="open = true"
+                                       placeholder="— Select a team member —"
+                                       class="flex-1 bg-transparent text-gray-100 placeholder-gray-500 focus:outline-none"/>
+                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                            <div x-show="open" x-cloak x-transition.opacity.duration.100ms
+                                 class="absolute z-30 mt-1 w-full max-h-60 overflow-y-auto bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40">
+                                <template x-for="opt in filtered" :key="opt.id">
+                                    <button type="button" @click="select(opt)"
+                                            class="w-full text-left px-3 py-2 text-sm transition-colors"
+                                            :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
+                                            x-text="opt.label"></button>
+                                </template>
+                                <p x-show="filtered.length === 0" class="px-3 py-2.5 text-xs text-gray-500">No team members match "<span x-text="query"></span>"</p>
+                            </div>
+                        </div>
                         @error('tech_team_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
                         <p class="mt-1 text-xs text-gray-500">Only this person will see and work on this package.</p>
                     </div>
@@ -238,6 +280,39 @@
     </div>
 
     <script>
+        // Reusable searchable single-select. options = [{id, label}], initialId = preselected value.
+        function searchSelect(options, initialId) {
+            const initial = options.find(o => String(o.id) === String(initialId ?? ''));
+            return {
+                options,
+                open: false,
+                selectedId: initial ? initial.id : '',
+                selectedLabel: initial ? initial.label : '',
+                query: initial ? initial.label : '',
+                get filtered() {
+                    const q = (this.query || '').trim().toLowerCase();
+                    // When the box just shows the current selection, list everything.
+                    if (!q || q === this.selectedLabel.toLowerCase()) return this.options;
+                    return this.options.filter(o => o.label.toLowerCase().includes(q));
+                },
+                openMenu() {
+                    this.open = true;
+                    this.$nextTick(() => this.$refs.input && this.$refs.input.focus());
+                },
+                select(opt) {
+                    this.selectedId = opt.id;
+                    this.selectedLabel = opt.label;
+                    this.query = opt.label;
+                    this.open = false;
+                },
+                closeReset() {
+                    this.open = false;
+                    // Discard any unconfirmed typing — restore the selected label.
+                    this.query = this.selectedLabel;
+                },
+            };
+        }
+
         function viralPackageForm() {
             return {
                 assets: [],
