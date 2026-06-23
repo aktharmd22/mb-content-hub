@@ -49,6 +49,7 @@ class ViralPackageController extends Controller
             'assets.creator',
             'deliverables.assignee',
             'deliverables.history.changedBy',
+            'deliverables.correctionAssets',
         ]);
 
         return view('writer.viral-packages.show', ['package' => $viralPackage]);

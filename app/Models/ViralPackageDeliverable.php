@@ -48,6 +48,12 @@ class ViralPackageDeliverable extends Model
         return $this->hasMany(ViralPackageHistory::class, 'deliverable_id')->orderBy('changed_at');
     }
 
+    /** Reference files/links sales attached when requesting a correction. */
+    public function correctionAssets(): HasMany
+    {
+        return $this->hasMany(ViralPackageAsset::class, 'deliverable_id')->latest();
+    }
+
     public function kindLabel(): string
     {
         return match ($this->kind) {

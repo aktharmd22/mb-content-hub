@@ -50,11 +50,34 @@
         </div>
     @endif
 
-    {{-- Correction notes --}}
+    {{-- Correction notes + attachments from sales --}}
     @if($d->notes && in_array($d->stage, ['in_progress', 'pending'], true))
         <div class="px-3 py-2.5 mb-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
             <p class="text-xs font-semibold text-amber-300 uppercase tracking-wide mb-1">Correction request</p>
             <p class="text-sm text-amber-100 whitespace-pre-wrap leading-relaxed">{{ $d->notes }}</p>
+
+            @if($d->correctionAssets->isNotEmpty())
+                <div class="mt-3 pt-3 border-t border-amber-500/20 space-y-1.5">
+                    <p class="text-[10px] font-semibold text-amber-300/80 uppercase tracking-wide">Reference files</p>
+                    @foreach($d->correctionAssets as $ca)
+                        @if($ca->type === 'link')
+                            <a href="{{ $ca->url }}" target="_blank" rel="noopener"
+                               class="flex items-center gap-2 px-2.5 py-2 bg-ink-900/60 border border-amber-500/20 rounded-lg hover:border-amber-500/40 transition-colors">
+                                <svg class="w-3.5 h-3.5 text-amber-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-2.828a4 4 0 015.656 0l.001.001a4 4 0 010 5.656l-1.5 1.5"/></svg>
+                                <span class="text-xs text-amber-100 truncate flex-1">{{ $ca->url }}</span>
+                                <span class="text-[10px] text-amber-300 whitespace-nowrap">Open</span>
+                            </a>
+                        @else
+                            <a href="{{ route('writer.viral-packages.assets.download', ['viralPackage' => $package, 'asset' => $ca]) }}"
+                               class="flex items-center gap-2 px-2.5 py-2 bg-ink-900/60 border border-amber-500/20 rounded-lg hover:border-amber-500/40 transition-colors">
+                                <svg class="w-3.5 h-3.5 text-amber-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span class="text-xs text-amber-100 truncate flex-1" title="{{ $ca->original_filename }}">{{ $ca->original_filename }}</span>
+                                <span class="text-[10px] text-amber-300 whitespace-nowrap">Download</span>
+                            </a>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
         </div>
     @endif
 

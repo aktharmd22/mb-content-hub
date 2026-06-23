@@ -116,6 +116,7 @@ class ViralPackageController extends Controller
             'assets.creator',
             'deliverables.assignee',
             'deliverables.history.changedBy',
+            'deliverables.correctionAssets',
         ]);
 
         $techTeam = \App\Models\User::where('role', 'tech_team')

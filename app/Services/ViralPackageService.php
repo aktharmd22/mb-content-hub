@@ -530,6 +530,7 @@ class ViralPackageService
             if ($asset['type'] === 'link' && ! empty($asset['url'])) {
                 ViralPackageAsset::create([
                     'viral_package_id' => $package->id,
+                    'deliverable_id'   => $deliverable->id,
                     'type'             => 'link',
                     'name'             => 'Correction for ' . $deliverable->title . ($asset['name'] ? ' — ' . $asset['name'] : ''),
                     'url'              => $asset['url'],
@@ -547,6 +548,7 @@ class ViralPackageService
                 }
                 ViralPackageAsset::create([
                     'viral_package_id'  => $package->id,
+                    'deliverable_id'    => $deliverable->id,
                     'type'              => 'file',
                     'name'              => 'Correction for ' . $deliverable->title,
                     'drive_file_id'     => $driveFileId,

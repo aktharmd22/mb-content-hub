@@ -9,6 +9,7 @@ class ViralPackageAsset extends Model
 {
     protected $fillable = [
         'viral_package_id',
+        'deliverable_id',
         'type',
         'name',
         'drive_file_id',

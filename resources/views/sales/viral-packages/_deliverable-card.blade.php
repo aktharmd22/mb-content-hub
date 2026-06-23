@@ -112,4 +112,24 @@
     @if($d->notes && $d->stage !== 'approved')
         <p class="text-xs text-gray-400 mt-2 italic line-clamp-2" title="{{ $d->notes }}">{{ $d->notes }}</p>
     @endif
+
+    @if($d->correctionAssets->isNotEmpty())
+        <div class="mt-2 space-y-1">
+            @foreach($d->correctionAssets as $ca)
+                @if($ca->type === 'link')
+                    <a href="{{ $ca->url }}" target="_blank" rel="noopener"
+                       class="flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 truncate">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-2.828a4 4 0 015.656 0a4 4 0 010 5.656l-1.5 1.5"/></svg>
+                        <span class="truncate">{{ $ca->url }}</span>
+                    </a>
+                @else
+                    <a href="{{ route('sales.viral-packages.assets.download', ['viralPackage' => $package, 'asset' => $ca]) }}"
+                       class="flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 truncate">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span class="truncate">{{ $ca->original_filename }}</span>
+                    </a>
+                @endif
+            @endforeach
+        </div>
+    @endif
 </div>
