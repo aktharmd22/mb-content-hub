@@ -75,7 +75,7 @@
         </form>
 
         {{-- Packages list --}}
-        <div class="bg-ink-850 border border-ink-700 rounded-lg overflow-hidden">
+        <div data-live="admin-viral-list" class="bg-ink-850 border border-ink-700 rounded-lg overflow-hidden">
             @if($packages->count() === 0)
                 <div class="px-6 py-16 text-center">
                     <svg class="w-10 h-10 text-gray-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

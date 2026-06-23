@@ -203,6 +203,67 @@
 
     @include('layouts.partials.global-search')
 
+    {{-- ==================== Platform-wide live refresh ====================
+         Any element with data-live="<unique-id>" auto-updates without a manual
+         page refresh. The poller re-fetches the current URL every few seconds and
+         swaps only the marked regions whose HTML actually changed. It pauses while
+         the tab is hidden and never disrupts a region you're actively typing in. --}}
+    <script>
+        (function () {
+            const regions = () => Array.from(document.querySelectorAll('[data-live]'));
+            if (!regions().length) return;
+
+            const INTERVAL = 12000; // 12s — gentle on shared hosting
+            let timer = null;
+            let inFlight = false;
+
+            function regionBusy(el) {
+                // Don't swap a region the user is interacting with (typing, open dropdown, etc.)
+                const active = document.activeElement;
+                if (active && el.contains(active) &&
+                    ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(active.tagName)) {
+                    return true;
+                }
+                // Respect an explicit lock (e.g. an open upload form sets data-live-lock="1")
+                if (el.querySelector('[data-live-lock="1"]')) return true;
+                return false;
+            }
+
+            async function poll() {
+                if (document.hidden || inFlight) return;
+                const current = regions();
+                if (!current.length) return;
+                inFlight = true;
+                try {
+                    const r = await fetch(window.location.href, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        cache: 'no-store',
+                    });
+                    if (!r.ok) return;
+                    const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
+                    current.forEach(el => {
+                        const key = el.getAttribute('data-live');
+                        const fresh = doc.querySelector('[data-live="' + (window.CSS && CSS.escape ? CSS.escape(key) : key) + '"]');
+                        if (!fresh) return;
+                        if (regionBusy(el)) return;
+                        if (fresh.innerHTML !== el.innerHTML) {
+                            el.innerHTML = fresh.innerHTML;
+                        }
+                    });
+                } catch (e) { /* silent — try again next tick */ }
+                finally { inFlight = false; }
+            }
+
+            function start() { if (!timer) timer = setInterval(poll, INTERVAL); }
+            function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) { stop(); } else { poll(); start(); }
+            });
+            start();
+        })();
+    </script>
+
     <!-- Toast notifications -->
     <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2" style="pointer-events: none;">
         <template x-for="toast in toasts" :key="toast.id">

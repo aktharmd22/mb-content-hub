@@ -20,6 +20,9 @@
 <div class="bg-ink-850 border border-ink-700 rounded-xl p-5 transition-colors hover:border-ink-600"
      x-data="{ uploadOpen: false, fileName: '', fileSize: '', historyOpen: false }">
 
+    {{-- Pauses live auto-refresh of this section while an upload form is open, so it isn't wiped mid-edit --}}
+    <template x-if="uploadOpen"><span data-live-lock="1" style="display:none"></span></template>
+
     {{-- Title row --}}
     <div class="flex items-start justify-between gap-3 mb-4">
         <div class="flex items-center gap-3 min-w-0">

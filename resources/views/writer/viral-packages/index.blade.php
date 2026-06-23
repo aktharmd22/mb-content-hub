@@ -21,7 +21,7 @@
             <button type="submit" class="px-3 py-1.5 text-sm bg-ink-800 hover:bg-ink-700 text-gray-300 rounded-lg transition-colors">Search</button>
         </form>
 
-        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+        <div data-live="writer-viral-list" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
             @if($packages->count() === 0)
                 <div class="p-12 text-center">
                     <p class="text-sm text-gray-500">Nothing to work on right now.</p>

@@ -17,6 +17,8 @@
 
 <div class="border border-ink-700 rounded-lg p-4 bg-ink-800/30 hover:bg-ink-800/50 transition-colors"
      x-data="{ correctionOpen: false }">
+    {{-- Pauses live auto-refresh while the correction form is open, so it isn't wiped mid-edit --}}
+    <template x-if="correctionOpen"><span data-live-lock="1" style="display:none"></span></template>
     <div class="flex items-start justify-between gap-2 mb-3">
         <div class="flex items-center gap-2 min-w-0">
             <div class="w-8 h-8 rounded-md bg-ink-900 border border-ink-700 flex items-center justify-center flex-shrink-0 text-gray-400">

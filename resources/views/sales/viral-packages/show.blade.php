@@ -124,8 +124,8 @@
             </div>
         @endif
 
-        {{-- Deliverables grid --}}
-        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
+        {{-- Deliverables grid (live-updates when tech submits / picks up) --}}
+        <div data-live="sales-viral-deliverables-{{ $package->id }}" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
             <h3 class="text-sm font-medium text-gray-100 mb-4">7 deliverables</h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

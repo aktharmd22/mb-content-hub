@@ -44,7 +44,7 @@
             @endif
         </form>
 
-        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+        <div data-live="lead-articles-list" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
             @if($articles->count() === 0)
                 <div class="p-12 text-center">
                     <p class="text-sm text-gray-500 dark:text-gray-400">No articles in this stage.</p>

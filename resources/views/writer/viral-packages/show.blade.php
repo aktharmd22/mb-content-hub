@@ -100,7 +100,8 @@
             </div>
         @endif
 
-        {{-- Deliverables, grouped by kind --}}
+        {{-- Deliverables, grouped by kind (live-updates when sales approves / requests changes) --}}
+        <div data-live="writer-viral-deliverables-{{ $package->id }}">
         @if($article)
             <section class="mb-8">
                 <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Article</h3>
@@ -129,6 +130,7 @@
                 </div>
             </section>
         @endif
+        </div>
 
         @if($package->assets->isEmpty())
             <div class="bg-ink-850 border border-ink-700 rounded-xl p-8 text-center">
