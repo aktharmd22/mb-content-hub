@@ -69,20 +69,19 @@
                 </button>
 
                 {{-- Selected files list --}}
-                <div x-show="files.length" x-cloak class="mt-2 space-y-1.5">
+                <div x-show="files.length" x-cloak class="mt-2" style="display: flex; flex-direction: column; gap: 8px;">
                     <template x-for="(f, i) in files" :key="i">
-                        <div class="flex items-center gap-3 px-3.5 py-2 rounded-lg"
-                             style="background: #0f172a; border: 1px solid rgba(99,102,241,0.3);">
-                            <span class="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style="background: rgba(99,102,241,0.15);">
-                                <svg class="w-3.5 h-3.5" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(99,102,241,0.3); border-radius: 10px;">
+                            <span style="width: 28px; height: 28px; border-radius: 7px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg style="width: 14px; height: 14px; color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </span>
-                            <span class="text-sm text-gray-100 truncate flex-1" x-text="f"></span>
-                            <button type="button" @click="remove(i)" class="text-gray-500 hover:text-rose-400 flex-shrink-0" title="Remove">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span class="text-sm text-gray-100 truncate" style="flex: 1 1 0%; min-width: 0;" x-text="f"></span>
+                            <button type="button" @click="remove(i)" style="flex-shrink: 0;" class="text-gray-500 hover:text-rose-400" title="Remove">
+                                <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
                     </template>
-                    <button type="button" @click="clearAll()" class="text-[11px] text-gray-500 hover:text-rose-400 transition-colors">Clear all</button>
+                    <button type="button" @click="clearAll()" class="text-[11px] text-gray-500 hover:text-rose-400 transition-colors" style="align-self: flex-start;">Clear all</button>
                 </div>
                 @error('attachments.*') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
