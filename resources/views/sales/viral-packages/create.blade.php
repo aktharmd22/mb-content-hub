@@ -44,27 +44,32 @@
                             <input type="hidden" name="client_id" value=""/>
                         @else
                             <div x-data="searchSelect(@js($clientOptions), '{{ old('client_id') }}')"
-                                 @click.outside="closeReset()" class="relative">
+                                 @click.outside="close()" @keydown.escape="close()" class="relative">
                                 <input type="hidden" name="client_id" :value="selectedId"/>
-                                <div @click="openMenu()"
-                                     class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg cursor-text transition-colors"
-                                     :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600'">
-                                    <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                    <input type="text" x-model="query" x-ref="input"
-                                           @focus="open = true" @input="open = true"
-                                           placeholder="— Select an existing client —"
-                                           class="flex-1 bg-transparent text-gray-100 placeholder-gray-500 focus:outline-none"/>
+                                <button type="button" @click="toggle()"
+                                        class="flex items-center justify-between gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg text-left transition-colors"
+                                        :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600 hover:border-ink-500'">
+                                    <span class="truncate" :class="selectedLabel ? 'text-gray-100' : 'text-gray-500'" x-text="selectedLabel || '— Select an existing client —'"></span>
                                     <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
+                                </button>
                                 <div x-show="open" x-cloak x-transition.opacity.duration.100ms
-                                     class="absolute z-30 mt-1 w-full max-h-60 overflow-y-auto bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40">
-                                    <template x-for="opt in filtered" :key="opt.id">
-                                        <button type="button" @click="select(opt)"
-                                                class="w-full text-left px-3 py-2 text-sm transition-colors"
-                                                :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
-                                                x-text="opt.label"></button>
-                                    </template>
-                                    <p x-show="filtered.length === 0" class="px-3 py-2.5 text-xs text-gray-500">No clients match "<span x-text="query"></span>"</p>
+                                     class="absolute z-30 mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40 overflow-hidden">
+                                    <div class="p-1.5 border-b border-ink-700">
+                                        <div class="relative">
+                                            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                            <input type="text" x-model="query" x-ref="search" placeholder="Search clients..."
+                                                   class="w-full pl-8 pr-2 py-1.5 text-xs bg-ink-900 border border-ink-700 rounded-md text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"/>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-52 overflow-y-auto py-1">
+                                        <template x-for="opt in filtered" :key="opt.id">
+                                            <button type="button" @click="select(opt)"
+                                                    class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                                    :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
+                                                    x-text="opt.label"></button>
+                                        </template>
+                                        <p x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-500">No matches</p>
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -83,27 +88,32 @@
                             Assign to tech team member <span class="text-rose-500">*</span>
                         </label>
                         <div x-data="searchSelect(@js($techOptions), '{{ old('tech_team_id') }}')"
-                             @click.outside="closeReset()" class="relative">
+                             @click.outside="close()" @keydown.escape="close()" class="relative">
                             <input type="hidden" name="tech_team_id" :value="selectedId"/>
-                            <div @click="openMenu()"
-                                 class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg cursor-text transition-colors"
-                                 :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600'">
-                                <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                <input type="text" x-model="query" x-ref="input"
-                                       @focus="open = true" @input="open = true"
-                                       placeholder="— Select a team member —"
-                                       class="flex-1 bg-transparent text-gray-100 placeholder-gray-500 focus:outline-none"/>
+                            <button type="button" @click="toggle()"
+                                    class="flex items-center justify-between gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg text-left transition-colors"
+                                    :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600 hover:border-ink-500'">
+                                <span class="truncate" :class="selectedLabel ? 'text-gray-100' : 'text-gray-500'" x-text="selectedLabel || '— Select a team member —'"></span>
                                 <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
+                            </button>
                             <div x-show="open" x-cloak x-transition.opacity.duration.100ms
-                                 class="absolute z-30 mt-1 w-full max-h-60 overflow-y-auto bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40">
-                                <template x-for="opt in filtered" :key="opt.id">
-                                    <button type="button" @click="select(opt)"
-                                            class="w-full text-left px-3 py-2 text-sm transition-colors"
-                                            :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
-                                            x-text="opt.label"></button>
-                                </template>
-                                <p x-show="filtered.length === 0" class="px-3 py-2.5 text-xs text-gray-500">No team members match "<span x-text="query"></span>"</p>
+                                 class="absolute z-30 mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40 overflow-hidden">
+                                <div class="p-1.5 border-b border-ink-700">
+                                    <div class="relative">
+                                        <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        <input type="text" x-model="query" x-ref="search" placeholder="Search team..."
+                                               class="w-full pl-8 pr-2 py-1.5 text-xs bg-ink-900 border border-ink-700 rounded-md text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"/>
+                                    </div>
+                                </div>
+                                <div class="max-h-52 overflow-y-auto py-1">
+                                    <template x-for="opt in filtered" :key="opt.id">
+                                        <button type="button" @click="select(opt)"
+                                                class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                                :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
+                                                x-text="opt.label"></button>
+                                    </template>
+                                    <p x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-500">No matches</p>
+                                </div>
                             </div>
                         </div>
                         @error('tech_team_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
@@ -286,29 +296,24 @@
             return {
                 options,
                 open: false,
+                query: '',
                 selectedId: initial ? initial.id : '',
                 selectedLabel: initial ? initial.label : '',
-                query: initial ? initial.label : '',
                 get filtered() {
-                    const q = (this.query || '').trim().toLowerCase();
-                    // When the box just shows the current selection, list everything.
-                    if (!q || q === this.selectedLabel.toLowerCase()) return this.options;
-                    return this.options.filter(o => o.label.toLowerCase().includes(q));
+                    const q = this.query.trim().toLowerCase();
+                    return q ? this.options.filter(o => o.label.toLowerCase().includes(q)) : this.options;
                 },
+                toggle() { this.open ? this.close() : this.openMenu(); },
                 openMenu() {
                     this.open = true;
-                    this.$nextTick(() => this.$refs.input && this.$refs.input.focus());
+                    this.query = '';
+                    this.$nextTick(() => this.$refs.search && this.$refs.search.focus());
                 },
+                close() { this.open = false; this.query = ''; },
                 select(opt) {
                     this.selectedId = opt.id;
                     this.selectedLabel = opt.label;
-                    this.query = opt.label;
-                    this.open = false;
-                },
-                closeReset() {
-                    this.open = false;
-                    // Discard any unconfirmed typing — restore the selected label.
-                    this.query = this.selectedLabel;
+                    this.close();
                 },
             };
         }
