@@ -13,7 +13,7 @@
         </div>
 
         <form method="POST" action="{{ route('support.store') }}" enctype="multipart/form-data"
-              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}', files: [] }"
+              x-data="{ target: '{{ old('target', 'specific') }}', assignee: '{{ old('assignee_id') }}' }"
               style="background: #1e293b; border: 1px solid rgba(148,163,184,0.10); border-radius: 16px; padding: 24px;">
             @csrf
 
@@ -50,22 +50,23 @@
                 @error('description') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            {{-- Attachments (multiple) --}}
-            <div class="mb-4">
+            {{-- Attachments (multiple, accumulating) --}}
+            <div class="mb-4" x-data="fileUploader()">
                 <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Attachments <span class="text-gray-600 normal-case font-normal">(optional, up to 10 files · 10MB each)</span></label>
 
-                {{-- Attach button --}}
-                <label class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-lg cursor-pointer transition-colors hover:border-indigo-500/50"
-                       style="background: #0f172a; border: 1px solid rgba(148,163,184,0.14);">
-                    <input type="file" name="attachments[]" multiple class="hidden"
-                           @change="files = Array.from($event.target.files).map(f => f.name)"/>
+                <input x-ref="input" type="file" name="attachments[]" multiple class="hidden" @change="pick($event)"/>
+
+                {{-- Add button --}}
+                <button type="button" @click="$refs.input.click()"
+                        class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors hover:border-indigo-500/50"
+                        style="background: #0f172a; border: 1px solid rgba(148,163,184,0.14);">
                     <svg class="w-4 h-4 flex-shrink-0" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    <span class="text-sm font-medium text-gray-200" x-text="files.length ? 'Change files' : 'Attach files'"></span>
+                    <span class="text-sm font-medium text-gray-200" x-text="files.length ? 'Add more files' : 'Add files'"></span>
                     <span class="text-[11px] text-gray-500 hidden sm:inline" x-show="!files.length">screenshots, docs, logs…</span>
-                    <span class="text-[11px] text-indigo-300" x-show="files.length" x-text="files.length + ' selected'"></span>
-                </label>
+                    <span class="text-[11px] text-indigo-300" x-show="files.length" x-text="files.length + ' attached'"></span>
+                </button>
 
                 {{-- Selected files list --}}
                 <div x-show="files.length" x-cloak class="mt-2 space-y-1.5">
@@ -76,11 +77,12 @@
                                 <svg class="w-3.5 h-3.5" style="color: #818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </span>
                             <span class="text-sm text-gray-100 truncate flex-1" x-text="f"></span>
+                            <button type="button" @click="remove(i)" class="text-gray-500 hover:text-rose-400 flex-shrink-0" title="Remove">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
                     </template>
-                    <button type="button"
-                            @click="files=[]; $root.querySelector('input[type=file]').value=''"
-                            class="text-[11px] text-gray-500 hover:text-rose-400 transition-colors">Clear all</button>
+                    <button type="button" @click="clearAll()" class="text-[11px] text-gray-500 hover:text-rose-400 transition-colors">Clear all</button>
                 </div>
                 @error('attachments.*') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -142,4 +144,32 @@
             </div>
         </form>
     </div>
+
+    <script>
+        // Accumulating multi-file uploader: each pick ADDS to the selection (DataTransfer trick).
+        function fileUploader() {
+            return {
+                dt: new DataTransfer(),
+                files: [],
+                pick(e) {
+                    Array.from(e.target.files).forEach(f => this.dt.items.add(f));
+                    this.commit();
+                },
+                remove(idx) {
+                    const next = new DataTransfer();
+                    Array.from(this.dt.files).forEach((f, i) => { if (i !== idx) next.items.add(f); });
+                    this.dt = next;
+                    this.commit();
+                },
+                clearAll() {
+                    this.dt = new DataTransfer();
+                    this.commit();
+                },
+                commit() {
+                    this.$refs.input.files = this.dt.files;
+                    this.files = Array.from(this.dt.files).map(f => f.name);
+                },
+            };
+        }
+    </script>
 </x-app-layout>

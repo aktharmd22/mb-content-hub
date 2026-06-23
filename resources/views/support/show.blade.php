@@ -197,7 +197,7 @@
                 {{-- Composer --}}
                 @if($ticket->canBeRepliedBy($user))
                     <form method="POST" action="{{ route('support.reply', $ticket) }}" enctype="multipart/form-data"
-                          x-data="{ files: [] }" class="mt-6 pt-5" style="border-top: 1px solid rgba(148,163,184,0.06);">
+                          x-data="fileUploader()" class="mt-6 pt-5" style="border-top: 1px solid rgba(148,163,184,0.06);">
                         @csrf
                         <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Add reply</label>
                         <textarea name="body" rows="3" maxlength="5000"
@@ -207,6 +207,8 @@
                                   onblur="this.style.borderColor='rgba(148,163,184,0.10)';"></textarea>
                         @error('body') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
 
+                        <input x-ref="input" type="file" name="attachments[]" multiple class="hidden" @change="pick($event)"/>
+
                         {{-- Selected files list --}}
                         <div x-show="files.length" x-cloak class="mt-2 flex flex-wrap gap-1.5">
                             <template x-for="(f, i) in files" :key="i">
@@ -214,20 +216,20 @@
                                       style="background: #0f1623; border: 1px solid rgba(99,102,241,0.3);">
                                     <svg class="w-3 h-3" style="color:#818cf8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     <span class="truncate" style="max-width: 160px;" x-text="f"></span>
+                                    <button type="button" @click="remove(i)" class="text-gray-500 hover:text-rose-400 ml-0.5">✕</button>
                                 </span>
                             </template>
                         </div>
 
                         <div class="flex items-center justify-between gap-3 mt-3 flex-wrap">
-                            {{-- Attach (multiple) --}}
-                            <label style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0f1623; border: 1px solid rgba(148,163,184,0.10); border-radius: 9px; cursor: pointer; font-size: 12px; color: #94a3b8;"
-                                   class="hover:text-gray-200 hover:border-indigo-500/40 transition-colors"
-                                   x-bind:style="files.length ? 'border-color: rgba(99,102,241,0.5); color: #a5b4fc;' : ''">
-                                <input type="file" name="attachments[]" multiple class="hidden" @change="files = Array.from($event.target.files).map(f => f.name)"/>
-                                <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                <span x-text="files.length ? (files.length + ' file' + (files.length>1?'s':'')) : 'Attach files'"></span>
-                                <span x-show="files.length" @click.prevent="files=[]; $el.closest('label').querySelector('input[type=file]').value=''" class="text-gray-500 hover:text-rose-400 ml-1">✕</span>
-                            </label>
+                            {{-- Attach (accumulating) --}}
+                            <button type="button" @click="$refs.input.click()"
+                                    style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0f1623; border: 1px solid rgba(148,163,184,0.10); border-radius: 9px; cursor: pointer; font-size: 12px; color: #94a3b8;"
+                                    class="hover:text-gray-200 hover:border-indigo-500/40 transition-colors"
+                                    x-bind:style="files.length ? 'border-color: rgba(99,102,241,0.5); color: #a5b4fc;' : ''">
+                                <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span x-text="files.length ? ('Add more (' + files.length + ')') : 'Attach files'"></span>
+                            </button>
 
                             <button type="submit"
                                     style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 10px; font-weight: 600; font-size: 13px; box-shadow: 0 4px 14px rgba(99,102,241,0.35);"
@@ -345,4 +347,32 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Accumulating multi-file uploader: each pick ADDS to the selection (DataTransfer trick).
+        function fileUploader() {
+            return {
+                dt: new DataTransfer(),
+                files: [],
+                pick(e) {
+                    Array.from(e.target.files).forEach(f => this.dt.items.add(f));
+                    this.commit();
+                },
+                remove(idx) {
+                    const next = new DataTransfer();
+                    Array.from(this.dt.files).forEach((f, i) => { if (i !== idx) next.items.add(f); });
+                    this.dt = next;
+                    this.commit();
+                },
+                clearAll() {
+                    this.dt = new DataTransfer();
+                    this.commit();
+                },
+                commit() {
+                    this.$refs.input.files = this.dt.files;
+                    this.files = Array.from(this.dt.files).map(f => f.name);
+                },
+            };
+        }
+    </script>
 </x-app-layout>
