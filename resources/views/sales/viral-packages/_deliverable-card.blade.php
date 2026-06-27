@@ -33,7 +33,7 @@
             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {{ $colors['bg'] }} {{ $colors['text'] }} border {{ $colors['border'] }} whitespace-nowrap">
                 {{ $d->stageLabel() }}
             </span>
-            @if($d->kind === 'social_post' && ! $package->isCompleted())
+            @if(in_array($d->kind, ['social_post', 'reel'], true) && ! $package->isCompleted())
                 <form method="POST" action="{{ route('sales.viral-packages.posts.remove', ['viralPackage' => $package, 'deliverable' => $d]) }}"
                       onsubmit="return confirm('Remove {{ $d->title }}? This cannot be undone.');">
                     @csrf @method('DELETE')

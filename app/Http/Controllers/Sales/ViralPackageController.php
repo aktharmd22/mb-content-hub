@@ -156,12 +156,13 @@ class ViralPackageController extends Controller
         return back()->with('success', count($assets) . ' asset(s) added.');
     }
 
-    public function addPost(ViralPackage $viralPackage): RedirectResponse
+    public function addPost(ViralPackage $viralPackage, Request $request): RedirectResponse
     {
         $this->ensureOwn($viralPackage);
+        $kind = $request->input('kind') === 'reel' ? 'reel' : 'social_post';
 
         try {
-            $deliverable = $this->service->addSocialPost($viralPackage);
+            $deliverable = $this->service->addDeliverable($viralPackage, $kind);
         } catch (WorkflowException $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -175,7 +176,7 @@ class ViralPackageController extends Controller
         $this->ensureBelongs($deliverable, $viralPackage);
 
         try {
-            $this->service->removeSocialPost($deliverable);
+            $this->service->removeDeliverable($deliverable);
         } catch (WorkflowException $e) {
             return back()->with('error', $e->getMessage());
         }

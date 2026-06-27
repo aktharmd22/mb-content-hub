@@ -129,13 +129,23 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-medium text-gray-100">{{ $package->deliverables->count() }} deliverables</h3>
                 @unless($package->isCompleted())
-                    <form method="POST" action="{{ route('sales.viral-packages.posts.add', $package) }}">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Add post
-                        </button>
-                    </form>
+                    <div class="flex items-center gap-2">
+                        <form method="POST" action="{{ route('sales.viral-packages.posts.add', $package) }}">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Add post
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('sales.viral-packages.posts.add', $package) }}">
+                            @csrf
+                            <input type="hidden" name="kind" value="reel"/>
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Add reel
+                            </button>
+                        </form>
+                    </div>
                 @endunless
             </div>
 

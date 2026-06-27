@@ -111,49 +111,60 @@ class ViralPackageService
     }
 
     /**
-     * Add an extra social-post deliverable slot to a package.
+     * Add an extra social-post or reel deliverable slot to a package.
      */
-    public function addSocialPost(ViralPackage $package, ?User $actor = null): ViralPackageDeliverable
+    public function addDeliverable(ViralPackage $package, string $kind = 'social_post', ?User $actor = null): ViralPackageDeliverable
     {
         $actor ??= Auth::user();
-        $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'add a post');
+        $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'add a deliverable');
 
+        if (! in_array($kind, ['social_post', 'reel'], true)) {
+            throw new WorkflowException('Invalid deliverable type.');
+        }
         if ($package->isCompleted()) {
-            throw new WorkflowException('Cannot add posts to a completed package.');
+            throw new WorkflowException('Cannot add deliverables to a completed package.');
         }
 
-        $nextSlot = (int) ($package->deliverables()->where('kind', 'social_post')->max('slot_number') ?? 0) + 1;
+        $nextSlot = (int) ($package->deliverables()->where('kind', $kind)->max('slot_number') ?? 0) + 1;
+        $label    = $kind === 'reel' ? 'Reel ' : 'Post ';
 
         return ViralPackageDeliverable::create([
             'viral_package_id' => $package->id,
-            'kind'             => 'social_post',
+            'kind'             => $kind,
             'slot_number'      => $nextSlot,
-            'title'            => 'Post ' . $nextSlot,
+            'title'            => $label . $nextSlot,
             'stage'            => 'pending',
         ]);
     }
 
+    /** @deprecated use addDeliverable() */
+    public function addSocialPost(ViralPackage $package, ?User $actor = null): ViralPackageDeliverable
+    {
+        return $this->addDeliverable($package, 'social_post', $actor);
+    }
+
     /**
-     * Remove a social-post deliverable from a package. Deletes its file from Drive (best effort).
+     * Remove a social-post or reel deliverable from a package. Deletes its file from Drive (best effort).
      */
-    public function removeSocialPost(ViralPackageDeliverable $deliverable, ?User $actor = null): void
+    public function removeDeliverable(ViralPackageDeliverable $deliverable, ?User $actor = null): void
     {
         $actor ??= Auth::user();
-        $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'remove a post');
+        $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'remove a deliverable');
 
-        if ($deliverable->kind !== 'social_post') {
-            throw new WorkflowException('Only social posts can be removed.');
+        if (! in_array($deliverable->kind, ['social_post', 'reel'], true)) {
+            throw new WorkflowException('Only social posts and reels can be removed.');
         }
 
         $package = $deliverable->package;
         if ($package->isCompleted()) {
-            throw new WorkflowException('Cannot remove posts from a completed package.');
+            throw new WorkflowException('Cannot remove deliverables from a completed package.');
         }
 
-        // Keep at least one social post.
-        $remaining = $package->deliverables()->where('kind', 'social_post')->count();
+        // Keep at least one of this kind.
+        $remaining = $package->deliverables()->where('kind', $deliverable->kind)->count();
         if ($remaining <= 1) {
-            throw new WorkflowException('A package must keep at least one social post.');
+            $label = $deliverable->kind === 'reel' ? 'reel' : 'social post';
+            throw new WorkflowException("A package must keep at least one {$label}.");
         }
 
         // Best-effort: remove the uploaded file from Drive.
@@ -474,8 +485,9 @@ class ViralPackageService
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    /** Default number of social posts seeded for a new package. */
+    /** Defaults seeded for a new package. */
     private const DEFAULT_POST_COUNT = 8;
+    private const DEFAULT_REEL_COUNT = 2;
 
     private function seedDeliverables(ViralPackage $package): void
     {
@@ -485,7 +497,9 @@ class ViralPackageService
         for ($i = 1; $i <= self::DEFAULT_POST_COUNT; $i++) {
             $rows[] = ['kind' => 'social_post', 'slot' => $i, 'title' => 'Post ' . $i];
         }
-        $rows[] = ['kind' => 'reel', 'slot' => 1, 'title' => 'Reel'];
+        for ($i = 1; $i <= self::DEFAULT_REEL_COUNT; $i++) {
+            $rows[] = ['kind' => 'reel', 'slot' => $i, 'title' => 'Reel ' . $i];
+        }
 
         foreach ($rows as $row) {
             ViralPackageDeliverable::create([
