@@ -134,6 +134,41 @@ class ViralPackageService
     }
 
     /**
+     * Remove a social-post deliverable from a package. Deletes its file from Drive (best effort).
+     */
+    public function removeSocialPost(ViralPackageDeliverable $deliverable, ?User $actor = null): void
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'remove a post');
+
+        if ($deliverable->kind !== 'social_post') {
+            throw new WorkflowException('Only social posts can be removed.');
+        }
+
+        $package = $deliverable->package;
+        if ($package->isCompleted()) {
+            throw new WorkflowException('Cannot remove posts from a completed package.');
+        }
+
+        // Keep at least one social post.
+        $remaining = $package->deliverables()->where('kind', 'social_post')->count();
+        if ($remaining <= 1) {
+            throw new WorkflowException('A package must keep at least one social post.');
+        }
+
+        // Best-effort: remove the uploaded file from Drive.
+        if ($deliverable->drive_file_id) {
+            try {
+                $this->drive->deleteFile($deliverable->drive_file_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $deliverable->delete(); // history cascades via FK
+    }
+
+    /**
      * Tech team picks up a deliverable to work on.
      */
     public function pickUpDeliverable(ViralPackageDeliverable $deliverable, ?User $actor = null): ViralPackageDeliverable

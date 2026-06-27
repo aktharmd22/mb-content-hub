@@ -169,6 +169,20 @@ class ViralPackageController extends Controller
         return back()->with('success', "{$deliverable->title} added.");
     }
 
+    public function removePost(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        try {
+            $this->service->removeSocialPost($deliverable);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} removed.");
+    }
+
     public function approveDeliverable(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
         $this->ensureOwn($viralPackage);
