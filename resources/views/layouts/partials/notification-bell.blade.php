@@ -122,7 +122,9 @@
             },
 
             // Notification chime via Web Audio (no audio file needed).
-            // A clear, louder two-note "ding-ding" so it's easy to hear across the room.
+            // Loud, attention-grabbing alert: a bright ascending chime played twice,
+            // pushed through a compressor + make-up gain so it's as loud as possible
+            // without harsh clipping.
             playPing() {
                 if (! this.soundOn) return;
                 try {
@@ -131,17 +133,26 @@
                     if (ctx.state === 'suspended') ctx.resume();
                     const now = ctx.currentTime;
 
-                    // Master gain — drives the overall loudness (raised from the old soft pop).
+                    // Compressor tames peaks so we can drive the signal much harder.
+                    const comp = ctx.createDynamicsCompressor();
+                    comp.threshold.value = -28;
+                    comp.knee.value = 30;
+                    comp.ratio.value = 12;
+                    comp.attack.value = 0.003;
+                    comp.release.value = 0.25;
+
+                    // Make-up / master gain — well above 1.0 for a genuinely loud alert.
                     const master = ctx.createGain();
-                    master.gain.value = 0.9;
+                    master.gain.value = 2.2;
+                    comp.connect(master);
                     master.connect(ctx.destination);
 
-                    // One bell-like note: two stacked oscillators (fundamental + octave) for body.
+                    // One bright bell-like note: fundamental + octave + a sawtooth edge for presence.
                     const note = (start, freq, dur, peak) => {
                         const g = ctx.createGain();
-                        g.connect(master);
+                        g.connect(comp);
                         g.gain.setValueAtTime(0.0001, start);
-                        g.gain.exponentialRampToValueAtTime(peak, start + 0.012);
+                        g.gain.exponentialRampToValueAtTime(peak, start + 0.01);
                         g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
                         const o1 = ctx.createOscillator();
@@ -153,16 +164,28 @@
                         o2.type = 'sine';
                         o2.frequency.setValueAtTime(freq * 2, start);
                         const g2 = ctx.createGain();
-                        g2.gain.value = 0.4;
+                        g2.gain.value = 0.5;
                         o2.connect(g2); g2.connect(g);
 
-                        o1.start(start); o2.start(start);
-                        o1.stop(start + dur + 0.05); o2.stop(start + dur + 0.05);
+                        const o3 = ctx.createOscillator();
+                        o3.type = 'sawtooth';
+                        o3.frequency.setValueAtTime(freq, start);
+                        const g3 = ctx.createGain();
+                        g3.gain.value = 0.25;
+                        o3.connect(g3); g3.connect(g);
+
+                        o1.start(start); o2.start(start); o3.start(start);
+                        o1.stop(start + dur + 0.05); o2.stop(start + dur + 0.05); o3.stop(start + dur + 0.05);
                     };
 
-                    // Two ascending notes — bright and distinct.
-                    note(now,        784, 0.32, 0.8);  // G5
-                    note(now + 0.16, 1175, 0.40, 0.8); // D6
+                    // Bright ascending chime, then repeated for a clear "ding-ding-ding … ding-ding-ding".
+                    const pattern = (t0) => {
+                        note(t0,        880,  0.28, 0.9);  // A5
+                        note(t0 + 0.15, 1175, 0.28, 0.9);  // D6
+                        note(t0 + 0.30, 1568, 0.42, 0.9);  // G6
+                    };
+                    pattern(now);
+                    pattern(now + 0.62);
                 } catch (e) { /* audio not available */ }
             },
 
