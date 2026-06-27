@@ -121,7 +121,7 @@
                 if (this.soundOn) this.playPing(); // preview when enabling
             },
 
-            // Short two-tone "ding" via Web Audio — no audio file needed.
+            // Bright, clearly-audible 3-note chime via Web Audio — no audio file needed.
             playPing() {
                 if (! this.soundOn) return;
                 try {
@@ -129,19 +129,31 @@
                     const ctx = this.audioCtx;
                     if (ctx.state === 'suspended') ctx.resume();
                     const now = ctx.currentTime;
-                    [[880, 0], [1320, 0.12]].forEach(([freq, offset]) => {
+
+                    // Master gain so the whole chime is comfortably loud without clipping.
+                    const master = ctx.createGain();
+                    master.gain.value = 0.6;
+                    master.connect(ctx.destination);
+
+                    // Ascending notes: G5 → C6 → E6 (classic "alert" feel).
+                    const notes = [
+                        { freq: 784,  start: 0.00, dur: 0.16 },
+                        { freq: 1047, start: 0.13, dur: 0.16 },
+                        { freq: 1319, start: 0.26, dur: 0.30 },
+                    ];
+                    notes.forEach(n => {
                         const osc = ctx.createOscillator();
                         const gain = ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.value = freq;
+                        osc.type = 'triangle';            // brighter & louder-perceived than sine
+                        osc.frequency.value = n.freq;
                         osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        const t = now + offset;
+                        gain.connect(master);
+                        const t = now + n.start;
                         gain.gain.setValueAtTime(0.0001, t);
-                        gain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+                        gain.gain.exponentialRampToValueAtTime(0.7, t + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + n.dur);
                         osc.start(t);
-                        osc.stop(t + 0.2);
+                        osc.stop(t + n.dur + 0.02);
                     });
                 } catch (e) { /* audio not available */ }
             },
