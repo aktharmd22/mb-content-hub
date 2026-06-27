@@ -63,7 +63,7 @@
                 <img loading="lazy"
                      src="{{ route('writer.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
                      alt="{{ $d->drive_filename }}"
-                     class="w-full h-40 object-cover hover:opacity-90 transition-opacity"/>
+                     class="w-full h-auto max-h-96 object-contain hover:opacity-90 transition-opacity"/>
             </a>
         @endif
         <div class="flex items-center gap-2 px-3 py-2.5 bg-ink-900/70 border border-ink-700 rounded-lg mb-4">
