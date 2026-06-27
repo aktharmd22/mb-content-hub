@@ -22,7 +22,7 @@
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
                 <h2 class="text-sm font-medium text-gray-100">Add client to viral package</h2>
-                <p class="text-xs text-gray-500 mt-0.5">Pick a client. We'll auto-create 7 deliverable slots: 1 Article, 5 Social posts, 1 Reel.</p>
+                <p class="text-xs text-gray-500 mt-0.5">Pick a client. We'll auto-create deliverable slots: 1 Article, 8 Social posts, 1 Reel. You can add or remove posts later.</p>
             </div>
 
             <form method="POST" action="{{ route('sales.viral-packages.store') }}" enctype="multipart/form-data" class="px-6 py-5 space-y-5">

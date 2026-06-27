@@ -434,17 +434,19 @@ class ViralPackageService
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
+    /** Default number of social posts seeded for a new package. */
+    private const DEFAULT_POST_COUNT = 8;
+
     private function seedDeliverables(ViralPackage $package): void
     {
         $rows = [
-            ['kind' => 'article',     'slot' => 1, 'title' => 'Article'],
-            ['kind' => 'social_post', 'slot' => 1, 'title' => 'Post 1'],
-            ['kind' => 'social_post', 'slot' => 2, 'title' => 'Post 2'],
-            ['kind' => 'social_post', 'slot' => 3, 'title' => 'Post 3'],
-            ['kind' => 'social_post', 'slot' => 4, 'title' => 'Post 4'],
-            ['kind' => 'social_post', 'slot' => 5, 'title' => 'Post 5'],
-            ['kind' => 'reel',        'slot' => 1, 'title' => 'Reel'],
+            ['kind' => 'article', 'slot' => 1, 'title' => 'Article'],
         ];
+        for ($i = 1; $i <= self::DEFAULT_POST_COUNT; $i++) {
+            $rows[] = ['kind' => 'social_post', 'slot' => $i, 'title' => 'Post ' . $i];
+        }
+        $rows[] = ['kind' => 'reel', 'slot' => 1, 'title' => 'Reel'];
+
         foreach ($rows as $row) {
             ViralPackageDeliverable::create([
                 'viral_package_id' => $package->id,

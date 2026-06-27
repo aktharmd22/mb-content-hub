@@ -29,7 +29,7 @@ class ViralPackageNotification extends Notification
                 ->subject("New viral package for {$clientName}")
                 ->greeting("Hi {$notifiable->name},")
                 ->line("A new viral package has been created for **{$clientName}**.")
-                ->line('It contains 7 deliverables: 1 Article, 5 Social posts, 1 Reel.')
+                ->line('It contains an Article, several Social posts, and a Reel.')
                 ->action('Open package', $url),
 
             'deliverable_submitted' => (new MailMessage)
@@ -45,9 +45,9 @@ class ViralPackageNotification extends Notification
                 ->action('Open deliverable', $url),
 
             'all_approved' => (new MailMessage)
-                ->subject("{$clientName} — all 7 deliverables approved")
+                ->subject("{$clientName} — all deliverables approved")
                 ->greeting("Hi {$notifiable->name},")
-                ->line("All 7 deliverables for **{$clientName}** have been approved.")
+                ->line("All deliverables for **{$clientName}** have been approved.")
                 ->line('You can now mark the package as delivered.')
                 ->action('Open package', $url),
 
@@ -66,10 +66,10 @@ class ViralPackageNotification extends Notification
         $deliverableTitle = $this->deliverable?->title;
 
         $message = match ($this->kind) {
-            'created'               => "New viral package for {$clientName} — 7 deliverables ready",
+            'created'               => "New viral package for {$clientName} — deliverables ready",
             'deliverable_submitted' => "{$clientName} — {$deliverableTitle} ready for review",
             'correction_requested'  => "{$clientName} — {$deliverableTitle} needs changes",
-            'all_approved'          => "{$clientName} — all 7 deliverables approved, ready to mark delivered",
+            'all_approved'          => "{$clientName} — all deliverables approved, ready to mark delivered",
             'completed'             => "{$clientName} — viral package delivered",
             default                 => 'Viral package update',
         };
