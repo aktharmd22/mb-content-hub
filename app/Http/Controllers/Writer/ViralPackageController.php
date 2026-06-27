@@ -71,7 +71,7 @@ class ViralPackageController extends Controller
         return back()->with('success', "Picked up {$deliverable->title}.");
     }
 
-    public function submit(Request $request, ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    public function submit(Request $request, ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): \Symfony\Component\HttpFoundation\Response
     {
         $this->ensureAssigned($viralPackage);
         $this->ensureBelongs($deliverable, $viralPackage);
@@ -87,10 +87,20 @@ class ViralPackageController extends Controller
         try {
             $this->service->submitDeliverable($deliverable, $request->file('file'), $validated['notes'] ?? null);
         } catch (DriveException|WorkflowException $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'message' => $e->getMessage()], 422);
+            }
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             report($e);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'message' => 'Submit failed: ' . $e->getMessage()], 500);
+            }
             return back()->with('error', 'Submit failed: ' . $e->getMessage());
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['ok' => true, 'message' => "{$deliverable->title} submitted for review."]);
         }
 
         return back()->with('success', "{$deliverable->title} submitted for review.");

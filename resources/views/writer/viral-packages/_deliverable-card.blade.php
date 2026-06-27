@@ -18,10 +18,40 @@
 @endphp
 
 <div class="bg-ink-850 border border-ink-700 rounded-xl p-5 transition-colors hover:border-ink-600"
-     x-data="{ uploadOpen: false, fileName: '', fileSize: '', historyOpen: false }">
+     x-data="{
+        uploadOpen: false, fileName: '', fileSize: '', historyOpen: false,
+        uploading: false, progress: 0, done: false,
+        upload(form) {
+            if (this.uploading) return;
+            this.uploading = true; this.progress = 0;
+            const xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) this.progress = Math.round(e.loaded / e.total * 100);
+            });
+            xhr.addEventListener('load', () => {
+                this.uploading = false;
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    this.done = true; this.uploadOpen = false; this.fileName = ''; this.fileSize = '';
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: @js($d->title) + ' submitted for review' } }));
+                } else {
+                    let msg = 'Upload failed. Please try again.';
+                    try { const j = JSON.parse(xhr.responseText); if (j.message) msg = j.message; } catch (err) {}
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+                }
+            });
+            xhr.addEventListener('error', () => {
+                this.uploading = false;
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error during upload — please retry.' } }));
+            });
+            xhr.open('POST', form.action);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.send(new FormData(form));
+        }
+     }">
 
-    {{-- Pauses live auto-refresh of this section while an upload form is open, so it isn't wiped mid-edit --}}
-    <template x-if="uploadOpen"><span data-live-lock="1" style="display:none"></span></template>
+    {{-- Pauses live auto-refresh of this section while an upload form is open OR a file is uploading, so it isn't wiped mid-edit/mid-upload (lets other cards upload in parallel safely) --}}
+    <template x-if="uploadOpen || uploading"><span data-live-lock="1" style="display:none"></span></template>
 
     {{-- Title row --}}
     <div class="flex items-start justify-between gap-3 mb-4">
@@ -121,7 +151,7 @@
     @if(in_array($d->stage, ['pending', 'in_progress', 'review'], true))
         @if($d->stage === 'review')
             {{-- Closed state in review: waiting banner + "delete & upload new" --}}
-            <div x-show="!uploadOpen" class="space-y-2">
+            <div x-show="!uploadOpen && !done" class="space-y-2">
                 <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium rounded-lg">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Waiting for sales review
@@ -134,7 +164,7 @@
             </div>
         @else
             <button type="button" @click="uploadOpen = !uploadOpen"
-                    x-show="!uploadOpen"
+                    x-show="!uploadOpen && !done"
                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
                 @if($d->stage === 'pending')
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -152,6 +182,7 @@
         @endif
 
         <form x-show="uploadOpen" x-cloak method="POST" enctype="multipart/form-data"
+              @submit.prevent="upload($el)"
               action="{{ route('writer.viral-packages.deliverables.submit', ['viralPackage' => $package, 'deliverable' => $d]) }}"
               x-transition:enter="transition ease-out duration-200"
               x-transition:enter-start="opacity-0 -translate-y-1"
@@ -181,18 +212,39 @@
             <textarea name="notes" rows="2" maxlength="1000" placeholder="Notes for sales (optional)"
                       class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
 
+            {{-- Upload progress (keeps running in the background — you can open another post and submit it too) --}}
+            <div x-show="uploading" x-cloak class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-indigo-300 font-medium">Uploading…</span>
+                    <span class="text-gray-400" x-text="progress + '%'"></span>
+                </div>
+                <div class="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 rounded-full transition-all duration-150" :style="`width: ${progress}%`"></div>
+                </div>
+            </div>
+
             <div class="flex items-center gap-2">
-                <button type="button" @click="uploadOpen = false; fileName = ''; fileSize = '';"
-                        class="px-4 py-2.5 text-sm text-gray-400 hover:text-gray-200 hover:bg-ink-800 rounded-lg transition-colors">Cancel</button>
-                <button type="submit" :disabled="!fileName"
+                <button type="button" @click="uploadOpen = false; fileName = ''; fileSize = '';" :disabled="uploading"
+                        class="px-4 py-2.5 text-sm text-gray-400 hover:text-gray-200 hover:bg-ink-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors">Cancel</button>
+                <button type="submit" :disabled="!fileName || uploading"
                         class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg x-show="!uploading" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Submit for review
+                    <svg x-show="uploading" x-cloak class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span x-text="uploading ? 'Uploading…' : 'Submit for review'"></span>
                 </button>
             </div>
         </form>
+
+        {{-- Shown right after a successful background upload, until the live refresh syncs the card --}}
+        <div x-show="done" x-cloak class="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium rounded-lg">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Submitted for review
+        </div>
     @elseif($d->stage === 'approved')
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium rounded-lg">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
