@@ -180,6 +180,30 @@ class ViralPackageService
     }
 
     /**
+     * Reassign a package to a different sales rep (admin only).
+     */
+    public function reassignSalesRep(ViralPackage $package, int $newSalesRepId, ?User $actor = null): ViralPackage
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['admin'], 'reassign the sales rep');
+
+        if ($package->isCompleted()) {
+            throw new WorkflowException('This package is already completed and cannot be reassigned.');
+        }
+
+        $newRep = User::where('id', $newSalesRepId)
+            ->whereIn('role', ['sales', 'admin'])
+            ->where('is_active', true)
+            ->first();
+        if (! $newRep) {
+            throw new WorkflowException('Selected sales rep is not valid.');
+        }
+
+        $package->update(['sales_rep_id' => $newRep->id]);
+        return $package->fresh();
+    }
+
+    /**
      * Tech team picks up a deliverable to work on.
      */
     public function pickUpDeliverable(ViralPackageDeliverable $deliverable, ?User $actor = null): ViralPackageDeliverable

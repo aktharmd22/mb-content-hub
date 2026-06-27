@@ -73,6 +73,34 @@ class ViralPackageController extends Controller
             'deliverables.history.changedBy',
         ]);
 
-        return view('admin.viral-packages.show', ['package' => $viralPackage]);
+        $salesReps = User::whereIn('role', ['sales', 'admin'])->where('is_active', true)->orderBy('name')->get(['id', 'name', 'role']);
+        $techTeam  = User::where('role', 'tech_team')->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.viral-packages.show', [
+            'package'   => $viralPackage,
+            'salesReps' => $salesReps,
+            'techTeam'  => $techTeam,
+        ]);
+    }
+
+    public function reassign(Request $request, ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'sales_rep_id' => ['nullable', 'integer', 'exists:users,id'],
+            'tech_team_id' => ['nullable', 'integer', 'exists:users,id'],
+        ]);
+
+        try {
+            if (! empty($data['sales_rep_id']) && $data['sales_rep_id'] != $viralPackage->sales_rep_id) {
+                $service->reassignSalesRep($viralPackage, (int) $data['sales_rep_id']);
+            }
+            if (! empty($data['tech_team_id']) && $data['tech_team_id'] != $viralPackage->tech_team_id) {
+                $service->reassignTechTeam($viralPackage, (int) $data['tech_team_id']);
+            }
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Assignments updated.');
     }
 }

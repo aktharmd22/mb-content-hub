@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
         // Viral packages (admin overview + delete)
         Route::get('/viral-packages',                   [\App\Http\Controllers\Admin\ViralPackageController::class, 'index'])->name('viral-packages.index');
         Route::get('/viral-packages/{viralPackage}',    [\App\Http\Controllers\Admin\ViralPackageController::class, 'show'])->name('viral-packages.show');
+        Route::patch('/viral-packages/{viralPackage}/reassign', [\App\Http\Controllers\Admin\ViralPackageController::class, 'reassign'])->name('viral-packages.reassign');
         Route::delete('/viral-packages/{viralPackage}', [\App\Http\Controllers\Admin\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
 
         // Article types (CRUD)
