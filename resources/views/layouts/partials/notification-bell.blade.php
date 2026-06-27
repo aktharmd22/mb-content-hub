@@ -121,8 +121,8 @@
                 if (this.soundOn) this.playPing(); // preview when enabling
             },
 
-            // Soft "pop" via Web Audio (messaging-app style) — no audio file needed.
-            // A short sine blip that slides up in pitch with a quick, gentle envelope.
+            // Notification chime via Web Audio (no audio file needed).
+            // A clear, louder two-note "ding-ding" so it's easy to hear across the room.
             playPing() {
                 if (! this.soundOn) return;
                 try {
@@ -131,24 +131,38 @@
                     if (ctx.state === 'suspended') ctx.resume();
                     const now = ctx.currentTime;
 
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
+                    // Master gain — drives the overall loudness (raised from the old soft pop).
+                    const master = ctx.createGain();
+                    master.gain.value = 0.9;
+                    master.connect(ctx.destination);
 
-                    // Pitch pop: quick rise then settle — gives that round "bubble" feel.
-                    osc.frequency.setValueAtTime(420, now);
-                    osc.frequency.exponentialRampToValueAtTime(760, now + 0.06);
-                    osc.frequency.exponentialRampToValueAtTime(620, now + 0.14);
+                    // One bell-like note: two stacked oscillators (fundamental + octave) for body.
+                    const note = (start, freq, dur, peak) => {
+                        const g = ctx.createGain();
+                        g.connect(master);
+                        g.gain.setValueAtTime(0.0001, start);
+                        g.gain.exponentialRampToValueAtTime(peak, start + 0.012);
+                        g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
-                    // Soft, fast envelope.
-                    gain.gain.setValueAtTime(0.0001, now);
-                    gain.gain.exponentialRampToValueAtTime(0.35, now + 0.015);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+                        const o1 = ctx.createOscillator();
+                        o1.type = 'triangle';
+                        o1.frequency.setValueAtTime(freq, start);
+                        o1.connect(g);
 
-                    osc.start(now);
-                    osc.stop(now + 0.24);
+                        const o2 = ctx.createOscillator();
+                        o2.type = 'sine';
+                        o2.frequency.setValueAtTime(freq * 2, start);
+                        const g2 = ctx.createGain();
+                        g2.gain.value = 0.4;
+                        o2.connect(g2); g2.connect(g);
+
+                        o1.start(start); o2.start(start);
+                        o1.stop(start + dur + 0.05); o2.stop(start + dur + 0.05);
+                    };
+
+                    // Two ascending notes — bright and distinct.
+                    note(now,        784, 0.32, 0.8);  // G5
+                    note(now + 0.16, 1175, 0.40, 0.8); // D6
                 } catch (e) { /* audio not available */ }
             },
 
