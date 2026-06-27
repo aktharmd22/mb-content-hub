@@ -16,6 +16,7 @@
 @endphp
 
 <div class="border border-ink-700 rounded-lg p-4 bg-ink-800/30 hover:bg-ink-800/50 transition-colors"
+     style="min-width: 0; overflow: hidden;"
      x-data="{ correctionOpen: false }">
     {{-- Pauses live auto-refresh while the correction form is open, so it isn't wiped mid-edit --}}
     <template x-if="correctionOpen"><span data-live-lock="1" style="display:none"></span></template>
@@ -163,31 +164,33 @@
 
     {{-- Caption & hashtags from content team (copyable) --}}
     @if($d->stage === 'approved' && ($d->caption || $d->hashtags))
-        <div class="mt-3 pt-3 border-t border-ink-700 space-y-2.5">
+        <div class="mt-3 pt-3 border-t border-ink-700 space-y-3" style="min-width: 0;">
             @if($d->caption)
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Caption</p>
+                <div style="min-width: 0;">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Caption</p>
                         <button type="button" onclick="copyToClipboard(@js($d->caption))"
-                                class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
+                                class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-md transition-colors flex-shrink-0">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                             Copy
                         </button>
                     </div>
-                    <p class="text-xs text-gray-200 whitespace-pre-wrap bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 leading-relaxed">{{ $d->caption }}</p>
+                    <div class="text-xs text-gray-200 bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 leading-relaxed max-h-32 overflow-y-auto"
+                         style="white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;">{{ $d->caption }}</div>
                 </div>
             @endif
             @if($d->hashtags)
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Hashtags</p>
+                <div style="min-width: 0;">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Hashtags</p>
                         <button type="button" onclick="copyToClipboard(@js($d->hashtags))"
-                                class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
+                                class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-md transition-colors flex-shrink-0">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                             Copy
                         </button>
                     </div>
-                    <p class="text-xs text-indigo-300 whitespace-pre-wrap bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 leading-relaxed">{{ $d->hashtags }}</p>
+                    <div class="text-xs text-indigo-300 bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 leading-relaxed max-h-24 overflow-y-auto"
+                         style="white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;">{{ $d->hashtags }}</div>
                 </div>
             @endif
         </div>
