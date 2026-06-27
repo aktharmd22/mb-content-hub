@@ -354,7 +354,11 @@ class ViralPackageController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return response()->download($tempPath, $deliverable->drive_filename ?: $deliverable->title)->deleteFileAfterSend();
+        // ?inline=1 serves the file inline (for <img> previews) instead of forcing download.
+        $disposition = request()->boolean('inline') ? 'inline' : 'attachment';
+        $headers = $deliverable->mime_type ? ['Content-Type' => $deliverable->mime_type] : [];
+
+        return response()->download($tempPath, $deliverable->drive_filename ?: $deliverable->title, $headers, $disposition)->deleteFileAfterSend();
     }
 
     public function destroy(ViralPackage $viralPackage, GoogleDriveService $drive): RedirectResponse
