@@ -156,6 +156,19 @@ class ViralPackageController extends Controller
         return back()->with('success', count($assets) . ' asset(s) added.');
     }
 
+    public function addPost(ViralPackage $viralPackage): RedirectResponse
+    {
+        $this->ensureOwn($viralPackage);
+
+        try {
+            $deliverable = $this->service->addSocialPost($viralPackage);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} added.");
+    }
+
     public function approveDeliverable(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
         $this->ensureOwn($viralPackage);

@@ -113,7 +113,18 @@
 
         @if($posts->isNotEmpty())
             <section class="mb-8">
-                <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Social posts <span class="text-gray-500 font-normal normal-case">({{ $posts->count() }})</span></h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Social posts <span class="text-gray-500 font-normal normal-case">({{ $posts->count() }})</span></h3>
+                    @unless($package->isCompleted())
+                        <form method="POST" action="{{ route('writer.viral-packages.posts.add', $package) }}">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Add post
+                            </button>
+                        </form>
+                    @endunless
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($posts as $d)
                         @include('writer.viral-packages._deliverable-card', ['package' => $package, 'd' => $d])

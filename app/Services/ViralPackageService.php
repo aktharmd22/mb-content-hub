@@ -111,6 +111,29 @@ class ViralPackageService
     }
 
     /**
+     * Add an extra social-post deliverable slot to a package.
+     */
+    public function addSocialPost(ViralPackage $package, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'add a post');
+
+        if ($package->isCompleted()) {
+            throw new WorkflowException('Cannot add posts to a completed package.');
+        }
+
+        $nextSlot = (int) ($package->deliverables()->where('kind', 'social_post')->max('slot_number') ?? 0) + 1;
+
+        return ViralPackageDeliverable::create([
+            'viral_package_id' => $package->id,
+            'kind'             => 'social_post',
+            'slot_number'      => $nextSlot,
+            'title'            => 'Post ' . $nextSlot,
+            'stage'            => 'pending',
+        ]);
+    }
+
+    /**
      * Tech team picks up a deliverable to work on.
      */
     public function pickUpDeliverable(ViralPackageDeliverable $deliverable, ?User $actor = null): ViralPackageDeliverable

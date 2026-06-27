@@ -96,6 +96,19 @@ class ViralPackageController extends Controller
         return back()->with('success', "{$deliverable->title} submitted for review.");
     }
 
+    public function addPost(ViralPackage $viralPackage): RedirectResponse
+    {
+        $this->ensureAssigned($viralPackage);
+
+        try {
+            $deliverable = $this->service->addSocialPost($viralPackage);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} added.");
+    }
+
     public function downloadAsset(ViralPackage $viralPackage, ViralPackageAsset $asset, GoogleDriveService $drive): BinaryFileResponse|RedirectResponse
     {
         $this->ensureAssigned($viralPackage);
