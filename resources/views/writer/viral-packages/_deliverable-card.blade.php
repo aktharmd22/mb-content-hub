@@ -107,24 +107,39 @@
         </div>
     @endif
 
-    {{-- Action button (full-width, prominent) --}}
-    @if(in_array($d->stage, ['pending', 'in_progress'], true))
-        <button type="button" @click="uploadOpen = !uploadOpen"
-                x-show="!uploadOpen"
-                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
-            @if($d->stage === 'pending')
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Start working
-            @else
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                {{ $d->drive_file_id ? 'Upload new version' : 'Upload & submit' }}
-            @endif
-        </button>
+    {{-- Action area — upload available for pending, in_progress, AND review (replace) --}}
+    @if(in_array($d->stage, ['pending', 'in_progress', 'review'], true))
+        @if($d->stage === 'review')
+            {{-- Closed state in review: waiting banner + "delete & upload new" --}}
+            <div x-show="!uploadOpen" class="space-y-2">
+                <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium rounded-lg">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Waiting for sales review
+                </div>
+                <button type="button" @click="uploadOpen = true"
+                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-ink-800 hover:bg-ink-700 border border-ink-600 text-gray-300 hover:text-gray-100 text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3"/></svg>
+                    Delete &amp; upload new content
+                </button>
+            </div>
+        @else
+            <button type="button" @click="uploadOpen = !uploadOpen"
+                    x-show="!uploadOpen"
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
+                @if($d->stage === 'pending')
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Start working
+                @else
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    {{ $d->drive_file_id ? 'Upload new version' : 'Upload & submit' }}
+                @endif
+            </button>
+        @endif
 
         <form x-show="uploadOpen" x-cloak method="POST" enctype="multipart/form-data"
               action="{{ route('writer.viral-packages.deliverables.submit', ['viralPackage' => $package, 'deliverable' => $d]) }}"
@@ -168,11 +183,6 @@
                 </button>
             </div>
         </form>
-    @elseif($d->stage === 'review')
-        <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium rounded-lg">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Waiting for sales review
-        </div>
     @elseif($d->stage === 'approved')
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium rounded-lg">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>

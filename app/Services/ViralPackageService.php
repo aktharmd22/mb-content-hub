@@ -199,7 +199,8 @@ class ViralPackageService
         $actor ??= Auth::user();
         $this->requireRole($actor, ['tech_team', 'admin'], 'submit a deliverable');
 
-        if (! in_array($deliverable->stage, ['pending', 'in_progress'], true)) {
+        // Allow re-uploading while in review too, so tech can replace the file before sales approves.
+        if (! in_array($deliverable->stage, ['pending', 'in_progress', 'review'], true)) {
             throw new WorkflowException("This deliverable can't be submitted from '{$deliverable->stage}' stage.");
         }
 
