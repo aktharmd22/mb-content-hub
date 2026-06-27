@@ -27,14 +27,26 @@
         x-transition:leave-end="opacity-0 scale-95"
         class="absolute right-0 top-full mt-1 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm z-50"
     >
-        <div class="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div class="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2">
             <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
-            <template x-if="items.length > 0">
-                <form method="POST" action="{{ route('notifications.read-all') }}" class="inline">
-                    @csrf
-                    <button type="submit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Mark all read</button>
-                </form>
-            </template>
+            <div class="flex items-center gap-3">
+                {{-- Sound toggle --}}
+                <button type="button" @click="toggleSound()" :title="soundOn ? 'Mute notification sound' : 'Enable notification sound'"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <svg x-show="soundOn" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H2v6h4l5 4V5z"/>
+                    </svg>
+                    <svg x-show="!soundOn" x-cloak class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
+                    </svg>
+                </button>
+                <template x-if="items.length > 0">
+                    <form method="POST" action="{{ route('notifications.read-all') }}" class="inline">
+                        @csrf
+                        <button type="submit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Mark all read</button>
+                    </form>
+                </template>
+            </div>
         </div>
 
         <div class="max-h-96 overflow-y-auto">
@@ -74,10 +86,23 @@
             loaded: false,
             pollHandle: null,
             previousCount: initialCount,
+            soundOn: localStorage.getItem('notif_sound') !== 'off',
+            audioCtx: null,
 
             init() {
-                console.log('[bell] init — polling every 10s. Initial unread:', this.unreadCount);
                 this.startPolling();
+
+                // Browsers block audio until the user interacts; unlock on first gesture.
+                const unlock = () => {
+                    try {
+                        if (! this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                    } catch (e) {}
+                    window.removeEventListener('pointerdown', unlock);
+                    window.removeEventListener('keydown', unlock);
+                };
+                window.addEventListener('pointerdown', unlock);
+                window.addEventListener('keydown', unlock);
 
                 // Pause polling when the tab is in the background; resume on focus.
                 document.addEventListener('visibilitychange', () => {
@@ -88,6 +113,37 @@
                         this.startPolling();
                     }
                 });
+            },
+
+            toggleSound() {
+                this.soundOn = ! this.soundOn;
+                localStorage.setItem('notif_sound', this.soundOn ? 'on' : 'off');
+                if (this.soundOn) this.playPing(); // preview when enabling
+            },
+
+            // Short two-tone "ding" via Web Audio — no audio file needed.
+            playPing() {
+                if (! this.soundOn) return;
+                try {
+                    if (! this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const ctx = this.audioCtx;
+                    if (ctx.state === 'suspended') ctx.resume();
+                    const now = ctx.currentTime;
+                    [[880, 0], [1320, 0.12]].forEach(([freq, offset]) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        const t = now + offset;
+                        gain.gain.setValueAtTime(0.0001, t);
+                        gain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+                        osc.start(t);
+                        osc.stop(t + 0.2);
+                    });
+                } catch (e) { /* audio not available */ }
             },
 
             startPolling() {
@@ -115,12 +171,13 @@
                     const data = await r.json();
                     console.log('[bell] poll →', data.unread_count, 'unread');
 
-                    // Toast when a new notification arrives while user is on the page.
+                    // Toast + sound when a new notification arrives while user is on the page.
                     if (data.unread_count > this.previousCount && data.items.length > 0) {
                         const newest = data.items[0];
                         window.dispatchEvent(new CustomEvent('toast', {
                             detail: { type: 'info', message: newest.message }
                         }));
+                        this.playPing();
                     }
                     this.previousCount = data.unread_count;
                     this.unreadCount = data.unread_count;
