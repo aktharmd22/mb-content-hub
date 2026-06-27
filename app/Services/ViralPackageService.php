@@ -249,6 +249,45 @@ class ViralPackageService
     }
 
     /**
+     * Delete the uploaded content from a deliverable without forcing a re-upload.
+     * Reverts the slot to "in progress" so tech can upload a new file later.
+     */
+    public function clearDeliverableFile(ViralPackageDeliverable $deliverable, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['tech_team', 'admin'], 'delete deliverable content');
+
+        if (! $deliverable->drive_file_id) {
+            throw new WorkflowException('There is no uploaded content to delete.');
+        }
+        if ($deliverable->stage === 'approved') {
+            throw new WorkflowException('Approved content cannot be deleted.');
+        }
+
+        return DB::transaction(function () use ($deliverable, $actor) {
+            $from = $deliverable->stage;
+
+            try {
+                $this->drive->deleteFile($deliverable->drive_file_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            $deliverable->update([
+                'stage'          => 'in_progress',
+                'drive_file_id'  => null,
+                'drive_filename' => null,
+                'mime_type'      => null,
+                'file_size'      => null,
+                'submitted_at'   => null,
+            ]);
+            $this->recordHistory($deliverable, $from, 'in_progress', $actor, 'Content deleted by tech team');
+
+            return $deliverable->fresh();
+        });
+    }
+
+    /**
      * Sales approves a deliverable.
      */
     public function approveDeliverable(ViralPackageDeliverable $deliverable, ?User $actor = null): ViralPackageDeliverable

@@ -109,6 +109,20 @@ class ViralPackageController extends Controller
         return back()->with('success', "{$deliverable->title} added.");
     }
 
+    public function clearFile(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    {
+        $this->ensureAssigned($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        try {
+            $this->service->clearDeliverableFile($deliverable);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Content removed from {$deliverable->title}.");
+    }
+
     public function removePost(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
         $this->ensureAssigned($viralPackage);

@@ -170,6 +170,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/viral-packages/{viralPackage}/deliverables/{deliverable}',       [\App\Http\Controllers\Writer\ViralPackageController::class, 'removePost'])->name('viral-packages.posts.remove');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/pick-up', [\App\Http\Controllers\Writer\ViralPackageController::class, 'pickUp'])->name('viral-packages.deliverables.pick-up');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/submit',  [\App\Http\Controllers\Writer\ViralPackageController::class, 'submit'])->name('viral-packages.deliverables.submit');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/clear-file', [\App\Http\Controllers\Writer\ViralPackageController::class, 'clearFile'])->name('viral-packages.deliverables.clear-file');
     });
 
     // Tech team — lead-side actions (review, approve, team performance)
