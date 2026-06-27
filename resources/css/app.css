@@ -14,10 +14,29 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Dark by default — softer charcoal instead of pure black */
+    :root {
+        --ink-900: 241 245 249;
+        --ink-850: 255 255 255;
+        --ink-800: 248 250 252;
+        --ink-700: 226 232 240;
+        --ink-600: 203 213 225;
+        --ink-500: 100 116 139;
+        --body-text: 30 41 59;
+    }
+
+    .dark {
+        --ink-900: 26 29 35;
+        --ink-850: 34 38 46;
+        --ink-800: 42 47 56;
+        --ink-700: 54 60 71;
+        --ink-600: 69 76 88;
+        --ink-500: 90 98 111;
+        --body-text: 229 231 235;
+    }
+
     body {
-        background-color: #1a1d23;
-        color: rgb(229 231 235);
+        background-color: rgb(var(--ink-900));
+        color: rgb(var(--body-text));
     }
 }
 
@@ -77,3 +96,20 @@
     background: rgba(99, 102, 241, 0.3);
     color: rgb(238, 242, 255);
 }
+
+/* ── Light-mode text fixups ── */
+html:not(.dark) .text-gray-100 { color: #1e293b; }
+html:not(.dark) .text-gray-200 { color: #334155; }
+html:not(.dark) .text-gray-300 { color: #475569; }
+html:not(.dark) .text-gray-400 { color: #64748b; }
+
+/* Hardcoded dark surfaces used without a dark: variant → light. */
+html:not(.dark) .bg-gray-900,
+html:not(.dark) .bg-gray-950 { background-color: #ffffff; }
+html:not(.dark) .border-gray-800 { border-color: #e2e8f0; }
+
+/* Component classes (@apply bakes dark text) → fix for light mode. */
+html:not(.dark) .field { color: #1e293b; }
+html:not(.dark) .label { color: #475569; }
+html:not(.dark) .sidebar-link { color: #475569; }
+html:not(.dark) .sidebar-link:hover { color: #0f172a; }

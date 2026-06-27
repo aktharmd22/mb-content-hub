@@ -17,14 +17,16 @@ export default {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
             },
             colors: {
-                // Refined charcoal — softer than pure black, easy on the eyes
+                // Theme-aware "ink" surface palette — driven by CSS variables so the whole
+                // app flips between dark and light without per-file edits. Values live in
+                // resources/css/app.css (dark under .dark, light under :root).
                 ink: {
-                    900: '#1a1d23',  // page background
-                    850: '#22262e',  // card surface
-                    800: '#2a2f38',  // raised surface (inputs)
-                    700: '#363c47',  // borders / dividers
-                    600: '#454c58',  // input borders, hover states
-                    500: '#5a626f',  // muted text
+                    900: 'rgb(var(--ink-900) / <alpha-value>)',  // page background
+                    850: 'rgb(var(--ink-850) / <alpha-value>)',  // card surface
+                    800: 'rgb(var(--ink-800) / <alpha-value>)',  // raised surface (inputs)
+                    700: 'rgb(var(--ink-700) / <alpha-value>)',  // borders / dividers
+                    600: 'rgb(var(--ink-600) / <alpha-value>)',  // input borders, hover states
+                    500: 'rgb(var(--ink-500) / <alpha-value>)',  // muted text
                 },
             },
             borderWidth: {
