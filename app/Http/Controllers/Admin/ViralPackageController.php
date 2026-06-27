@@ -83,6 +83,29 @@ class ViralPackageController extends Controller
         ]);
     }
 
+    public function downloadDeliverable(ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\GoogleDriveService $drive)
+    {
+        if ($deliverable->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+        if (! $deliverable->drive_file_id) {
+            return back()->with('error', 'No file has been uploaded yet.');
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'viral_');
+        try {
+            $drive->downloadFile($deliverable->drive_file_id, $tempPath);
+        } catch (\App\Exceptions\DriveException $e) {
+            @unlink($tempPath);
+            return back()->with('error', $e->getMessage());
+        }
+
+        $disposition = request()->boolean('inline') ? 'inline' : 'attachment';
+        $headers = $deliverable->mime_type ? ['Content-Type' => $deliverable->mime_type] : [];
+
+        return response()->download($tempPath, $deliverable->drive_filename ?: $deliverable->title, $headers, $disposition)->deleteFileAfterSend();
+    }
+
     public function reassign(Request $request, ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([

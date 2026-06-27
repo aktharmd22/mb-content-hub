@@ -120,7 +120,7 @@
                 @endphp
                 @foreach($package->deliverables as $d)
                     @php $c = $stageColors[$d->stage] ?? $stageColors['pending']; @endphp
-                    <div class="border border-ink-700 rounded-lg p-4 bg-ink-800/30">
+                    <div class="border border-ink-700 rounded-lg p-4 bg-ink-800/30" style="min-width: 0; overflow: hidden;">
                         <div class="flex items-start justify-between gap-2 mb-2">
                             <div class="min-w-0">
                                 <p class="text-sm font-medium text-gray-100 truncate">{{ $d->title }}</p>
@@ -135,6 +135,50 @@
                         @endif
                         @if($d->approved_at)
                             <p class="text-xs text-emerald-400 mt-1">Approved {{ $d->approved_at->diffForHumans() }}</p>
+                        @endif
+
+                        {{-- Uploaded file preview + download --}}
+                        @if($d->drive_file_id)
+                            @php $isImage = str_starts_with((string) $d->mime_type, 'image/'); @endphp
+                            @if($isImage)
+                                <a href="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
+                                   target="_blank" rel="noopener" class="block mt-3 rounded-md overflow-hidden border border-ink-700 bg-ink-900/60">
+                                    <img loading="lazy"
+                                         src="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
+                                         alt="{{ $d->drive_filename }}"
+                                         class="w-full h-auto max-h-72 object-contain hover:opacity-90 transition-opacity"/>
+                                </a>
+                            @endif
+                            <div class="flex items-center gap-2 mt-2 px-3 py-2 bg-ink-900/60 border border-ink-700 rounded-md">
+                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span class="text-xs text-gray-300 flex-1 truncate" title="{{ $d->drive_filename }}">{{ $d->drive_filename }}</span>
+                                <a href="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}"
+                                   class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap font-medium">Download</a>
+                            </div>
+                        @endif
+
+                        {{-- Caption & hashtags (read-only, copyable) --}}
+                        @if($d->stage === 'approved' && ($d->caption || $d->hashtags))
+                            <div class="mt-3 pt-3 border-t border-ink-700 space-y-2.5" style="min-width: 0;">
+                                @if($d->caption)
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                            <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Caption</p>
+                                            <button type="button" onclick="copyToClipboard(@js($d->caption))" class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Copy</button>
+                                        </div>
+                                        <div class="text-xs text-gray-200 bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 max-h-28 overflow-y-auto" style="white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;">{{ $d->caption }}</div>
+                                    </div>
+                                @endif
+                                @if($d->hashtags)
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                            <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Hashtags</p>
+                                            <button type="button" onclick="copyToClipboard(@js($d->hashtags))" class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Copy</button>
+                                        </div>
+                                        <div class="text-xs text-indigo-300 bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 max-h-24 overflow-y-auto" style="white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;">{{ $d->hashtags }}</div>
+                                    </div>
+                                @endif
+                            </div>
                         @endif
                     </div>
                 @endforeach
