@@ -64,9 +64,9 @@ class DashboardController extends Controller
         // Viral package overview — business-wide
         $viral = [
             'stats' => [
-                ['label' => 'Active',         'value' => \App\Models\ViralPackage::where('status', 'active')->count()],
-                ['label' => 'In review',      'value' => \App\Models\ViralPackageDeliverable::whereHas('package', fn ($q) => $q->where('status', 'active'))->where('stage', 'review')->count()],
-                ['label' => 'Completed (mo)', 'value' => \App\Models\ViralPackage::where('status', 'completed')->where('completed_at', '>=', $now->copy()->startOfMonth())->count()],
+                ['label' => 'Active packages', 'value' => \App\Models\ViralPackage::where('status', 'active')->count(), 'hint' => 'across the business', 'color' => 'indigo'],
+                ['label' => 'In review',       'value' => \App\Models\ViralPackageDeliverable::whereHas('package', fn ($q) => $q->where('status', 'active'))->where('stage', 'review')->count(), 'hint' => 'deliverables awaiting sales', 'color' => 'amber'],
+                ['label' => 'Delivered',       'value' => \App\Models\ViralPackage::where('status', 'completed')->where('completed_at', '>=', $now->copy()->startOfMonth())->count(), 'hint' => 'this month', 'color' => 'emerald'],
             ],
             'packages' => \App\Models\ViralPackage::where('status', 'active')
                 ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->limit(5)->get(),

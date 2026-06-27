@@ -63,9 +63,9 @@ class DashboardController extends Controller
         $assigned = fn () => \App\Models\ViralPackageDeliverable::whereHas('package', fn ($q) => $q->where('tech_team_id', $userId)->where('status', 'active'));
         $viral = [
             'stats' => [
-                ['label' => 'Active',     'value' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)->count()],
-                ['label' => 'To work on', 'value' => $assigned()->whereIn('stage', ['pending', 'in_progress'])->count()],
-                ['label' => 'In review',  'value' => $assigned()->where('stage', 'review')->count()],
+                ['label' => 'Active packages', 'value' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)->count(), 'hint' => 'assigned to you', 'color' => 'indigo'],
+                ['label' => 'To work on',      'value' => $assigned()->whereIn('stage', ['pending', 'in_progress'])->count(), 'hint' => 'deliverables pending', 'color' => 'amber'],
+                ['label' => 'In review',       'value' => $assigned()->where('stage', 'review')->count(), 'hint' => 'awaiting sales', 'color' => 'blue'],
             ],
             'packages' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)
                 ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->limit(5)->get(),

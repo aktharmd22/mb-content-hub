@@ -50,9 +50,9 @@ class DashboardController extends Controller
             ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->get();
         $viral = [
             'stats' => [
-                ['label' => 'Active',           'value' => $myPackages->count()],
-                ['label' => 'Ready to deliver', 'value' => $myPackages->filter->canBeMarkedDelivered()->count()],
-                ['label' => 'Completed (mo)',   'value' => \App\Models\ViralPackage::where('sales_rep_id', auth()->id())->where('status', 'completed')->where('completed_at', '>=', now()->startOfMonth())->count()],
+                ['label' => 'Active packages',  'value' => $myPackages->count(), 'hint' => 'in progress', 'color' => 'indigo'],
+                ['label' => 'Ready to deliver', 'value' => $myPackages->filter->canBeMarkedDelivered()->count(), 'hint' => 'all approved', 'color' => 'emerald'],
+                ['label' => 'Delivered',        'value' => \App\Models\ViralPackage::where('sales_rep_id', auth()->id())->where('status', 'completed')->where('completed_at', '>=', now()->startOfMonth())->count(), 'hint' => 'this month', 'color' => 'gray'],
             ],
             'packages' => $myPackages->take(5)->values(),
         ];
