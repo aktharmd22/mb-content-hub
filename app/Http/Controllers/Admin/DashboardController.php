@@ -61,6 +61,18 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'pipeline', 'recentActivity', 'stuckArticles'));
+        // Viral package overview — business-wide
+        $viral = [
+            'stats' => [
+                ['label' => 'Active',         'value' => \App\Models\ViralPackage::where('status', 'active')->count()],
+                ['label' => 'In review',      'value' => \App\Models\ViralPackageDeliverable::whereHas('package', fn ($q) => $q->where('status', 'active'))->where('stage', 'review')->count()],
+                ['label' => 'Completed (mo)', 'value' => \App\Models\ViralPackage::where('status', 'completed')->where('completed_at', '>=', $now->copy()->startOfMonth())->count()],
+            ],
+            'packages' => \App\Models\ViralPackage::where('status', 'active')
+                ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->limit(5)->get(),
+        ];
+        $viralRole = 'admin';
+
+        return view('admin.dashboard', compact('stats', 'pipeline', 'recentActivity', 'stuckArticles', 'viral', 'viralRole'));
     }
 }

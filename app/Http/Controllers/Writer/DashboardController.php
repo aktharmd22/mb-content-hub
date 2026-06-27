@@ -59,7 +59,20 @@ class DashboardController extends Controller
             ->limit(8)
             ->get();
 
-        return view('writer.dashboard', compact('stats', 'queue', 'recentlyCompleted', 'newUploads'));
+        // Viral package overview — packages assigned to this tech member
+        $assigned = fn () => \App\Models\ViralPackageDeliverable::whereHas('package', fn ($q) => $q->where('tech_team_id', $userId)->where('status', 'active'));
+        $viral = [
+            'stats' => [
+                ['label' => 'Active',     'value' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)->count()],
+                ['label' => 'To work on', 'value' => $assigned()->whereIn('stage', ['pending', 'in_progress'])->count()],
+                ['label' => 'In review',  'value' => $assigned()->where('stage', 'review')->count()],
+            ],
+            'packages' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)
+                ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->limit(5)->get(),
+        ];
+        $viralRole = 'writer';
+
+        return view('writer.dashboard', compact('stats', 'queue', 'recentlyCompleted', 'newUploads', 'viral', 'viralRole'));
     }
 
     /**

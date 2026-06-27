@@ -45,6 +45,19 @@ class DashboardController extends Controller
             ->orderBy('stage_entered_at')
             ->get();
 
-        return view('sales.dashboard', compact('stats', 'recent', 'needsFollowup'));
+        // Viral package overview — this sales rep's packages
+        $myPackages = \App\Models\ViralPackage::where('status', 'active')->where('sales_rep_id', auth()->id())
+            ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->get();
+        $viral = [
+            'stats' => [
+                ['label' => 'Active',           'value' => $myPackages->count()],
+                ['label' => 'Ready to deliver', 'value' => $myPackages->filter->canBeMarkedDelivered()->count()],
+                ['label' => 'Completed (mo)',   'value' => \App\Models\ViralPackage::where('sales_rep_id', auth()->id())->where('status', 'completed')->where('completed_at', '>=', now()->startOfMonth())->count()],
+            ],
+            'packages' => $myPackages->take(5)->values(),
+        ];
+        $viralRole = 'sales';
+
+        return view('sales.dashboard', compact('stats', 'recent', 'needsFollowup', 'viral', 'viralRole'));
     }
 }
