@@ -203,6 +203,26 @@
 
     @include('layouts.partials.global-search')
 
+    {{-- Global copy-to-clipboard helper (used by caption/hashtag copy buttons) --}}
+    <script>
+        window.copyToClipboard = function (text) {
+            const done = () => window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Copied to clipboard' } }));
+            const fail = () => window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Copy failed — select and copy manually.' } }));
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(done).catch(fail);
+            } else {
+                // Fallback for non-HTTPS / older browsers
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                    document.body.appendChild(ta); ta.select();
+                    document.execCommand('copy'); document.body.removeChild(ta);
+                    done();
+                } catch (e) { fail(); }
+            }
+        };
+    </script>
+
     {{-- ==================== Platform-wide live refresh ====================
          Any element with data-live="<unique-id>" auto-updates without a manual
          page refresh. The poller re-fetches the current URL every few seconds and

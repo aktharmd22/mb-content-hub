@@ -160,4 +160,36 @@
             @endforeach
         </div>
     @endif
+
+    {{-- Caption & hashtags from content team (copyable) --}}
+    @if($d->stage === 'approved' && ($d->caption || $d->hashtags))
+        <div class="mt-3 pt-3 border-t border-ink-700 space-y-2.5">
+            @if($d->caption)
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Caption</p>
+                        <button type="button" onclick="copyToClipboard(@js($d->caption))"
+                                class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            Copy
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-200 whitespace-pre-wrap bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 leading-relaxed">{{ $d->caption }}</p>
+                </div>
+            @endif
+            @if($d->hashtags)
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Hashtags</p>
+                        <button type="button" onclick="copyToClipboard(@js($d->hashtags))"
+                                class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            Copy
+                        </button>
+                    </div>
+                    <p class="text-xs text-indigo-300 whitespace-pre-wrap bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 leading-relaxed">{{ $d->hashtags }}</p>
+                </div>
+            @endif
+        </div>
+    @endif
 </div>

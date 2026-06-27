@@ -284,6 +284,29 @@ class ViralPackageService
     }
 
     /**
+     * Content team writes/edits the caption + hashtags for an approved post or reel.
+     */
+    public function updateCaption(ViralPackageDeliverable $deliverable, ?string $caption, ?string $hashtags, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['tech_team', 'admin'], 'add a caption');
+
+        if (! in_array($deliverable->kind, ['social_post', 'reel'], true)) {
+            throw new WorkflowException('Captions are only for posts and reels.');
+        }
+        if ($deliverable->stage !== 'approved') {
+            throw new WorkflowException('Captions can be added once the deliverable is approved.');
+        }
+
+        $deliverable->update([
+            'caption'  => $caption,
+            'hashtags' => $hashtags,
+        ]);
+
+        return $deliverable->fresh();
+    }
+
+    /**
      * Delete the uploaded content from a deliverable without forcing a re-upload.
      * Reverts the slot to "in progress" so tech can upload a new file later.
      */

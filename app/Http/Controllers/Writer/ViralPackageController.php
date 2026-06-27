@@ -124,6 +124,25 @@ class ViralPackageController extends Controller
         return back()->with('success', "Content removed from {$deliverable->title}.");
     }
 
+    public function updateCaption(Request $request, ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    {
+        $this->ensureAssigned($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        $data = $request->validate([
+            'caption'  => ['nullable', 'string', 'max:5000'],
+            'hashtags' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $this->service->updateCaption($deliverable, $data['caption'] ?? null, $data['hashtags'] ?? null);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Caption saved for {$deliverable->title}.");
+    }
+
     public function removePost(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
         $this->ensureAssigned($viralPackage);

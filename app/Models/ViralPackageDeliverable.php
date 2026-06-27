@@ -22,6 +22,8 @@ class ViralPackageDeliverable extends Model
         'mime_type',
         'file_size',
         'notes',
+        'caption',
+        'hashtags',
         'submitted_at',
         'approved_at',
     ];
