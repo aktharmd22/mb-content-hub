@@ -105,6 +105,42 @@
             </div>
         @endunless
 
+        {{-- Delivery status (admin) — record/adjust the delivered date --}}
+        <div class="bg-white dark:bg-gray-900 border border-emerald-500/30 rounded-lg p-5 mb-6">
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <h3 class="text-sm font-medium text-gray-100">Delivery status (admin)</h3>
+            </div>
+            @if($package->isCompleted())
+                <p class="text-xs text-gray-500 mb-4">Marked delivered on <span class="text-emerald-300 font-medium">{{ $package->completed_at?->format('M j, Y') }}</span>. You can change the date or re-open the package.</p>
+            @else
+                <p class="text-xs text-gray-500 mb-4">Record this package as delivered to the client. You can set the actual delivery date.</p>
+            @endif
+
+            <div class="flex flex-wrap items-end gap-3">
+                <form method="POST" action="{{ route('admin.viral-packages.set-delivered', $package) }}" class="flex items-end gap-3">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1.5">Delivery date</label>
+                        <input type="date" name="delivered_at" value="{{ ($package->completed_at ?? now())->format('Y-m-d') }}" max="{{ now()->format('Y-m-d') }}"
+                               class="px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"/>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                        {{ $package->isCompleted() ? 'Update delivery date' : 'Mark as delivered' }}
+                    </button>
+                </form>
+                @if($package->isCompleted())
+                    <form method="POST" action="{{ route('admin.viral-packages.reopen', $package) }}"
+                          onsubmit="return confirm('Re-open this package and set it back to Active?');">
+                        @csrf
+                        <button type="submit" class="px-4 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-600 text-gray-300 hover:text-gray-100 text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                            Re-open package
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
         {{-- Deliverable summary --}}
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
             <div class="flex items-center justify-between gap-3 mb-4">

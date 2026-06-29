@@ -675,6 +675,50 @@ class ViralPackageService
         return $package->fresh();
     }
 
+    /**
+     * Admin records the package as delivered with a specific date (no approval gate —
+     * this is an admin record-keeping action). Re-running it just updates the date.
+     */
+    public function setDelivered(ViralPackage $package, ?string $deliveredAt = null, ?User $actor = null): ViralPackage
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['admin'], 'set the delivered status');
+
+        $date = $deliveredAt
+            ? \Illuminate\Support\Carbon::parse($deliveredAt)
+            : now();
+
+        $wasCompleted = $package->status === 'completed';
+
+        $package->update([
+            'status'       => 'completed',
+            'completed_at' => $date,
+        ]);
+
+        // Only notify on the first transition into delivered, not on date edits.
+        if (! $wasCompleted) {
+            event(new ViralPackageEvent($package, 'completed', $actor));
+        }
+
+        return $package->fresh();
+    }
+
+    /**
+     * Admin re-opens a delivered/completed package, setting it back to active.
+     */
+    public function reopenPackage(ViralPackage $package, ?User $actor = null): ViralPackage
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['admin'], 're-open a package');
+
+        $package->update([
+            'status'       => 'active',
+            'completed_at' => null,
+        ]);
+
+        return $package->fresh();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────

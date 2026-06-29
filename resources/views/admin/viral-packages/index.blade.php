@@ -126,7 +126,10 @@
                                 <td class="px-4 py-3">@include('partials.viral-package-progress', ['package' => $p])</td>
                                 <td class="px-4 py-3">
                                     @if($p->isCompleted())
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Completed</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Delivered</span>
+                                        @if($p->completed_at)
+                                            <p class="text-[10px] text-gray-500 mt-1">{{ $p->completed_at->format('M j, Y') }}</p>
+                                        @endif
                                     @else
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Active</span>
                                     @endif

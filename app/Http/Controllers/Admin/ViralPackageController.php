@@ -183,6 +183,32 @@ class ViralPackageController extends Controller
         return back()->with('success', "Correction requested for {$deliverable->title}.");
     }
 
+    public function setDelivered(Request $request, ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'delivered_at' => ['nullable', 'date'],
+        ]);
+
+        try {
+            $service->setDelivered($viralPackage, $data['delivered_at'] ?? null);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Delivered status updated.');
+    }
+
+    public function reopen(ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            $service->reopenPackage($viralPackage);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Package re-opened — set back to active.');
+    }
+
     public function removeDeliverable(ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         if ($deliverable->viral_package_id !== $viralPackage->id) {

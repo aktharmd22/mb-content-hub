@@ -53,7 +53,7 @@ class ViralPackage extends Model
 
     public function deliverables(): HasMany
     {
-        return $this->hasMany(ViralPackageDeliverable::class)->orderByRaw("FIELD(kind,'article','social_post','reel'), slot_number");
+        return $this->hasMany(ViralPackageDeliverable::class)->orderByRaw("FIELD(kind,'article','social_post','reel','landing_page'), slot_number");
     }
 
     public function isCompleted(): bool
