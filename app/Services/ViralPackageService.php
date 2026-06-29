@@ -284,6 +284,53 @@ class ViralPackageService
     }
 
     /**
+     * Admin directly replaces a deliverable's uploaded file in place, at any stage,
+     * without bouncing the workflow. The old Drive file is removed and the new one
+     * stored; the stage/approval are left untouched (admin override).
+     */
+    public function replaceFileAsAdmin(ViralPackageDeliverable $deliverable, UploadedFile $file, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['admin'], 'replace deliverable content');
+
+        $targetFolderId = $this->folderForDeliverable($deliverable);
+        if (! $targetFolderId) {
+            throw new DriveException('Could not access the Drive folder for this package.');
+        }
+
+        // Replace, don't accumulate — remove the existing file first.
+        if ($deliverable->drive_file_id) {
+            try {
+                $this->drive->deleteFile($deliverable->drive_file_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $filename = $deliverable->title . '.' . $file->getClientOriginalExtension();
+
+        try {
+            $driveFileId = $this->drive->uploadFile($file->getRealPath(), $targetFolderId, $filename);
+        } catch (\Throwable $e) {
+            report($e);
+            throw new DriveException('Upload failed: ' . $e->getMessage());
+        }
+
+        return DB::transaction(function () use ($deliverable, $driveFileId, $filename, $file, $actor) {
+            $stage = $deliverable->stage; // keep the workflow stage exactly as-is
+            $deliverable->update([
+                'drive_file_id'  => $driveFileId,
+                'drive_filename' => $filename,
+                'mime_type'      => $file->getMimeType(),
+                'file_size'      => $file->getSize(),
+            ]);
+            $this->recordHistory($deliverable, $stage, $stage, $actor, 'Content replaced by admin');
+
+            return $deliverable->fresh();
+        });
+    }
+
+    /**
      * Content team writes/edits the caption + hashtags for an approved post or reel.
      */
     public function updateCaption(ViralPackageDeliverable $deliverable, ?string $caption, ?string $hashtags, ?string $targetAudience = null, ?User $actor = null): ViralPackageDeliverable

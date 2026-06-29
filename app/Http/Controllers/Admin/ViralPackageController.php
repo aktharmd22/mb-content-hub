@@ -121,6 +121,28 @@ class ViralPackageController extends Controller
         return back()->with('success', "{$deliverable->title} re-opened — it's back in sales review.");
     }
 
+    public function replaceDeliverable(Request $request, ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        if ($deliverable->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'max:262144'], // 256 MB (matches .user.ini)
+        ], [
+            'file.max'      => 'The file is too large. Maximum upload size is 256 MB.',
+            'file.required' => 'Please choose a file to upload.',
+        ]);
+
+        try {
+            $service->replaceFileAsAdmin($deliverable, $request->file('file'));
+        } catch (\App\Exceptions\DriveException | \App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} content updated.");
+    }
+
     public function reassign(Request $request, ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
