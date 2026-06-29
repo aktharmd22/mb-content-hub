@@ -143,6 +143,68 @@ class ViralPackageController extends Controller
         return back()->with('success', "{$deliverable->title} content updated.");
     }
 
+    public function approveDeliverable(ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        if ($deliverable->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+
+        try {
+            $service->approveDeliverable($deliverable);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} approved.");
+    }
+
+    public function requestCorrection(Request $request, ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        if ($deliverable->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'reason'                    => ['required', 'string', 'max:1000'],
+            'correction_assets'         => ['nullable', 'array'],
+            'correction_assets.*.type'  => ['nullable', 'in:file,link'],
+            'correction_assets.*.url'   => ['nullable', 'url', 'max:500'],
+            'correction_assets.*.file'  => ['nullable', 'file', 'max:204800'],
+        ]);
+
+        $assets = $this->buildAssetsPayload($request, 'correction_assets');
+
+        try {
+            $service->requestCorrection($deliverable, $validated['reason'], $assets);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Correction requested for {$deliverable->title}.");
+    }
+
+    private function buildAssetsPayload(Request $request, string $key = 'assets'): array
+    {
+        $rows  = $request->input($key, []);
+        $files = $request->file($key, []);
+        $out   = [];
+
+        foreach ($rows as $i => $row) {
+            $type = $row['type'] ?? null;
+            if (! in_array($type, ['file', 'link'], true)) {
+                continue;
+            }
+            $name = $row['name'] ?? null;
+            if ($type === 'link' && ! empty($row['url'])) {
+                $out[] = ['type' => 'link', 'name' => $name, 'url' => $row['url']];
+            } elseif ($type === 'file' && isset($files[$i]['file'])) {
+                $out[] = ['type' => 'file', 'name' => $name, 'file' => $files[$i]['file']];
+            }
+        }
+
+        return $out;
+    }
+
     public function reassign(Request $request, ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([

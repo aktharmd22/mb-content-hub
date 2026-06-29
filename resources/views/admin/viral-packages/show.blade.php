@@ -107,7 +107,7 @@
 
         {{-- Deliverable summary --}}
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
-            <h3 class="text-sm font-medium text-gray-100 mb-4">Deliverables — read-only</h3>
+            <h3 class="text-sm font-medium text-gray-100 mb-4">Deliverables <span class="text-xs font-normal text-gray-500">— you can approve, request changes, or replace content</span></h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 @php
@@ -168,6 +168,50 @@
                                 <span class="text-xs text-gray-300 flex-1 truncate" title="{{ $d->drive_filename }}">{{ $d->drive_filename }}</span>
                                 <a href="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}"
                                    class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap font-medium">Download</a>
+                            </div>
+                        @endif
+
+                        {{-- Admin review actions — approve or request changes, same as the sales team --}}
+                        @if($d->stage === 'review' && ! $package->isCompleted())
+                            <div x-data="{ correctionOpen: false }" class="mt-3">
+                                <div x-show="!correctionOpen" class="flex items-center gap-2">
+                                    <form method="POST" action="{{ route('admin.viral-packages.deliverables.approve', ['viralPackage' => $package, 'deliverable' => $d]) }}" class="flex-1">
+                                        @csrf
+                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-md transition-colors">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <button type="button" @click="correctionOpen = true"
+                                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-medium rounded-md transition-colors">
+                                        Request changes
+                                    </button>
+                                </div>
+
+                                <form x-show="correctionOpen" x-cloak method="POST" enctype="multipart/form-data"
+                                      action="{{ route('admin.viral-packages.deliverables.correction', ['viralPackage' => $package, 'deliverable' => $d]) }}"
+                                      x-data="{ corrFile: '' }" class="space-y-2">
+                                    @csrf
+                                    <textarea name="reason" required rows="3" maxlength="1000" placeholder="What needs to change?"
+                                              class="w-full px-3 py-2 text-xs bg-ink-800 border border-ink-600 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"></textarea>
+                                    <div>
+                                        <label :for="`corr-file-{{ $d->id }}`"
+                                               :class="corrFile ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-600 hover:border-amber-500/60 hover:bg-amber-500/5'"
+                                               class="flex items-center gap-2 px-3 py-2 border-2 border-dashed rounded-md cursor-pointer transition-colors">
+                                            <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                            <span class="flex-1 min-w-0 text-[11px] truncate" :class="corrFile ? 'text-gray-100' : 'text-gray-400'" x-text="corrFile || 'Attach reference file (optional)'"></span>
+                                            <span x-show="corrFile" x-cloak class="text-[10px] text-rose-400 hover:text-rose-300 cursor-pointer"
+                                                  @click.prevent.stop="corrFile = ''; document.getElementById('corr-file-{{ $d->id }}').value = '';">×</span>
+                                        </label>
+                                        <input type="file" id="corr-file-{{ $d->id }}" name="correction_assets[0][file]"
+                                               @change="corrFile = $event.target.files.length ? $event.target.files[0].name : ''" class="hidden"/>
+                                        <input type="hidden" name="correction_assets[0][type]" value="file"/>
+                                    </div>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" @click="correctionOpen = false" class="text-xs text-gray-500 hover:text-gray-300">Cancel</button>
+                                        <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-md">Send for correction</button>
+                                    </div>
+                                </form>
                             </div>
                         @endif
 
