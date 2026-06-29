@@ -21,18 +21,17 @@ class ViralPackageController extends Controller
 
     public function index(Request $request): View
     {
-        // Show packages assigned to this tech member (admins see all) that still have
-        // unfinished work — including items awaiting sales review, so the tech team can
-        // track them. Only fully-approved/delivered packages drop off the list.
+        // Show every package assigned to this tech member (admins see all), including
+        // delivered ones, so the team can see the delivered status. Active packages
+        // (with work to do) are listed first, then delivered ones.
         $packages = ViralPackage::query()
             ->with(['client', 'salesRep', 'techTeam', 'deliverables'])
-            ->where('status', 'active')
             ->when(! auth()->user()->isAdmin(), fn ($q) => $q->where('tech_team_id', auth()->id()))
-            ->whereHas('deliverables', fn ($q) => $q->where('stage', '!=', 'approved'))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = trim((string) $request->get('q'));
                 $q->whereHas('client', fn ($c) => $c->where('name', 'like', "%{$term}%"));
             })
+            ->orderByRaw("FIELD(status,'active','completed')")
             ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();

@@ -6,7 +6,7 @@
 
         <div class="mb-6">
             <h2 class="text-lg font-medium text-gray-100">Viral package</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Active packages with deliverables to work on.</p>
+            <p class="text-sm text-gray-500 mt-0.5">Your packages to work on, plus their delivered status.</p>
         </div>
 
         <form method="GET" class="flex flex-wrap items-center gap-2 mb-4">
@@ -24,7 +24,7 @@
         <div data-live="writer-viral-list" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
             @if($packages->count() === 0)
                 <div class="p-12 text-center">
-                    <p class="text-sm text-gray-500">Nothing to work on right now.</p>
+                    <p class="text-sm text-gray-500">No viral packages assigned to you yet.</p>
                 </div>
             @else
                 <ul class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -42,11 +42,18 @@
                                     </p>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
-                                    @if($pending > 0)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-500/15 text-gray-300 border border-gray-500/30">{{ $pending }} pending</span>
-                                    @endif
-                                    @if($inProgress > 0)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">{{ $inProgress }} in progress</span>
+                                    @if($p->isCompleted())
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            Delivered{{ $p->completed_at ? ' · ' . $p->completed_at->format('M j, Y') : '' }}
+                                        </span>
+                                    @else
+                                        @if($pending > 0)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-500/15 text-gray-300 border border-gray-500/30">{{ $pending }} pending</span>
+                                        @endif
+                                        @if($inProgress > 0)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">{{ $inProgress }} in progress</span>
+                                        @endif
                                     @endif
                                     @include('partials.viral-package-progress', ['package' => $p])
                                 </div>
