@@ -179,8 +179,8 @@ class ViralPackageService
         $actor ??= Auth::user();
         $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'remove a deliverable');
 
-        if (! in_array($deliverable->kind, ['social_post', 'reel'], true)) {
-            throw new WorkflowException('Only social posts and reels can be removed.');
+        if (! in_array($deliverable->kind, ['social_post', 'reel', 'landing_page'], true)) {
+            throw new WorkflowException('Only social posts, reels and the landing page can be removed.');
         }
 
         $package = $deliverable->package;
@@ -188,11 +188,14 @@ class ViralPackageService
             throw new WorkflowException('Cannot remove deliverables from a completed package.');
         }
 
-        // Keep at least one of this kind.
-        $remaining = $package->deliverables()->where('kind', $deliverable->kind)->count();
-        if ($remaining <= 1) {
-            $label = $deliverable->kind === 'reel' ? 'reel' : 'social post';
-            throw new WorkflowException("A package must keep at least one {$label}.");
+        // Posts and reels must keep at least one of their kind. The landing page is
+        // optional and singular, so it can be removed entirely.
+        if (in_array($deliverable->kind, ['social_post', 'reel'], true)) {
+            $remaining = $package->deliverables()->where('kind', $deliverable->kind)->count();
+            if ($remaining <= 1) {
+                $label = $deliverable->kind === 'reel' ? 'reel' : 'social post';
+                throw new WorkflowException("A package must keep at least one {$label}.");
+            }
         }
 
         // Best-effort: remove the uploaded file from Drive.

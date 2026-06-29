@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/correction', [\App\Http\Controllers\Admin\ViralPackageController::class, 'requestCorrection'])->name('viral-packages.deliverables.correction');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/publish-landing', [\App\Http\Controllers\Admin\ViralPackageController::class, 'publishLanding'])->name('viral-packages.deliverables.publish-landing');
         Route::post('/viral-packages/{viralPackage}/add-landing', [\App\Http\Controllers\Admin\ViralPackageController::class, 'addLanding'])->name('viral-packages.landing.add');
+        Route::delete('/viral-packages/{viralPackage}/deliverables/{deliverable}', [\App\Http\Controllers\Admin\ViralPackageController::class, 'removeDeliverable'])->name('viral-packages.deliverables.remove');
         Route::delete('/viral-packages/{viralPackage}', [\App\Http\Controllers\Admin\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
 
         // Article types (CRUD)

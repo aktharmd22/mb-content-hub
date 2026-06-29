@@ -183,6 +183,23 @@ class ViralPackageController extends Controller
         return back()->with('success', "Correction requested for {$deliverable->title}.");
     }
 
+    public function removeDeliverable(ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        if ($deliverable->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+
+        $title = $deliverable->title;
+
+        try {
+            $service->removeDeliverable($deliverable);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$title} removed.");
+    }
+
     public function addLanding(ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         try {
