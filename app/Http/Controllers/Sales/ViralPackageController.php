@@ -59,13 +59,14 @@ class ViralPackageController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'client_id'         => ['required', 'integer', 'exists:clients,id'],
-            'tech_team_id'      => ['required', 'integer', 'exists:users,id'],
-            'assets'            => ['nullable', 'array'],
-            'assets.*.type'     => ['nullable', 'in:file,link'],
-            'assets.*.name'     => ['nullable', 'string', 'max:255'],
-            'assets.*.url'      => ['nullable', 'url', 'max:500'],
-            'assets.*.file'     => ['nullable', 'file', 'max:204800'],
+            'client_id'           => ['required', 'integer', 'exists:clients,id'],
+            'tech_team_id'        => ['required', 'integer', 'exists:users,id'],
+            'include_landing_page' => ['nullable', 'boolean'],
+            'assets'              => ['nullable', 'array'],
+            'assets.*.type'       => ['nullable', 'in:file,link'],
+            'assets.*.name'       => ['nullable', 'string', 'max:255'],
+            'assets.*.url'        => ['nullable', 'url', 'max:500'],
+            'assets.*.file'       => ['nullable', 'file', 'max:204800'],
         ]);
 
         $assets = $this->buildAssetsPayload($request);
@@ -74,7 +75,9 @@ class ViralPackageController extends Controller
             $package = $this->service->createPackage(
                 (int) $validated['client_id'],
                 (int) $validated['tech_team_id'],
-                $assets
+                $assets,
+                null,
+                $request->boolean('include_landing_page')
             );
         } catch (DriveException|WorkflowException $e) {
             return back()->withInput()->with('error', $e->getMessage());

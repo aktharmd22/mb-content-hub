@@ -154,6 +154,28 @@ class ViralPackageController extends Controller
         return back()->with('success', "Caption saved for {$deliverable->title}.");
     }
 
+    public function publishLanding(Request $request, ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
+    {
+        $this->ensureAssigned($viralPackage);
+        $this->ensureBelongs($deliverable, $viralPackage);
+
+        $validated = $request->validate([
+            'landing_page_url' => ['required', 'url', 'max:2000'],
+            'notes'            => ['nullable', 'string', 'max:1000'],
+        ], [
+            'landing_page_url.required' => 'Please enter the landing page URL.',
+            'landing_page_url.url'      => 'Enter a valid URL (including https://).',
+        ]);
+
+        try {
+            $this->service->submitLandingPage($deliverable, $validated['landing_page_url'], $validated['notes'] ?? null);
+        } catch (WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Landing page published for {$deliverable->title}.");
+    }
+
     public function removePost(ViralPackage $viralPackage, ViralPackageDeliverable $deliverable): RedirectResponse
     {
         $this->ensureAssigned($viralPackage);

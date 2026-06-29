@@ -183,6 +183,40 @@ class ViralPackageController extends Controller
         return back()->with('success', "Correction requested for {$deliverable->title}.");
     }
 
+    public function addLanding(ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            $service->addLandingPage($viralPackage);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Landing page added — the content team can now publish it.');
+    }
+
+    public function publishLanding(Request $request, ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        if ($deliverable->viral_package_id !== $viralPackage->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'landing_page_url' => ['required', 'url', 'max:2000'],
+            'notes'            => ['nullable', 'string', 'max:1000'],
+        ], [
+            'landing_page_url.required' => 'Please enter the landing page URL.',
+            'landing_page_url.url'      => 'Enter a valid URL (including https://).',
+        ]);
+
+        try {
+            $service->submitLandingPage($deliverable, $validated['landing_page_url'], $validated['notes'] ?? null);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Landing page published for {$deliverable->title}.");
+    }
+
     private function buildAssetsPayload(Request $request, string $key = 'assets'): array
     {
         $rows  = $request->input($key, []);

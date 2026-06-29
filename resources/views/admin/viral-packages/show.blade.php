@@ -107,7 +107,19 @@
 
         {{-- Deliverable summary --}}
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
-            <h3 class="text-sm font-medium text-gray-100 mb-4">Deliverables <span class="text-xs font-normal text-gray-500">— you can approve, request changes, or replace content</span></h3>
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="text-sm font-medium text-gray-100">Deliverables <span class="text-xs font-normal text-gray-500">— you can approve, request changes, or replace content</span></h3>
+                @if(! $package->isCompleted() && ! $package->deliverables->firstWhere('kind', 'landing_page'))
+                    <form method="POST" action="{{ route('admin.viral-packages.landing.add', $package) }}"
+                          onsubmit="return confirm('Add a landing page deliverable to this package? The content team will be able to publish its link.');">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors whitespace-nowrap">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-2.828a4 4 0 015.656 0 4 4 0 010 5.656l-1.5 1.5"/></svg>
+                            Add landing page
+                        </button>
+                    </form>
+                @endif
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 @php
@@ -179,6 +191,16 @@
                             </div>
                         @endif
 
+                        {{-- Landing page published link --}}
+                        @if($d->kind === 'landing_page' && filled($d->landing_page_url))
+                            <div class="flex items-center gap-2 mt-2 px-3 py-2 bg-ink-900/60 border border-ink-700 rounded-md" style="min-width:0;">
+                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-2.828a4 4 0 015.656 0 4 4 0 010 5.656l-1.5 1.5"/></svg>
+                                <a href="{{ $d->landing_page_url }}" target="_blank" rel="noopener" class="text-xs text-indigo-300 hover:text-indigo-200 flex-1 truncate" title="{{ $d->landing_page_url }}">{{ $d->landing_page_url }}</a>
+                                <a href="{{ $d->landing_page_url }}" target="_blank" rel="noopener" class="text-xs text-emerald-400 hover:text-emerald-300 whitespace-nowrap font-medium">Open</a>
+                                <button type="button" onclick="copyToClipboard(@js($d->landing_page_url))" class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap font-medium">Copy</button>
+                            </div>
+                        @endif
+
                         {{-- Admin review actions — approve or request changes, same as the sales team --}}
                         @if($d->stage === 'review' && ! $package->isCompleted())
                             <div x-data="{ correctionOpen: false }" class="mt-3">
@@ -223,6 +245,28 @@
                             </div>
                         @endif
 
+                        {{-- Admin override: edit the landing page link directly --}}
+                        @if($d->kind === 'landing_page')
+                            <div x-data="{ lpOpen: false }" class="mt-2">
+                                <button type="button" @click="lpOpen = !lpOpen"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-md transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <span x-text="lpOpen ? 'Cancel' : '{{ filled($d->landing_page_url) ? 'Edit landing link' : 'Add landing link' }}'"></span>
+                                </button>
+                                <form x-show="lpOpen" x-cloak method="POST"
+                                      action="{{ route('admin.viral-packages.deliverables.publish-landing', ['viralPackage' => $package, 'deliverable' => $d]) }}"
+                                      class="mt-2 space-y-2">
+                                    @csrf
+                                    <input type="url" name="landing_page_url" required placeholder="https://example.com/landing" value="{{ $d->landing_page_url }}"
+                                           class="w-full px-3 py-2 text-xs bg-ink-800 border border-ink-600 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"/>
+                                    <button type="submit"
+                                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-md transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        Save & send for review
+                                    </button>
+                                </form>
+                            </div>
+                        @else
                         {{-- Admin override: directly change/replace the uploaded content (any stage) --}}
                         <div x-data="{ open: false, fileName: '' }" class="mt-2">
                             <button type="button" @click="open = !open"
@@ -250,6 +294,7 @@
                                 <p class="text-[10px] text-gray-500">Replaces the file directly — the approval status stays unchanged.</p>
                             </form>
                         </div>
+                        @endif
 
                         {{-- Caption, hashtags & target audience (read-only, copyable) --}}
                         @if($d->stage === 'approved' && ($d->caption || $d->hashtags || $d->target_audience))

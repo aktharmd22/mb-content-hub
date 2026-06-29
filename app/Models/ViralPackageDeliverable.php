@@ -25,6 +25,7 @@ class ViralPackageDeliverable extends Model
         'caption',
         'hashtags',
         'target_audience',
+        'landing_page_url',
         'submitted_at',
         'approved_at',
     ];
@@ -60,10 +61,11 @@ class ViralPackageDeliverable extends Model
     public function kindLabel(): string
     {
         return match ($this->kind) {
-            'article'     => 'Article',
-            'social_post' => 'Social post',
-            'reel'        => 'Reel',
-            default       => ucfirst($this->kind),
+            'article'      => 'Article',
+            'social_post'  => 'Social post',
+            'reel'         => 'Reel',
+            'landing_page' => 'Landing page',
+            default        => ucfirst($this->kind),
         };
     }
 

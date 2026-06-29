@@ -121,6 +121,18 @@
                     </div>
                 </div>
 
+                {{-- Optional add-ons --}}
+                <div class="pt-6 mt-2 border-t border-gray-100 dark:border-gray-800">
+                    <label class="flex items-start gap-3 p-4 rounded-lg border border-ink-700 bg-ink-800/40 hover:bg-ink-800/70 cursor-pointer transition-colors">
+                        <input type="checkbox" name="include_landing_page" value="1" {{ old('include_landing_page') ? 'checked' : '' }}
+                               class="mt-0.5 w-4 h-4 rounded border-ink-600 bg-ink-900 text-indigo-600 focus:ring-2 focus:ring-indigo-500/50 cursor-pointer"/>
+                        <span class="min-w-0">
+                            <span class="block text-sm font-medium text-gray-100">Include a landing page</span>
+                            <span class="block text-xs text-gray-500 mt-0.5 leading-relaxed">Tick this if this client also gets a landing page. The content team will get a slot to publish the landing page link, and sales reviews it like any other deliverable.</span>
+                        </span>
+                    </label>
+                </div>
+
                 <div class="pt-6 mt-2 border-t border-gray-100 dark:border-gray-800">
                     <div class="flex items-start justify-between gap-3 mb-5">
                         <div>

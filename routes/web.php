@@ -80,6 +80,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/replace', [\App\Http\Controllers\Admin\ViralPackageController::class, 'replaceDeliverable'])->name('viral-packages.deliverables.replace');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/approve', [\App\Http\Controllers\Admin\ViralPackageController::class, 'approveDeliverable'])->name('viral-packages.deliverables.approve');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/correction', [\App\Http\Controllers\Admin\ViralPackageController::class, 'requestCorrection'])->name('viral-packages.deliverables.correction');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/publish-landing', [\App\Http\Controllers\Admin\ViralPackageController::class, 'publishLanding'])->name('viral-packages.deliverables.publish-landing');
+        Route::post('/viral-packages/{viralPackage}/add-landing', [\App\Http\Controllers\Admin\ViralPackageController::class, 'addLanding'])->name('viral-packages.landing.add');
         Route::delete('/viral-packages/{viralPackage}', [\App\Http\Controllers\Admin\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
 
         // Article types (CRUD)
@@ -178,6 +180,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/submit',  [\App\Http\Controllers\Writer\ViralPackageController::class, 'submit'])->name('viral-packages.deliverables.submit');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/clear-file', [\App\Http\Controllers\Writer\ViralPackageController::class, 'clearFile'])->name('viral-packages.deliverables.clear-file');
         Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/caption', [\App\Http\Controllers\Writer\ViralPackageController::class, 'updateCaption'])->name('viral-packages.deliverables.caption');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/publish-landing', [\App\Http\Controllers\Writer\ViralPackageController::class, 'publishLanding'])->name('viral-packages.deliverables.publish-landing');
     });
 
     // Tech team — lead-side actions (review, approve, team performance)

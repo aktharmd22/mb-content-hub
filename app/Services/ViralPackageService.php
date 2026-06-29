@@ -24,7 +24,7 @@ class ViralPackageService
      * Create a new viral package for a client, auto-seeding the 7 deliverable slots
      * (1 article + 5 social posts + 1 reel) and attaching any reference assets.
      */
-    public function createPackage(int $clientId, int $techTeamId, array $assets = [], ?User $actor = null): ViralPackage
+    public function createPackage(int $clientId, int $techTeamId, array $assets = [], ?User $actor = null, bool $includeLandingPage = false): ViralPackage
     {
         $actor ??= Auth::user();
 
@@ -43,7 +43,7 @@ class ViralPackageService
             throw new WorkflowException('Selected tech team member is not valid.');
         }
 
-        return DB::transaction(function () use ($client, $techMember, $actor, $assets) {
+        return DB::transaction(function () use ($client, $techMember, $actor, $assets, $includeLandingPage) {
             // Enforce one active viral package per client — across the whole business.
             // Lock matching rows FOR UPDATE so two simultaneous creates can't both pass.
             $existing = ViralPackage::where('client_id', $client->id)
@@ -67,8 +67,8 @@ class ViralPackageService
             // 2. Create the Drive folder structure (best effort — failures don't block creation)
             $this->ensureDriveFolders($package);
 
-            // 3. Auto-seed the 7 deliverable slots
-            $this->seedDeliverables($package);
+            // 3. Auto-seed the deliverable slots (+ optional landing page)
+            $this->seedDeliverables($package, $includeLandingPage);
 
             // 4. Attach any reference assets to the Assets/ subfolder
             if (! empty($assets)) {
@@ -80,6 +80,34 @@ class ViralPackageService
 
             return $package->fresh(['deliverables', 'assets', 'client', 'techTeam']);
         });
+    }
+
+    /**
+     * Add a landing-page deliverable to an existing package (one per package).
+     * Used when a client gets a landing page after the package was already created.
+     */
+    public function addLandingPage(ViralPackage $package, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['sales', 'admin'], 'add a landing page');
+
+        if ($actor->role === 'sales' && $package->sales_rep_id !== $actor->id) {
+            throw WorkflowException::notAuthorized($actor, 'modify this package');
+        }
+        if ($package->isCompleted()) {
+            throw new WorkflowException('This package is already completed.');
+        }
+        if ($package->deliverables()->where('kind', 'landing_page')->exists()) {
+            throw new WorkflowException('This package already has a landing page.');
+        }
+
+        return ViralPackageDeliverable::create([
+            'viral_package_id' => $package->id,
+            'kind'             => 'landing_page',
+            'slot_number'      => 1,
+            'title'            => 'Landing page',
+            'stage'            => 'pending',
+        ]);
     }
 
     /**
@@ -276,6 +304,39 @@ class ViralPackageService
                 'submitted_at'   => now(),
             ]);
             $this->recordHistory($deliverable, $from, 'review', $actor, $notes ?: 'Submitted for review');
+
+            event(new ViralPackageEvent($deliverable->package, 'deliverable_submitted', $actor, ['deliverable_id' => $deliverable->id]));
+
+            return $deliverable->fresh();
+        });
+    }
+
+    /**
+     * Content team publishes (or updates) the live URL for a landing-page deliverable.
+     * Moves it to "Ready for review" so sales can approve it.
+     */
+    public function submitLandingPage(ViralPackageDeliverable $deliverable, string $url, ?string $notes = null, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['tech_team', 'admin'], 'publish a landing page');
+
+        if ($deliverable->kind !== 'landing_page') {
+            throw new WorkflowException('This deliverable is not a landing page.');
+        }
+        if (! in_array($deliverable->stage, ['pending', 'in_progress', 'review'], true)) {
+            throw new WorkflowException("This landing page can't be published from the '{$deliverable->stage}' stage.");
+        }
+
+        return DB::transaction(function () use ($deliverable, $url, $notes, $actor) {
+            $from = $deliverable->stage;
+            $deliverable->update([
+                'stage'            => 'review',
+                'assigned_to'      => $actor->id,
+                'landing_page_url' => $url,
+                'notes'            => $notes,
+                'submitted_at'     => now(),
+            ]);
+            $this->recordHistory($deliverable, $from, 'review', $actor, $notes ?: 'Landing page published for review');
 
             event(new ViralPackageEvent($deliverable->package, 'deliverable_submitted', $actor, ['deliverable_id' => $deliverable->id]));
 
@@ -619,7 +680,7 @@ class ViralPackageService
     private const DEFAULT_POST_COUNT = 8;
     private const DEFAULT_REEL_COUNT = 2;
 
-    private function seedDeliverables(ViralPackage $package): void
+    private function seedDeliverables(ViralPackage $package, bool $includeLandingPage = false): void
     {
         $rows = [
             ['kind' => 'article', 'slot' => 1, 'title' => 'Article'],
@@ -629,6 +690,9 @@ class ViralPackageService
         }
         for ($i = 1; $i <= self::DEFAULT_REEL_COUNT; $i++) {
             $rows[] = ['kind' => 'reel', 'slot' => $i, 'title' => 'Reel ' . $i];
+        }
+        if ($includeLandingPage) {
+            $rows[] = ['kind' => 'landing_page', 'slot' => 1, 'title' => 'Landing page'];
         }
 
         foreach ($rows as $row) {

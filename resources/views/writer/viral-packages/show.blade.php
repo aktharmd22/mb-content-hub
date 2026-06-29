@@ -7,6 +7,7 @@
         $article = $deliverables->firstWhere('kind', 'article');
         $posts   = $deliverables->where('kind', 'social_post')->values();
         $reels   = $deliverables->where('kind', 'reel')->values();
+        $landing = $deliverables->firstWhere('kind', 'landing_page');
 
         $approved = $package->approvedCount();
         $total    = $package->totalDeliverables();
@@ -152,6 +153,15 @@
                     @foreach($reels as $d)
                         @include('writer.viral-packages._deliverable-card', ['package' => $package, 'd' => $d])
                     @endforeach
+                </div>
+            </section>
+        @endif
+
+        @if($landing)
+            <section class="mb-8">
+                <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Landing page</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @include('writer.viral-packages._deliverable-card', ['package' => $package, 'd' => $landing])
                 </div>
             </section>
         @endif
