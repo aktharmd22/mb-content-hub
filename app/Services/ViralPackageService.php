@@ -382,6 +382,41 @@ class ViralPackageService
     }
 
     /**
+     * Admin re-opens a deliverable that was approved by mistake. Moves it back to
+     * "Ready for review" so sales can review it again (re-approve or request a
+     * correction). If the whole package had been completed, it's re-activated too.
+     */
+    public function revertApproval(ViralPackageDeliverable $deliverable, ?User $actor = null): ViralPackageDeliverable
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['admin'], 're-open an approved deliverable');
+
+        if ($deliverable->stage !== 'approved') {
+            throw new WorkflowException('Only approved deliverables can be re-opened.');
+        }
+
+        return DB::transaction(function () use ($deliverable, $actor) {
+            $from = $deliverable->stage;
+            $deliverable->update([
+                'stage'       => 'review',
+                'approved_at' => null,
+            ]);
+            $this->recordHistory($deliverable, $from, 'review', $actor, 'Approval reverted by admin — back for review');
+
+            // If the package had already been marked delivered/completed, re-open it.
+            $package = $deliverable->package;
+            if ($package->status === 'completed') {
+                $package->update([
+                    'status'       => 'active',
+                    'completed_at' => null,
+                ]);
+            }
+
+            return $deliverable->fresh();
+        });
+    }
+
+    /**
      * Sales requests changes on a deliverable. Optionally attaches correction assets,
      * which are saved in the package's "Correction needed" subfolder.
      */

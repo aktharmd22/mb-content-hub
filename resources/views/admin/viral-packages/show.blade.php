@@ -137,6 +137,20 @@
                             <p class="text-xs text-emerald-400 mt-1">Approved {{ $d->approved_at->diffForHumans() }}</p>
                         @endif
 
+                        {{-- Admin override: undo a mistaken approval and send it back to sales review --}}
+                        @if($d->stage === 'approved')
+                            <form method="POST" action="{{ route('admin.viral-packages.deliverables.revert', ['viralPackage' => $package, 'deliverable' => $d]) }}"
+                                  onsubmit="return confirm('Re-open {{ $d->title }}? It will go back to “Ready for review” so sales can review it again.');"
+                                  class="mt-2">
+                                @csrf
+                                <button type="submit"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-md transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v6h6M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+                                    Re-open (approved by mistake)
+                                </button>
+                            </form>
+                        @endif
+
                         {{-- Uploaded file preview + download --}}
                         @if($d->drive_file_id)
                             @php $isImage = str_starts_with((string) $d->mime_type, 'image/'); @endphp

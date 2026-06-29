@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/viral-packages/{viralPackage}',    [\App\Http\Controllers\Admin\ViralPackageController::class, 'show'])->name('viral-packages.show');
         Route::patch('/viral-packages/{viralPackage}/reassign', [\App\Http\Controllers\Admin\ViralPackageController::class, 'reassign'])->name('viral-packages.reassign');
         Route::get('/viral-packages/{viralPackage}/deliverables/{deliverable}/download', [\App\Http\Controllers\Admin\ViralPackageController::class, 'downloadDeliverable'])->name('viral-packages.deliverables.download');
+        Route::post('/viral-packages/{viralPackage}/deliverables/{deliverable}/revert', [\App\Http\Controllers\Admin\ViralPackageController::class, 'revertDeliverable'])->name('viral-packages.deliverables.revert');
         Route::delete('/viral-packages/{viralPackage}', [\App\Http\Controllers\Admin\ViralPackageController::class, 'destroy'])->name('viral-packages.destroy');
 
         // Article types (CRUD)
