@@ -24,6 +24,7 @@ class ViralPackageDeliverable extends Model
         'notes',
         'caption',
         'hashtags',
+        'target_audience',
         'submitted_at',
         'approved_at',
     ];

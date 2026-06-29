@@ -286,7 +286,7 @@ class ViralPackageService
     /**
      * Content team writes/edits the caption + hashtags for an approved post or reel.
      */
-    public function updateCaption(ViralPackageDeliverable $deliverable, ?string $caption, ?string $hashtags, ?User $actor = null): ViralPackageDeliverable
+    public function updateCaption(ViralPackageDeliverable $deliverable, ?string $caption, ?string $hashtags, ?string $targetAudience = null, ?User $actor = null): ViralPackageDeliverable
     {
         $actor ??= Auth::user();
         $this->requireRole($actor, ['tech_team', 'admin'], 'add a caption');
@@ -299,8 +299,9 @@ class ViralPackageService
         }
 
         $deliverable->update([
-            'caption'  => $caption,
-            'hashtags' => $hashtags,
+            'caption'         => $caption,
+            'hashtags'        => $hashtags,
+            'target_audience' => $targetAudience,
         ]);
 
         return $deliverable->fresh();

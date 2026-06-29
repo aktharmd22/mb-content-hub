@@ -287,10 +287,24 @@
                           class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none">{{ $d->hashtags }}</textarea>
             </div>
 
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="text-[11px] text-gray-500">Target audience</label>
+                    <button type="button" onclick="copyToClipboard(document.getElementById('aud-{{ $d->id }}').value)"
+                            class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy
+                    </button>
+                </div>
+                <textarea id="aud-{{ $d->id }}" name="target_audience" rows="2" maxlength="2000"
+                          placeholder="e.g. Women 25-40 in Malaysia interested in natural skincare"
+                          class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none">{{ $d->target_audience }}</textarea>
+            </div>
+
             <div class="flex justify-end">
                 <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    {{ ($d->caption || $d->hashtags) ? 'Update' : 'Save' }} caption
+                    {{ ($d->caption || $d->hashtags || $d->target_audience) ? 'Update' : 'Save' }} caption
                 </button>
             </div>
         </form>
