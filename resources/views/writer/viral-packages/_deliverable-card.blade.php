@@ -85,7 +85,10 @@
 
     {{-- Existing uploaded file --}}
     @if($d->drive_file_id)
-        @php $isImage = str_starts_with((string) $d->mime_type, 'image/'); @endphp
+        @php
+            $isImage = str_starts_with((string) $d->mime_type, 'image/');
+            $isPdf   = str_contains((string) $d->mime_type, 'pdf') || str_ends_with(strtolower((string) $d->drive_filename), '.pdf');
+        @endphp
         @if($isImage)
             {{-- Image preview --}}
             <a href="{{ route('writer.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
@@ -101,6 +104,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
             <p class="text-xs text-gray-300 flex-1 truncate" title="{{ $d->drive_filename }}">{{ $d->drive_filename }}</p>
+            @if($isPdf)
+                <a href="{{ route('writer.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
+                   target="_blank" rel="noopener"
+                   class="text-xs text-emerald-400 hover:text-emerald-300 whitespace-nowrap font-medium">View PDF</a>
+            @endif
             <a href="{{ route('writer.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}"
                class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap font-medium">Download</a>
             @if($d->stage !== 'approved' && ! $package->isCompleted())

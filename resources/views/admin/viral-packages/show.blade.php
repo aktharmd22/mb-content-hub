@@ -153,7 +153,10 @@
 
                         {{-- Uploaded file preview + download --}}
                         @if($d->drive_file_id)
-                            @php $isImage = str_starts_with((string) $d->mime_type, 'image/'); @endphp
+                            @php
+                                $isImage = str_starts_with((string) $d->mime_type, 'image/');
+                                $isPdf   = str_contains((string) $d->mime_type, 'pdf') || str_ends_with(strtolower((string) $d->drive_filename), '.pdf');
+                            @endphp
                             @if($isImage)
                                 <a href="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
                                    target="_blank" rel="noopener" class="block mt-3 rounded-md overflow-hidden border border-ink-700 bg-ink-900/60">
@@ -166,6 +169,11 @@
                             <div class="flex items-center gap-2 mt-2 px-3 py-2 bg-ink-900/60 border border-ink-700 rounded-md">
                                 <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 <span class="text-xs text-gray-300 flex-1 truncate" title="{{ $d->drive_filename }}">{{ $d->drive_filename }}</span>
+                                @if($isPdf)
+                                    <a href="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}?inline=1"
+                                       target="_blank" rel="noopener"
+                                       class="text-xs text-emerald-400 hover:text-emerald-300 whitespace-nowrap font-medium">View PDF</a>
+                                @endif
                                 <a href="{{ route('admin.viral-packages.deliverables.download', ['viralPackage' => $package, 'deliverable' => $d]) }}"
                                    class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap font-medium">Download</a>
                             </div>
