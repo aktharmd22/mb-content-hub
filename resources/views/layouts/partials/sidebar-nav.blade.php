@@ -62,6 +62,11 @@
         <span class="flex-shrink-0">{!! $icons['users'] !!}</span>
         <span x-show="sidebarOpen" class="truncate">Users</span>
     </a>
+    <a href="{{ route('admin.clients.index') }}" title="Clients"
+       class="sidebar-link {{ request()->routeIs('admin.clients*') ? 'active' : '' }}">
+        <span class="flex-shrink-0">{!! $icons['clients'] !!}</span>
+        <span x-show="sidebarOpen" class="truncate">Clients</span>
+    </a>
     <a href="{{ route('admin.viral-packages.index') }}" title="Viral package"
        class="sidebar-link {{ request()->routeIs('admin.viral-packages*') ? 'active' : '' }}">
         <span class="flex-shrink-0">

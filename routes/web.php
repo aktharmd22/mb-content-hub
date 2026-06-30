@@ -51,6 +51,9 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('users', UserController::class)->except(['show']);
 
+        // Clients — business-wide overview
+        Route::get('/clients', [\App\Http\Controllers\Admin\ClientController::class, 'index'])->name('clients.index');
+
         // All articles + bulk actions
         Route::get('/articles',                         [\App\Http\Controllers\Admin\ArticleController::class, 'index'])->name('articles.index');
         Route::get('/articles/export',                  [\App\Http\Controllers\Admin\ArticleController::class, 'export'])->name('articles.export');

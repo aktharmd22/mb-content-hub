@@ -26,6 +26,11 @@ class Client extends Model
         return $this->hasMany(Article::class);
     }
 
+    public function viralPackages(): HasMany
+    {
+        return $this->hasMany(ViralPackage::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
