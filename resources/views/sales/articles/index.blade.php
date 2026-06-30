@@ -39,7 +39,7 @@
             <select name="client_id" class="px-3 py-1.5 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">All clients</option>
                 @foreach($clients as $c)
-                    <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->name }}</option>
+                    <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->displayName() }}</option>
                 @endforeach
             </select>
 
@@ -82,7 +82,7 @@
                                 <td class="px-4 py-3">
                                     <p class="text-sm text-gray-900 dark:text-gray-100">{{ $a->title }}</p>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->client?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->client?->displayName() ?? '—' }}</td>
                                 <td class="px-4 py-3"><x-stage-badge :stage="$a->current_stage" /></td>
                                 <td class="px-4 py-3 text-sm">
                                     @if($a->deadline)

@@ -63,7 +63,7 @@
             <select name="client_id" class="px-3 py-1.5 text-sm bg-ink-800 border border-ink-700 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">All clients</option>
                 @foreach($clients as $c)
-                    <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->name }}</option>
+                    <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->displayName() }}</option>
                 @endforeach
             </select>
             <div class="col-span-2 md:col-span-4 flex items-center gap-2">
@@ -101,7 +101,7 @@
                         @foreach($packages as $p)
                             <tr class="hover:bg-ink-800/40 transition-colors cursor-pointer"
                                 onclick="window.location='{{ route('admin.viral-packages.show', $p) }}'">
-                                <td class="px-4 py-3 text-sm text-gray-100 font-medium">{{ $p->client?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-100 font-medium">{{ $p->client?->displayName() ?? '—' }}</td>
                                 <td class="px-4 py-3 text-xs text-gray-300">
                                     <div class="flex items-center gap-1.5">
                                         <span class="w-5 h-5 rounded-full bg-indigo-500/15 text-indigo-300 flex items-center justify-center text-[9px] font-semibold flex-shrink-0">
@@ -136,7 +136,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-right" onclick="event.stopPropagation();">
                                     <form method="POST" action="{{ route('admin.viral-packages.destroy', $p) }}"
-                                          onsubmit="return confirm('Delete the viral package for {{ $p->client?->name }}? The Drive folder will also be removed. This cannot be undone.');"
+                                          onsubmit="return confirm('Delete the viral package for {{ $p->client?->displayName() }}? The Drive folder will also be removed. This cannot be undone.');"
                                           class="inline">
                                         @csrf @method('DELETE')
                                         <button type="submit" title="Delete package"

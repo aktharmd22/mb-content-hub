@@ -90,7 +90,7 @@
                                     </div>
                                     <p class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ $a->title }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                        {{ $a->client?->name ?? '—' }} · {{ $a->techWriter?->name ?? 'unassigned' }}
+                                        {{ $a->client?->displayName() ?? '—' }} · {{ $a->techWriter?->name ?? 'unassigned' }}
                                     </p>
                                 </div>
                                 @php $waitDays = (int) ($a->stage_entered_at?->diffInDays(now()) ?? 0); @endphp

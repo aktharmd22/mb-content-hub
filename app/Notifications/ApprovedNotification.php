@@ -61,7 +61,7 @@ class ApprovedNotification extends Notification
             ->greeting("Hi {$notifiable->name},")
             ->line("The tech team has uploaded a rewrite. Please check it.")
             ->line("**{$this->article->article_code}** — {$this->article->title}")
-            ->when($this->article->client, fn ($m) => $m->line("Client: {$this->article->client->name}"))
+            ->when($this->article->client, fn ($m) => $m->line("Client: {$this->article->client->displayName()}"))
             ->action('Review article', route('sales.articles.show', $this->article))
             ->line("If something needs fixing, send it back for correction. Otherwise mark it as verified.");
     }

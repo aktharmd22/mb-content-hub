@@ -63,7 +63,7 @@
             <select name="client_id" class="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">All clients</option>
                 @foreach($clients as $c)
-                    <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->name }}</option>
+                    <option value="{{ $c->id }}" @selected(request('client_id') == $c->id)>{{ $c->displayName() }}</option>
                 @endforeach
             </select>
 
@@ -175,7 +175,7 @@
                                     </td>
                                     <td class="px-3 py-3 text-xs font-mono text-gray-500 dark:text-gray-400">{{ $a->article_code }}</td>
                                     <td class="px-3 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $a->title }}</td>
-                                    <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->client?->name ?? '—' }}</td>
+                                    <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->client?->displayName() ?? '—' }}</td>
                                     <td class="px-3 py-3 text-xs text-gray-700 dark:text-gray-300">{{ $a->salesRep?->name ?? '—' }}</td>
                                     <td class="px-3 py-3 text-xs text-gray-700 dark:text-gray-300">{{ $a->techWriter?->name ?? '—' }}</td>
                                     <td class="px-3 py-3"><x-stage-badge :stage="$a->current_stage" /></td>

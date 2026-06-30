@@ -21,7 +21,7 @@ class ViralPackageNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $clientName = $this->package->client?->name ?? 'a client';
+        $clientName = $this->package->client?->displayName() ?? 'a client';
         $url = $this->urlFor($notifiable);
 
         return match ($this->kind) {
@@ -62,7 +62,7 @@ class ViralPackageNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        $clientName = $this->package->client?->name ?? 'client';
+        $clientName = $this->package->client?->displayName() ?? 'client';
         $deliverableTitle = $this->deliverable?->title;
 
         $message = match ($this->kind) {

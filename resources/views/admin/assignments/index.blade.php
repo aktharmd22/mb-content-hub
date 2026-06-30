@@ -41,7 +41,7 @@
                                         <p class="text-xs text-rose-600 dark:text-rose-400 mt-0.5">High priority</p>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->client?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->client?->displayName() ?? '—' }}</td>
                                 <td class="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{{ $a->salesRep?->name ?? '—' }}</td>
                                 <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{{ $a->submitted_at?->diffForHumans() ?? '—' }}</td>
                                 <td class="px-4 py-3 text-sm">

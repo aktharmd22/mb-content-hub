@@ -39,7 +39,7 @@ class SearchController extends Controller
                 'id'          => $a->id,
                 'code'        => $a->article_code,
                 'title'       => $a->title,
-                'meta'        => $a->client?->name ?? '—',
+                'meta'        => $a->client?->displayName() ?? '—',
                 'url'         => $this->articleUrl($a, $user),
                 'stage'       => $a->current_stage->value,
                 'stage_label' => $a->current_stage->label(),

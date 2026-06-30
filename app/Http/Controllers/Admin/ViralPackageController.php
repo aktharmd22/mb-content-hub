@@ -52,7 +52,7 @@ class ViralPackageController extends Controller
             }
         }
 
-        $clientName = $viralPackage->client?->name ?? 'package';
+        $clientName = $viralPackage->client?->displayName() ?? 'package';
         // Hard delete so the FK cascade clears deliverables/assets/history; the Drive folder
         // is already permanently removed above, so a recoverable soft-delete would be useless.
         $viralPackage->forceDelete();

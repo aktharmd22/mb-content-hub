@@ -1,6 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">Viral package — {{ $package->client?->name }}</x-slot>
-    <x-slot name="title">{{ $package->client?->name }} package</x-slot>
+    <x-slot name="header">Viral package — {{ $package->client?->displayName() }}</x-slot>
+    <x-slot name="title">{{ $package->client?->displayName() }} package</x-slot>
 
     @php
         $deliverables = $package->deliverables;
@@ -27,9 +27,9 @@
         <div class="bg-ink-850 border border-ink-700 rounded-xl p-6 mb-6">
             <div class="flex items-start justify-between gap-6 flex-wrap">
                 <div class="min-w-0 flex-1">
-                    <h1 class="text-2xl font-semibold text-gray-100">{{ $package->client?->name }}</h1>
-                    @if($package->client?->company)
-                        <p class="text-sm text-gray-500 mt-1">{{ $package->client->company }}</p>
+                    <h1 class="text-2xl font-semibold text-gray-100">{{ $package->client?->displayName() }}</h1>
+                    @if($package->client?->secondaryName())
+                        <p class="text-sm text-gray-500 mt-1">{{ $package->client->secondaryName() }}</p>
                     @endif
                     <p class="text-sm text-gray-500 mt-3">
                         Submitted by <span class="text-gray-300">{{ $package->salesRep?->name ?? 'sales' }}</span>

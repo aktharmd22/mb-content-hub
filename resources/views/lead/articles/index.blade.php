@@ -69,7 +69,7 @@
                                 <td class="px-4 py-3 text-xs font-mono text-gray-500 dark:text-gray-400">{{ $a->article_code }}</td>
                                 <td class="px-4 py-3">
                                     <p class="text-sm text-gray-900 dark:text-gray-100">{{ $a->title }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $a->client?->name ?? '—' }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $a->client?->displayName() ?? '—' }}</p>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $a->techWriter?->name ?? '—' }}</td>
                                 <td class="px-4 py-3"><x-stage-badge :stage="$a->current_stage" /></td>

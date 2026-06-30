@@ -5,7 +5,7 @@
     @php
         $clientOptions = $clients->map(fn ($c) => [
             'id'    => $c->id,
-            'label' => $c->name . ($c->company ? " — {$c->company}" : ''),
+            'label' => $c->displayName() . ($c->secondaryName() ? " — {$c->secondaryName()}" : ''),
         ])->values();
         $techOptions = $techTeam->map(fn ($t) => ['id' => $t->id, 'label' => $t->name])->values();
     @endphp

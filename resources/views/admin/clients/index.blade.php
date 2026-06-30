@@ -62,9 +62,9 @@
                         @foreach($clients as $c)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                                 <td class="px-4 py-3">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $c->name }}</p>
-                                    @if($c->company)
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $c->company }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $c->displayName() }}</p>
+                                    @if($c->secondaryName())
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $c->secondaryName() }}</p>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">

@@ -51,7 +51,7 @@
                                             @endif
                                         </div>
                                         <p class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ $a->title }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $a->client?->name ?? '—' }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $a->client?->displayName() ?? '—' }}</p>
                                     </div>
                                     @if($a->deadline)
                                         @php $days = $a->days_until_deadline; @endphp
@@ -137,7 +137,7 @@
                                     </div>
                                     <p class="text-sm text-gray-100 truncate">{{ $a->title }}</p>
                                     <p class="text-xs text-gray-500 truncate">
-                                        from {{ $a->salesRep?->name ?? 'unknown' }}{{ $a->client ? ' · ' . $a->client->name : '' }}
+                                        from {{ $a->salesRep?->name ?? 'unknown' }}{{ $a->client ? ' · ' . $a->client->displayName() : '' }}
                                     </p>
                                 </div>
                                 <span class="text-xs text-gray-500 whitespace-nowrap">{{ $a->submitted_at?->diffForHumans() ?? '' }}</span>

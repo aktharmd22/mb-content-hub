@@ -51,7 +51,7 @@
                                 <a href="{{ route('sales.articles.show', $a) }}" class="flex items-center justify-between gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                                     <div class="min-w-0">
                                         <p class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ $a->title }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $a->article_code }} · {{ $a->client?->name ?? '—' }} · {{ $a->submitted_at?->diffForHumans() }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $a->article_code }} · {{ $a->client?->displayName() ?? '—' }} · {{ $a->submitted_at?->diffForHumans() }}</p>
                                     </div>
                                     <x-stage-badge :stage="$a->current_stage" />
                                 </a>
@@ -81,7 +81,7 @@
                                 <a href="{{ route('sales.articles.show', $a) }}" class="flex items-center justify-between gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                                     <div class="min-w-0">
                                         <p class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ $a->title }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $a->client?->name ?? '—' }} · waiting {{ $a->stage_entered_at?->diffForHumans(null, true) ?? 'a while' }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $a->client?->displayName() ?? '—' }} · waiting {{ $a->stage_entered_at?->diffForHumans(null, true) ?? 'a while' }}</p>
                                     </div>
                                     @php $days = $a->days_in_stage; @endphp
                                     @if($days >= 3)

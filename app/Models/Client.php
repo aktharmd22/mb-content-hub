@@ -21,6 +21,18 @@ class Client extends Model
         'created_by',
     ];
 
+    /** Prioritised display label — company name first, falling back to the contact name. */
+    public function displayName(): string
+    {
+        return $this->company ?: $this->name;
+    }
+
+    /** The contact person's name, shown as a secondary line only when a company exists. */
+    public function secondaryName(): ?string
+    {
+        return $this->company ? $this->name : null;
+    }
+
     public function articles(): HasMany
     {
         return $this->hasMany(Article::class);

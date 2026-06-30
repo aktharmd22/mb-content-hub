@@ -326,7 +326,7 @@ class ViralPackageController extends Controller
             @unlink($tf);
         }
 
-        $clientName   = $package->client?->name ?? 'package';
+        $clientName   = $package->client?->displayName() ?? 'package';
         $downloadName = preg_replace('/[^A-Za-z0-9 _-]/', '_', $clientName) . ' assets.zip';
 
         return response()->download($zipPath, $downloadName)->deleteFileAfterSend();

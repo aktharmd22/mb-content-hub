@@ -22,7 +22,7 @@ class ArticleSubmittedNotification extends Notification
             ->line("A new article has been submitted and needs assignment.")
             ->line("**{$this->article->article_code}** — {$this->article->title}")
             ->line("Submitted by: {$this->article->salesRep?->name}")
-            ->line("Client: {$this->article->client?->name}")
+            ->line("Client: {$this->article->client?->displayName()}")
             ->action(
                 $notifiable->isAdmin() ? 'Assign writer' : 'View inbox',
                 $this->urlFor($notifiable),

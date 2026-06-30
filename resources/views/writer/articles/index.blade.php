@@ -92,7 +92,7 @@
                                             @endif
                                             @if($a->client)
                                                 <span>·</span>
-                                                <span class="truncate">{{ $a->client->name }}</span>
+                                                <span class="truncate">{{ $a->client->displayName() }}</span>
                                             @endif
                                             @if($a->salesRep)
                                                 <span>·</span>

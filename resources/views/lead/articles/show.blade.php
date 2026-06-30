@@ -34,7 +34,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Client</p>
-                    <p class="text-sm text-gray-900 dark:text-gray-100 mt-0.5">{{ $article->client?->name ?? '—' }}</p>
+                    <p class="text-sm text-gray-900 dark:text-gray-100 mt-0.5">{{ $article->client?->displayName() ?? '—' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Sales rep</p>

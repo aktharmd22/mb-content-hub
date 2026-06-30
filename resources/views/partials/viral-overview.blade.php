@@ -58,7 +58,7 @@
                 <a href="{{ route($showRoute, $p) }}"
                    class="flex items-center justify-between gap-3 px-3 py-2.5 bg-ink-800/50 border border-ink-700 rounded-lg hover:border-indigo-500/40 transition-colors">
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-100 truncate">{{ $p->client?->name ?? '—' }}</p>
+                        <p class="text-sm font-medium text-gray-100 truncate">{{ $p->client?->displayName() ?? '—' }}</p>
                         <p class="text-[11px] text-gray-500">
                             {{ $p->approvedCount() }}/{{ $p->totalDeliverables() }} approved
                             @if($viralRole !== 'writer' && $p->techTeam) · {{ $p->techTeam->name }} @endif

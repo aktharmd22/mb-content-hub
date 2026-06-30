@@ -43,7 +43,7 @@
                             class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors">
                         <option value="">— No client —</option>
                         @foreach($clients as $c)
-                            <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->name }}{{ $c->company ? " — {$c->company}" : '' }}</option>
+                            <option value="{{ $c->id }}" @selected(old('client_id') == $c->id)>{{ $c->displayName() }}{{ $c->secondaryName() ? " — {$c->secondaryName()}" : '' }}</option>
                         @endforeach
                     </select>
                     @error('client_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
@@ -404,7 +404,7 @@
                             return;
                         }
                         const c = await res.json();
-                        const opt = new Option(c.company ? `${c.name} — ${c.company}` : c.name, c.id, true, true);
+                        const opt = new Option(c.company ? `${c.company} — ${c.name}` : c.name, c.id, true, true);
                         this.$refs.clientSelect.add(opt);
                         this.$refs.clientSelect.value = c.id;
                         this.showClientModal = false;

@@ -22,7 +22,7 @@ class ReviewRequiredNotification extends Notification
             ->line("A rewrite is ready for your review.")
             ->line("**{$this->article->article_code}** — {$this->article->title}")
             ->line("Writer: {$this->article->techWriter?->name}")
-            ->line("Client: {$this->article->client?->name}")
+            ->line("Client: {$this->article->client?->displayName()}")
             ->action('Review article', route('lead.articles.show', $this->article));
     }
 

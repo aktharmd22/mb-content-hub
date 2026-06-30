@@ -1,6 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">Viral package — {{ $package->client?->name }}</x-slot>
-    <x-slot name="title">{{ $package->client?->name }} package</x-slot>
+    <x-slot name="header">Viral package — {{ $package->client?->displayName() }}</x-slot>
+    <x-slot name="title">{{ $package->client?->displayName() }} package</x-slot>
 
     <div class="p-6 max-w-6xl">
 
@@ -22,9 +22,9 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Active</span>
                         @endif
                     </div>
-                    <h1 class="text-xl font-medium text-gray-100">{{ $package->client?->name }}</h1>
-                    @if($package->client?->company)
-                        <p class="text-sm text-gray-500">{{ $package->client->company }}</p>
+                    <h1 class="text-xl font-medium text-gray-100">{{ $package->client?->displayName() }}</h1>
+                    @if($package->client?->secondaryName())
+                        <p class="text-sm text-gray-500">{{ $package->client->secondaryName() }}</p>
                     @endif
                 </div>
                 @include('partials.viral-package-progress', ['package' => $package])

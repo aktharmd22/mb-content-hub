@@ -36,7 +36,7 @@
                         <li>
                             <a href="{{ route('writer.viral-packages.show', $p) }}" class="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-medium text-gray-100">{{ $p->client?->name ?? '(client missing)' }}</p>
+                                    <p class="text-sm font-medium text-gray-100">{{ $p->client?->displayName() ?? '(client missing)' }}</p>
                                     <p class="text-xs text-gray-500 mt-0.5">
                                         Submitted by {{ $p->salesRep?->name ?? 'sales' }} · {{ $p->created_at->diffForHumans() }}
                                     </p>

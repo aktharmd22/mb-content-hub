@@ -30,7 +30,7 @@
                     <td>{{ $a->article_code }}</td>
                     <td>{{ $a->title }}</td>
                     <td>{{ $a->articleType?->name }}</td>
-                    <td>{{ $a->client?->name }}</td>
+                    <td>{{ $a->client?->displayName() }}</td>
                     <td>{{ $a->salesRep?->name }}</td>
                     <td>{{ $a->techWriter?->name }}</td>
                     <td>{{ $a->current_stage->label() }}</td>

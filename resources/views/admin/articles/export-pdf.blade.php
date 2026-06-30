@@ -92,7 +92,7 @@
                     <tr>
                         <td>{{ $a->article_code }}</td>
                         <td>{{ $a->title }}</td>
-                        <td>{{ $a->client?->name ?? '—' }}</td>
+                        <td>{{ $a->client?->displayName() ?? '—' }}</td>
                         <td>{{ $a->salesRep?->name ?? '—' }}</td>
                         <td>{{ $a->techWriter?->name ?? '—' }}</td>
                         <td><span class="stage-pill {{ $stageClass }}">{{ $a->current_stage->label() }}</span></td>

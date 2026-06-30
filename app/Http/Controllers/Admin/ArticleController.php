@@ -148,7 +148,7 @@ class ArticleController extends Controller
             $a->article_code,
             $a->title,
             $a->articleType?->name,
-            $a->client?->name,
+            $a->client?->displayName(),
             $a->salesRep?->name,
             $a->techWriter?->name,
             $a->current_stage->label(),

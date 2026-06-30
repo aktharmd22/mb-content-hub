@@ -53,7 +53,7 @@
                         <li class="group flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-950/50 transition-colors">
                             <a href="{{ route('sales.viral-packages.show', $p) }}" class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
-                                    <p class="text-sm font-medium text-gray-100">{{ $p->client?->name ?? '(client missing)' }}</p>
+                                    <p class="text-sm font-medium text-gray-100">{{ $p->client?->displayName() ?? '(client missing)' }}</p>
                                     @if($p->isCompleted())
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Completed</span>
                                     @else
@@ -66,7 +66,7 @@
                                 @include('partials.viral-package-progress', ['package' => $p])
                             </div>
                             <form method="POST" action="{{ route('sales.viral-packages.destroy', $p) }}"
-                                  onsubmit="return confirm('Delete the viral package for {{ $p->client?->name }}? The Drive folder will also be removed. This cannot be undone.');"
+                                  onsubmit="return confirm('Delete the viral package for {{ $p->client?->displayName() }}? The Drive folder will also be removed. This cannot be undone.');"
                                   class="flex-shrink-0">
                                 @csrf @method('DELETE')
                                 <button type="submit" title="Delete package"

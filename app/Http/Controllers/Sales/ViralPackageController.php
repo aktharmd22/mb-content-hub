@@ -113,7 +113,7 @@ class ViralPackageController extends Controller
 
         return redirect()
             ->route('sales.viral-packages.show', $package)
-            ->with('success', "Viral package created for {$package->client->name} (assigned to {$package->techTeam?->name}).");
+            ->with('success', "Viral package created for {$package->client->displayName()} (assigned to {$package->techTeam?->name}).");
     }
 
     public function reassign(Request $request, ViralPackage $viralPackage): RedirectResponse
@@ -360,7 +360,7 @@ class ViralPackageController extends Controller
             @unlink($tf);
         }
 
-        $clientName   = $package->client?->name ?? 'package';
+        $clientName   = $package->client?->displayName() ?? 'package';
         $downloadName = preg_replace('/[^A-Za-z0-9 _-]/', '_', $clientName) . ' assets.zip';
 
         return response()->download($zipPath, $downloadName)->deleteFileAfterSend();
@@ -403,7 +403,7 @@ class ViralPackageController extends Controller
             }
         }
 
-        $clientName = $viralPackage->client?->name ?? 'package';
+        $clientName = $viralPackage->client?->displayName() ?? 'package';
         // Hard delete: the Drive folder is permanently removed above, so a soft-deleted shell
         // would be unrecoverable anyway. forceDelete triggers the FK cascade to clear
         // deliverables, assets, and history instead of leaving orphaned rows.

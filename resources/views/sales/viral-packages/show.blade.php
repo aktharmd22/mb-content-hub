@@ -1,6 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">Viral package — {{ $package->client?->name }}</x-slot>
-    <x-slot name="title">{{ $package->client?->name }} package</x-slot>
+    <x-slot name="header">Viral package — {{ $package->client?->displayName() }}</x-slot>
+    <x-slot name="title">{{ $package->client?->displayName() }} package</x-slot>
 
     <div class="p-6 max-w-6xl">
 
@@ -23,9 +23,9 @@
                         @endif
                         <span class="text-xs text-gray-500">Created {{ $package->created_at->diffForHumans() }}</span>
                     </div>
-                    <h1 class="text-xl font-medium text-gray-100">{{ $package->client?->name }}</h1>
-                    @if($package->client?->company)
-                        <p class="text-sm text-gray-500">{{ $package->client->company }}</p>
+                    <h1 class="text-xl font-medium text-gray-100">{{ $package->client?->displayName() }}</h1>
+                    @if($package->client?->secondaryName())
+                        <p class="text-sm text-gray-500">{{ $package->client->secondaryName() }}</p>
                     @endif
                 </div>
                 <div class="flex-shrink-0">
