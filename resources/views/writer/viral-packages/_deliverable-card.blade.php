@@ -275,45 +275,32 @@
         <form method="POST" action="{{ route('writer.viral-packages.deliverables.caption', ['viralPackage' => $package, 'deliverable' => $d]) }}"
               class="mt-3 pt-3 border-t border-ink-700 space-y-2">
             @csrf
-            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Caption & hashtags</p>
+            <div class="flex items-center justify-between gap-2">
+                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Caption &amp; details</p>
+                <button type="button"
+                        onclick="copyToClipboard([document.getElementById('cap-{{ $d->id }}').value, document.getElementById('tags-{{ $d->id }}').value, document.getElementById('aud-{{ $d->id }}').value ? 'Target audience:\n' + document.getElementById('aud-{{ $d->id }}').value : ''].filter(Boolean).join('\n\n'))"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-md transition-colors">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    Copy all
+                </button>
+            </div>
 
             <div>
-                <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] text-gray-500">Caption</label>
-                    <button type="button" onclick="copyToClipboard(document.getElementById('cap-{{ $d->id }}').value)"
-                            class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        Copy
-                    </button>
-                </div>
+                <label class="block text-[11px] text-gray-500 mb-1">Caption</label>
                 <textarea id="cap-{{ $d->id }}" name="caption" rows="3" maxlength="5000"
                           placeholder="Write the caption for this post…"
                           class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none">{{ $d->caption }}</textarea>
             </div>
 
             <div>
-                <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] text-gray-500">Hashtags</label>
-                    <button type="button" onclick="copyToClipboard(document.getElementById('tags-{{ $d->id }}').value)"
-                            class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        Copy
-                    </button>
-                </div>
+                <label class="block text-[11px] text-gray-500 mb-1">Hashtags</label>
                 <textarea id="tags-{{ $d->id }}" name="hashtags" rows="2" maxlength="2000"
                           placeholder="#example #tags"
                           class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none">{{ $d->hashtags }}</textarea>
             </div>
 
             <div>
-                <div class="flex items-center justify-between mb-1">
-                    <label class="text-[11px] text-gray-500">Target audience</label>
-                    <button type="button" onclick="copyToClipboard(document.getElementById('aud-{{ $d->id }}').value)"
-                            class="text-[11px] text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        Copy
-                    </button>
-                </div>
+                <label class="block text-[11px] text-gray-500 mb-1">Target audience</label>
                 <textarea id="aud-{{ $d->id }}" name="target_audience" rows="2" maxlength="2000"
                           placeholder="e.g. Women 25-40 in Malaysia interested in natural skincare"
                           class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none">{{ $d->target_audience }}</textarea>
