@@ -24,7 +24,7 @@ class ViralPackageService
      * Create a new viral package for a client, auto-seeding the 7 deliverable slots
      * (1 article + 5 social posts + 1 reel) and attaching any reference assets.
      */
-    public function createPackage(int $clientId, int $techTeamId, array $assets = [], ?User $actor = null, bool $includeLandingPage = false): ViralPackage
+    public function createPackage(int $clientId, array $assignees, array $assets = [], ?User $actor = null, bool $includeLandingPage = false): ViralPackage
     {
         $actor ??= Auth::user();
 
@@ -34,16 +34,17 @@ class ViralPackageService
 
         $client = Client::findOrFail($clientId);
 
-        // Verify the assigned tech is actually a tech_team member
-        $techMember = User::where('id', $techTeamId)
-            ->where('role', 'tech_team')
-            ->where('is_active', true)
-            ->first();
-        if (! $techMember) {
-            throw new WorkflowException('Selected tech team member is not valid.');
+        // Validate & normalise the per-type tech assignees (Article / Posts / Reel / Landing).
+        $assignees = $this->validateAssignees($assignees);
+
+        // The package "lead" (tech_team_id) is the article owner, falling back to any
+        // assigned type. At least one type must have an owner.
+        $leadId = $assignees['article'] ?? $assignees['social_post'] ?? $assignees['reel'] ?? $assignees['landing_page'] ?? null;
+        if (! $leadId) {
+            throw new WorkflowException('Please assign at least one tech team member.');
         }
 
-        return DB::transaction(function () use ($client, $techMember, $actor, $assets, $includeLandingPage) {
+        return DB::transaction(function () use ($client, $leadId, $assignees, $actor, $assets, $includeLandingPage) {
             // Enforce one active viral package per client — across the whole business.
             // Lock matching rows FOR UPDATE so two simultaneous creates can't both pass.
             $existing = ViralPackage::where('client_id', $client->id)
@@ -56,30 +57,56 @@ class ViralPackageService
                 throw new WorkflowException("{$client->name} already has an active viral package (handled by {$owner}). Wait until it's delivered or ask them to remove it.");
             }
 
-            // 1. Create the package row
+            // 1. Create the package row (tech_team_id = lead owner)
             $package = ViralPackage::create([
                 'client_id'    => $client->id,
                 'sales_rep_id' => $actor->id,
-                'tech_team_id' => $techMember->id,
+                'tech_team_id' => $leadId,
                 'status'       => 'active',
             ]);
 
             // 2. Create the Drive folder structure (best effort — failures don't block creation)
             $this->ensureDriveFolders($package);
 
-            // 3. Auto-seed the deliverable slots (+ optional landing page)
-            $this->seedDeliverables($package, $includeLandingPage);
+            // 3. Auto-seed the deliverable slots (+ optional landing page), each with its owner
+            $this->seedDeliverables($package, $includeLandingPage, $assignees);
 
             // 4. Attach any reference assets to the Assets/ subfolder
             if (! empty($assets)) {
                 $this->attachAssets($package, $assets, $actor);
             }
 
-            // 5. Fire event for tech team notification (only the assigned person gets pinged)
+            // 5. Fire event — each distinct assignee gets pinged about their part
             event(new ViralPackageEvent($package, 'created', $actor));
 
             return $package->fresh(['deliverables', 'assets', 'client', 'techTeam']);
         });
+    }
+
+    /**
+     * Validate a per-type assignee map and return it normalised to
+     * ['article' => ?id, 'social_post' => ?id, 'reel' => ?id, 'landing_page' => ?id].
+     */
+    private function validateAssignees(array $assignees): array
+    {
+        $kinds = ['article', 'social_post', 'reel', 'landing_page'];
+
+        $ids = collect($assignees)->only($kinds)->filter()->map(fn ($v) => (int) $v)->unique()->values();
+        if ($ids->isNotEmpty()) {
+            $validCount = User::whereIn('id', $ids)
+                ->where('role', 'tech_team')
+                ->where('is_active', true)
+                ->count();
+            if ($validCount !== $ids->count()) {
+                throw new WorkflowException('One or more selected tech team members are not valid.');
+            }
+        }
+
+        $out = [];
+        foreach ($kinds as $k) {
+            $out[$k] = ! empty($assignees[$k]) ? (int) $assignees[$k] : null;
+        }
+        return $out;
     }
 
     /**
@@ -111,7 +138,7 @@ class ViralPackageService
     }
 
     /**
-     * Reassign a package to a different tech team member.
+     * Hand the whole package (every deliverable) to one tech team member.
      */
     public function reassignTechTeam(ViralPackage $package, int $newTechTeamId, ?User $actor = null): ViralPackage
     {
@@ -134,7 +161,51 @@ class ViralPackageService
             throw new WorkflowException('Selected tech team member is not valid.');
         }
 
-        $package->update(['tech_team_id' => $newTech->id]);
+        DB::transaction(function () use ($package, $newTech) {
+            $package->update(['tech_team_id' => $newTech->id]);
+            // One person takes over everything that isn't already approved.
+            $package->deliverables()->where('stage', '!=', 'approved')->update(['assigned_to' => $newTech->id]);
+        });
+
+        return $package->fresh();
+    }
+
+    /**
+     * Reassign owners per content type (Article / Posts / Reel / Landing). Only the
+     * provided types change; deliverables already approved keep their owner.
+     */
+    public function reassignByType(ViralPackage $package, array $assignees, ?User $actor = null): ViralPackage
+    {
+        $actor ??= Auth::user();
+        $this->requireRole($actor, ['sales', 'admin'], 'reassign a viral package');
+
+        if ($actor->role === 'sales' && $package->sales_rep_id !== $actor->id) {
+            throw WorkflowException::notAuthorized($actor, 'reassign this package');
+        }
+        if ($package->isCompleted()) {
+            throw new WorkflowException('This package is already completed and cannot be reassigned.');
+        }
+
+        $assignees = $this->validateAssignees($assignees);
+
+        DB::transaction(function () use ($package, $assignees) {
+            foreach ($assignees as $kind => $userId) {
+                if ($userId === null) {
+                    continue; // leave this type's owner unchanged
+                }
+                $package->deliverables()
+                    ->where('kind', $kind)
+                    ->where('stage', '!=', 'approved')
+                    ->update(['assigned_to' => $userId]);
+            }
+
+            // Keep the package lead pointing at a real current owner.
+            $lead = $package->deliverables()->whereNotNull('assigned_to')->value('assigned_to');
+            if ($lead) {
+                $package->update(['tech_team_id' => $lead]);
+            }
+        });
+
         return $package->fresh();
     }
 
@@ -156,12 +227,16 @@ class ViralPackageService
         $nextSlot = (int) ($package->deliverables()->where('kind', $kind)->max('slot_number') ?? 0) + 1;
         $label    = $kind === 'reel' ? 'Reel ' : 'Post ';
 
+        // Inherit the owner already assigned to this content type, if any.
+        $owner = $package->deliverables()->where('kind', $kind)->whereNotNull('assigned_to')->value('assigned_to');
+
         return ViralPackageDeliverable::create([
             'viral_package_id' => $package->id,
             'kind'             => $kind,
             'slot_number'      => $nextSlot,
             'title'            => $label . $nextSlot,
             'stage'            => 'pending',
+            'assigned_to'      => $owner,
         ]);
     }
 
@@ -250,7 +325,8 @@ class ViralPackageService
             $from = $deliverable->stage;
             $deliverable->update([
                 'stage'       => 'in_progress',
-                'assigned_to' => $actor->id,
+                // Keep the assigned owner if one is already set; otherwise claim it.
+                'assigned_to' => $deliverable->assigned_to ?? $actor->id,
             ]);
             $this->recordHistory($deliverable, $from, 'in_progress', $actor, 'Picked up by tech team');
             return $deliverable->fresh();
@@ -298,7 +374,8 @@ class ViralPackageService
             $from = $deliverable->stage;
             $deliverable->update([
                 'stage'          => 'review',
-                'assigned_to'    => $actor->id,
+                // Preserve the type owner; only fall back to the uploader if unassigned.
+                'assigned_to'    => $deliverable->assigned_to ?? $actor->id,
                 'drive_file_id'  => $driveFileId,
                 'drive_filename' => $filename,
                 'mime_type'      => $file->getMimeType(),
@@ -334,7 +411,7 @@ class ViralPackageService
             $from = $deliverable->stage;
             $deliverable->update([
                 'stage'            => 'review',
-                'assigned_to'      => $actor->id,
+                'assigned_to'      => $deliverable->assigned_to ?? $actor->id,
                 'landing_page_url' => $url,
                 'notes'            => $notes,
                 'submitted_at'     => now(),
@@ -727,7 +804,7 @@ class ViralPackageService
     private const DEFAULT_POST_COUNT = 8;
     private const DEFAULT_REEL_COUNT = 2;
 
-    private function seedDeliverables(ViralPackage $package, bool $includeLandingPage = false): void
+    private function seedDeliverables(ViralPackage $package, bool $includeLandingPage = false, array $assignees = []): void
     {
         $rows = [
             ['kind' => 'article', 'slot' => 1, 'title' => 'Article'],
@@ -749,6 +826,7 @@ class ViralPackageService
                 'slot_number'      => $row['slot'],
                 'title'            => $row['title'],
                 'stage'            => 'pending',
+                'assigned_to'      => $assignees[$row['kind']] ?? null,
             ]);
         }
     }

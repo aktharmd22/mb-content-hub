@@ -26,11 +26,25 @@ class SendViralPackageNotifications
 
     private function onCreated($package): void
     {
-        // Notify only the assigned tech team member, not the entire team
-        $tech = $package->techTeam;
-        if ($tech) {
-            $tech->notify(new ViralPackageNotification($package, 'created'));
+        // Notify every distinct tech member who owns at least one deliverable
+        // (Article / Posts / Reel / Landing can each have a different owner).
+        $recipients = $this->deliverableOwners($package);
+
+        if ($recipients->isEmpty() && $package->techTeam) {
+            $recipients = collect([$package->techTeam]);
         }
+
+        Notification::send($recipients, new ViralPackageNotification($package, 'created'));
+    }
+
+    /** Distinct, active users assigned to any deliverable on the package. */
+    private function deliverableOwners($package)
+    {
+        $ids = $package->deliverables()->whereNotNull('assigned_to')->pluck('assigned_to')->unique();
+
+        return $ids->isEmpty()
+            ? collect()
+            : User::whereIn('id', $ids)->get();
     }
 
     private function onDeliverableSubmitted($package, ?int $deliverableId): void
@@ -45,8 +59,8 @@ class SendViralPackageNotifications
     private function onCorrectionRequested($package, ?int $deliverableId): void
     {
         $deliverable = $deliverableId ? ViralPackageDeliverable::find($deliverableId) : null;
-        // Notify only the assigned tech team member
-        $tech = $package->techTeam;
+        // Notify the person who owns this specific deliverable; fall back to the lead.
+        $tech = $deliverable?->assignee ?? $package->techTeam;
         if ($tech) {
             $tech->notify(new ViralPackageNotification($package, 'correction_requested', $deliverable));
         }
@@ -62,8 +76,10 @@ class SendViralPackageNotifications
 
     private function onCompleted($package): void
     {
-        // Notify sales rep + the assigned tech team member only
-        $recipients = collect([$package->salesRep, $package->techTeam])
+        // Notify sales rep + every tech member who owns a deliverable
+        $recipients = $this->deliverableOwners($package)
+            ->push($package->salesRep)
+            ->push($package->techTeam)
             ->filter()
             ->unique('id');
 

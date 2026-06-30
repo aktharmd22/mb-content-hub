@@ -59,15 +59,19 @@ class DashboardController extends Controller
             ->limit(8)
             ->get();
 
-        // Viral package overview — packages assigned to this tech member
-        $assigned = fn () => \App\Models\ViralPackageDeliverable::whereHas('package', fn ($q) => $q->where('tech_team_id', $userId)->where('status', 'active'));
+        // Viral package overview — deliverables this tech member owns (per-type assignment)
+        $assigned = fn () => \App\Models\ViralPackageDeliverable::where('assigned_to', $userId)
+            ->whereHas('package', fn ($q) => $q->where('status', 'active'));
+        $myActivePackages = fn () => \App\Models\ViralPackage::where('status', 'active')
+            ->where(fn ($w) => $w->whereHas('deliverables', fn ($q) => $q->where('assigned_to', $userId))
+                ->orWhere('tech_team_id', $userId)); // legacy packages with no per-type owners yet
         $viral = [
             'stats' => [
-                ['label' => 'Active packages', 'value' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)->count(), 'hint' => 'assigned to you', 'color' => 'indigo'],
+                ['label' => 'Active packages', 'value' => $myActivePackages()->count(), 'hint' => 'you have work in', 'color' => 'indigo'],
                 ['label' => 'To work on',      'value' => $assigned()->whereIn('stage', ['pending', 'in_progress'])->count(), 'hint' => 'deliverables pending', 'color' => 'amber'],
                 ['label' => 'In review',       'value' => $assigned()->where('stage', 'review')->count(), 'hint' => 'awaiting sales', 'color' => 'blue'],
             ],
-            'packages' => \App\Models\ViralPackage::where('status', 'active')->where('tech_team_id', $userId)
+            'packages' => $myActivePackages()
                 ->with(['client', 'deliverables', 'techTeam'])->orderByDesc('created_at')->limit(5)->get(),
         ];
         $viralRole = 'writer';

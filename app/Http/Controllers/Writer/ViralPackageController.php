@@ -26,7 +26,10 @@ class ViralPackageController extends Controller
         // (with work to do) are listed first, then delivered ones.
         $packages = ViralPackage::query()
             ->with(['client', 'salesRep', 'techTeam', 'deliverables'])
-            ->when(! auth()->user()->isAdmin(), fn ($q) => $q->where('tech_team_id', auth()->id()))
+            ->when(! auth()->user()->isAdmin(), fn ($q) => $q->where(function ($w) {
+                $w->whereHas('deliverables', fn ($d) => $d->where('assigned_to', auth()->id()))
+                  ->orWhere('tech_team_id', auth()->id()); // legacy packages with no per-type owners yet
+            }))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = trim((string) $request->get('q'));
                 $q->whereHas('client', fn ($c) => $c->where('name', 'like', "%{$term}%"));
@@ -255,7 +258,12 @@ class ViralPackageController extends Controller
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;
-        if ($package->tech_team_id !== $user->id) {
+
+        // The member may access the package if they're the lead OR own any deliverable in it.
+        $owns = $package->tech_team_id === $user->id
+            || $package->deliverables()->where('assigned_to', $user->id)->exists();
+
+        if (! $owns) {
             throw new \Illuminate\Auth\Access\AuthorizationException('This package is not assigned to you.');
         }
     }

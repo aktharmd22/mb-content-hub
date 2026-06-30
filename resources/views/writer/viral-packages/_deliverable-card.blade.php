@@ -65,6 +65,13 @@
             <div class="min-w-0">
                 <h4 class="text-base font-semibold text-gray-100 truncate">{{ $d->title }}</h4>
                 <p class="text-xs text-gray-500">{{ $d->kindLabel() }}</p>
+                @if($d->assignee)
+                    @php $isMine = (int) $d->assigned_to === auth()->id(); @endphp
+                    <p class="text-[11px] mt-0.5 inline-flex items-center gap-1 {{ $isMine ? 'text-indigo-300 font-medium' : 'text-gray-500' }}">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        {{ $isMine ? 'You' : $d->assignee->name }}
+                    </p>
+                @endif
             </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">

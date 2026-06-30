@@ -28,7 +28,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-sm font-medium text-gray-100 truncate">{{ $d->title }}</p>
-                <p class="text-xs text-gray-500">{{ $d->kindLabel() }}</p>
+                <p class="text-xs text-gray-500">{{ $d->kindLabel() }}@if($d->assignee) · {{ $d->assignee->name }}@endif</p>
             </div>
         </div>
         <div class="flex items-center gap-1.5 flex-shrink-0">

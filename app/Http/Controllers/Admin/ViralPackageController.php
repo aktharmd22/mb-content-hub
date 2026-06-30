@@ -285,16 +285,20 @@ class ViralPackageController extends Controller
     public function reassign(Request $request, ViralPackage $viralPackage, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
-            'sales_rep_id' => ['nullable', 'integer', 'exists:users,id'],
-            'tech_team_id' => ['nullable', 'integer', 'exists:users,id'],
+            'sales_rep_id'           => ['nullable', 'integer', 'exists:users,id'],
+            'assignees'              => ['nullable', 'array'],
+            'assignees.article'      => ['nullable', 'integer', 'exists:users,id'],
+            'assignees.social_post'  => ['nullable', 'integer', 'exists:users,id'],
+            'assignees.reel'         => ['nullable', 'integer', 'exists:users,id'],
+            'assignees.landing_page' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
         try {
             if (! empty($data['sales_rep_id']) && $data['sales_rep_id'] != $viralPackage->sales_rep_id) {
                 $service->reassignSalesRep($viralPackage, (int) $data['sales_rep_id']);
             }
-            if (! empty($data['tech_team_id']) && $data['tech_team_id'] != $viralPackage->tech_team_id) {
-                $service->reassignTechTeam($viralPackage, (int) $data['tech_team_id']);
+            if ($request->filled('assignees')) {
+                $service->reassignByType($viralPackage, $request->input('assignees'));
             }
         } catch (\App\Exceptions\WorkflowException $e) {
             return back()->with('error', $e->getMessage());

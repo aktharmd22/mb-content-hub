@@ -59,25 +59,50 @@ class ViralPackageController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'client_id'           => ['required', 'integer', 'exists:clients,id'],
-            'tech_team_id'        => ['required', 'integer', 'exists:users,id'],
-            'include_landing_page' => ['nullable', 'boolean'],
-            'assets'              => ['nullable', 'array'],
-            'assets.*.type'       => ['nullable', 'in:file,link'],
-            'assets.*.name'       => ['nullable', 'string', 'max:255'],
-            'assets.*.url'        => ['nullable', 'url', 'max:500'],
-            'assets.*.file'       => ['nullable', 'file', 'max:204800'],
+            'client_id'              => ['required', 'integer', 'exists:clients,id'],
+            'assign_mode'            => ['nullable', 'in:single,split'],
+            'tech_team_id'           => ['nullable', 'integer', 'exists:users,id'],
+            'assignees'              => ['nullable', 'array'],
+            'assignees.article'      => ['nullable', 'integer', 'exists:users,id'],
+            'assignees.social_post'  => ['nullable', 'integer', 'exists:users,id'],
+            'assignees.reel'         => ['nullable', 'integer', 'exists:users,id'],
+            'assignees.landing_page' => ['nullable', 'integer', 'exists:users,id'],
+            'include_landing_page'   => ['nullable', 'boolean'],
+            'assets'                 => ['nullable', 'array'],
+            'assets.*.type'          => ['nullable', 'in:file,link'],
+            'assets.*.name'          => ['nullable', 'string', 'max:255'],
+            'assets.*.url'           => ['nullable', 'url', 'max:500'],
+            'assets.*.file'          => ['nullable', 'file', 'max:204800'],
         ]);
 
-        $assets = $this->buildAssetsPayload($request);
+        $assets        = $this->buildAssetsPayload($request);
+        $withLanding   = $request->boolean('include_landing_page');
+
+        // Build the per-type assignee map. "single" mode = one person does everything.
+        if ($request->input('assign_mode') === 'split') {
+            $assignees = [
+                'article'      => $request->input('assignees.article'),
+                'social_post'  => $request->input('assignees.social_post'),
+                'reel'         => $request->input('assignees.reel'),
+                'landing_page' => $withLanding ? $request->input('assignees.landing_page') : null,
+            ];
+        } else {
+            $one = $request->input('tech_team_id');
+            $assignees = [
+                'article'      => $one,
+                'social_post'  => $one,
+                'reel'         => $one,
+                'landing_page' => $withLanding ? $one : null,
+            ];
+        }
 
         try {
             $package = $this->service->createPackage(
                 (int) $validated['client_id'],
-                (int) $validated['tech_team_id'],
+                $assignees,
                 $assets,
                 null,
-                $request->boolean('include_landing_page')
+                $withLanding
             );
         } catch (DriveException|WorkflowException $e) {
             return back()->withInput()->with('error', $e->getMessage());

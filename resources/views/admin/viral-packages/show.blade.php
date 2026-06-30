@@ -75,32 +75,48 @@
                     <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <h3 class="text-sm font-medium text-gray-100">Reassign (admin)</h3>
                 </div>
-                <p class="text-xs text-gray-500 mb-4">Change who handles this package. Updates take effect immediately.</p>
-                <form method="POST" action="{{ route('admin.viral-packages.reassign', $package) }}"
-                      class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+                <p class="text-xs text-gray-500 mb-4">Change the sales rep and the tech owner for each content type. Updates take effect immediately (already-approved items keep their owner).</p>
+                @php
+                    $ownerOf = fn ($kind) => optional($package->deliverables->firstWhere('kind', $kind))->assigned_to;
+                    $reassignTypes = [
+                        ['key' => 'article',     'label' => 'Article owner'],
+                        ['key' => 'social_post', 'label' => 'Posts owner'],
+                        ['key' => 'reel',        'label' => 'Reels owner'],
+                    ];
+                    if ($package->deliverables->firstWhere('kind', 'landing_page')) {
+                        $reassignTypes[] = ['key' => 'landing_page', 'label' => 'Landing page owner'];
+                    }
+                @endphp
+                <form method="POST" action="{{ route('admin.viral-packages.reassign', $package) }}" class="space-y-3">
                     @csrf @method('PATCH')
-                    <div>
-                        <label class="block text-xs font-medium text-gray-300 mb-1.5">Sales rep</label>
-                        <select name="sales_rep_id"
-                                class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                            @foreach($salesReps as $u)
-                                <option value="{{ $u->id }}" @selected($package->sales_rep_id == $u->id)>{{ $u->name }}{{ $u->role === 'admin' ? ' (admin)' : '' }}</option>
-                            @endforeach
-                        </select>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1.5">Sales rep</label>
+                            <select name="sales_rep_id"
+                                    class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                                @foreach($salesReps as $u)
+                                    <option value="{{ $u->id }}" @selected($package->sales_rep_id == $u->id)>{{ $u->name }}{{ $u->role === 'admin' ? ' (admin)' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @foreach($reassignTypes as $row)
+                            <div>
+                                <label class="block text-xs font-medium text-gray-300 mb-1.5">{{ $row['label'] }}</label>
+                                <select name="assignees[{{ $row['key'] }}]"
+                                        class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                                    <option value="">— Select —</option>
+                                    @foreach($techTeam as $u)
+                                        <option value="{{ $u->id }}" @selected($ownerOf($row['key']) == $u->id)>{{ $u->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endforeach
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-300 mb-1.5">Tech team</label>
-                        <select name="tech_team_id"
-                                class="w-full px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                            <option value="">— Unassigned —</option>
-                            @foreach($techTeam as $u)
-                                <option value="{{ $u->id }}" @selected($package->tech_team_id == $u->id)>{{ $u->name }}</option>
-                            @endforeach
-                        </select>
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                            Save assignments
+                        </button>
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
-                        Save assignments
-                    </button>
                 </form>
             </div>
         @endunless

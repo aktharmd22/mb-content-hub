@@ -83,41 +83,80 @@
                         </p>
                     </div>
 
-                    <div>
-                        <label for="tech_team_id" class="block text-xs font-medium text-gray-300 mb-1.5">
-                            Assign to tech team member <span class="text-rose-500">*</span>
-                        </label>
-                        <div x-data="searchSelect(@js($techOptions), '{{ old('tech_team_id') }}')"
-                             @click.outside="close()" @keydown.escape="close()" class="relative">
-                            <input type="hidden" name="tech_team_id" :value="selectedId"/>
-                            <button type="button" @click="toggle()"
-                                    class="flex items-center justify-between gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg text-left transition-colors"
-                                    :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600 hover:border-ink-500'">
-                                <span class="truncate" :class="selectedLabel ? 'text-gray-100' : 'text-gray-500'" x-text="selectedLabel || '— Select a team member —'"></span>
-                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div x-show="open" x-cloak x-transition.opacity.duration.100ms
-                                 class="absolute z-30 mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40 overflow-hidden">
-                                <div class="p-1.5 border-b border-ink-700">
-                                    <div class="relative">
-                                        <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                        <input type="text" x-model="query" x-ref="search" placeholder="Search team..."
-                                               class="w-full pl-8 pr-2 py-1.5 text-xs bg-ink-900 border border-ink-700 rounded-md text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"/>
+                    <div x-data="{ split: {{ old('assign_mode') === 'split' ? 'true' : 'false' }} }">
+                        <input type="hidden" name="assign_mode" :value="split ? 'split' : 'single'"/>
+
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <label class="block text-xs font-medium text-gray-300">
+                                Assign to tech team <span class="text-rose-500">*</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer select-none">
+                                <input type="checkbox" x-model="split" class="w-3.5 h-3.5 rounded border-ink-600 bg-ink-900 text-indigo-600 focus:ring-1 focus:ring-indigo-500/50"/>
+                                Different person per type
+                            </label>
+                        </div>
+
+                        {{-- Single mode: one person handles everything --}}
+                        <div x-show="!split">
+                            <div x-data="searchSelect(@js($techOptions), '{{ old('tech_team_id') }}')"
+                                 @click.outside="close()" @keydown.escape="close()" class="relative">
+                                <input type="hidden" name="tech_team_id" :value="selectedId"/>
+                                <button type="button" @click="toggle()"
+                                        class="flex items-center justify-between gap-2 w-full px-3 py-2 text-sm bg-ink-800 border rounded-lg text-left transition-colors"
+                                        :class="open ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-ink-600 hover:border-ink-500'">
+                                    <span class="truncate" :class="selectedLabel ? 'text-gray-100' : 'text-gray-500'" x-text="selectedLabel || '— Select a team member —'"></span>
+                                    <svg class="w-4 h-4 text-gray-500 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                                <div x-show="open" x-cloak x-transition.opacity.duration.100ms
+                                     class="absolute z-30 mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg shadow-xl shadow-black/40 overflow-hidden">
+                                    <div class="p-1.5 border-b border-ink-700">
+                                        <div class="relative">
+                                            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                            <input type="text" x-model="query" x-ref="search" placeholder="Search team..."
+                                                   class="w-full pl-8 pr-2 py-1.5 text-xs bg-ink-900 border border-ink-700 rounded-md text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"/>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-52 overflow-y-auto py-1">
+                                        <template x-for="opt in filtered" :key="opt.id">
+                                            <button type="button" @click="select(opt)"
+                                                    class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                                    :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
+                                                    x-text="opt.label"></button>
+                                        </template>
+                                        <p x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-500">No matches</p>
                                     </div>
                                 </div>
-                                <div class="max-h-52 overflow-y-auto py-1">
-                                    <template x-for="opt in filtered" :key="opt.id">
-                                        <button type="button" @click="select(opt)"
-                                                class="w-full text-left px-3 py-1.5 text-sm transition-colors"
-                                                :class="String(opt.id) === String(selectedId) ? 'bg-indigo-600/20 text-indigo-200' : 'text-gray-200 hover:bg-ink-700'"
-                                                x-text="opt.label"></button>
-                                    </template>
-                                    <p x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-500">No matches</p>
-                                </div>
                             </div>
+                            <p class="mt-1 text-xs text-gray-500">One person handles the whole package.</p>
                         </div>
+
+                        {{-- Split mode: a person per content type --}}
+                        @php
+                            $typeRows = [
+                                ['key' => 'article',      'label' => 'Article'],
+                                ['key' => 'social_post',  'label' => 'Social posts'],
+                                ['key' => 'reel',         'label' => 'Reels'],
+                                ['key' => 'landing_page', 'label' => 'Landing page'],
+                            ];
+                        @endphp
+                        <div x-show="split" x-cloak class="space-y-2">
+                            @foreach($typeRows as $row)
+                                <div class="flex items-center gap-2">
+                                    <span class="w-24 text-[11px] text-gray-400 flex-shrink-0">{{ $row['label'] }}</span>
+                                    <select name="assignees[{{ $row['key'] }}]"
+                                            x-bind:required="split && '{{ $row['key'] }}' !== 'landing_page'"
+                                            class="flex-1 min-w-0 px-3 py-2 text-sm bg-ink-800 border border-ink-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                                        <option value="">— Select —</option>
+                                        @foreach($techTeam as $t)
+                                            <option value="{{ $t->id }}" @selected(old('assignees.'.$row['key']) == $t->id)>{{ $t->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endforeach
+                            <p class="text-xs text-gray-500">Each content type can have its own owner. Landing page is only used if you include one below.</p>
+                        </div>
+
                         @error('tech_team_id')<p class="mt-1 text-xs text-rose-400">{{ $message }}</p>@enderror
-                        <p class="mt-1 text-xs text-gray-500">Only this person will see and work on this package.</p>
                     </div>
                 </div>
 
