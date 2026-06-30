@@ -83,7 +83,7 @@
                         </p>
                     </div>
 
-                    <div x-data="{ split: {{ old('assign_mode') === 'split' ? 'true' : 'false' }} }">
+                    <div x-data="{ split: {{ old('assign_mode') === 'single' ? 'false' : 'true' }} }">
                         <input type="hidden" name="assign_mode" :value="split ? 'split' : 'single'"/>
 
                         <div class="flex items-center justify-between gap-2 mb-1.5">
