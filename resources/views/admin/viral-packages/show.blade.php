@@ -159,18 +159,32 @@
 
         {{-- Deliverable summary --}}
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-6">
-            <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="flex items-start justify-between gap-3 mb-4 flex-wrap">
                 <h3 class="text-sm font-medium text-gray-100">Deliverables <span class="text-xs font-normal text-gray-500">— you can approve, request changes, or replace content</span></h3>
-                @if(! $package->isCompleted() && ! $package->deliverables->firstWhere('kind', 'landing_page'))
-                    <form method="POST" action="{{ route('admin.viral-packages.landing.add', $package) }}"
-                          onsubmit="return confirm('Add a landing page deliverable to this package? The content team will be able to publish its link.');">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors whitespace-nowrap">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-2.828a4 4 0 015.656 0 4 4 0 010 5.656l-1.5 1.5"/></svg>
-                            Add landing page
-                        </button>
-                    </form>
-                @endif
+                @unless($package->isCompleted())
+                    <div class="flex items-center gap-2 flex-wrap">
+                        @foreach(['article' => 'Add article', 'social_post' => 'Add post', 'reel' => 'Add reel'] as $addKind => $addLabel)
+                            <form method="POST" action="{{ route('admin.viral-packages.posts.add', $package) }}">
+                                @csrf
+                                <input type="hidden" name="kind" value="{{ $addKind }}"/>
+                                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors whitespace-nowrap">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    {{ $addLabel }}
+                                </button>
+                            </form>
+                        @endforeach
+                        @unless($package->deliverables->firstWhere('kind', 'landing_page'))
+                            <form method="POST" action="{{ route('admin.viral-packages.landing.add', $package) }}"
+                                  onsubmit="return confirm('Add a landing page deliverable to this package? The content team will be able to publish its link.');">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg transition-colors whitespace-nowrap">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-2.828a4 4 0 015.656 0 4 4 0 010 5.656l-1.5 1.5"/></svg>
+                                    Add landing page
+                                </button>
+                            </form>
+                        @endunless
+                    </div>
+                @endunless
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -190,9 +204,21 @@
                                 <p class="text-sm font-medium text-gray-100 truncate">{{ $d->title }}</p>
                                 <p class="text-xs text-gray-500">{{ $d->kindLabel() }}</p>
                             </div>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {{ $c['bg'] }} {{ $c['text'] }} border {{ $c['border'] }}">
-                                {{ $d->stageLabel() }}
-                            </span>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {{ $c['bg'] }} {{ $c['text'] }} border {{ $c['border'] }}">
+                                    {{ $d->stageLabel() }}
+                                </span>
+                                @if(in_array($d->kind, ['article', 'social_post', 'reel'], true) && ! $package->isCompleted())
+                                    <form method="POST" action="{{ route('admin.viral-packages.deliverables.remove', ['viralPackage' => $package, 'deliverable' => $d]) }}"
+                                          onsubmit="return confirm('Remove {{ $d->title }}? This cannot be undone.');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" title="Remove {{ $d->title }}"
+                                                class="inline-flex items-center justify-center w-6 h-6 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3"/></svg>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </div>
                         @if($d->assignee)
                             <p class="text-xs text-gray-500">Assigned: <span class="text-gray-300">{{ $d->assignee->name }}</span></p>

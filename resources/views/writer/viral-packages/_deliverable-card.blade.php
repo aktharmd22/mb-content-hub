@@ -78,7 +78,7 @@
             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border {{ $badge }} whitespace-nowrap">
                 {{ $d->stageLabel() }}
             </span>
-            @if(in_array($d->kind, ['social_post', 'reel'], true) && ! $package->isCompleted())
+            @if(in_array($d->kind, ['social_post', 'reel', 'article'], true) && ! $package->isCompleted())
                 <form method="POST" action="{{ route('writer.viral-packages.posts.remove', ['viralPackage' => $package, 'deliverable' => $d]) }}"
                       onsubmit="return confirm('Remove {{ $d->title }}? This cannot be undone.');">
                     @csrf @method('DELETE')

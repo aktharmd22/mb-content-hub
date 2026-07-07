@@ -111,7 +111,7 @@ class ViralPackageController extends Controller
     public function addPost(ViralPackage $viralPackage, Request $request): RedirectResponse
     {
         $this->ensureAssigned($viralPackage);
-        $kind = $request->input('kind') === 'reel' ? 'reel' : 'social_post';
+        $kind = in_array($request->input('kind'), ['reel', 'article'], true) ? $request->input('kind') : 'social_post';
 
         try {
             $deliverable = $this->service->addDeliverable($viralPackage, $kind);

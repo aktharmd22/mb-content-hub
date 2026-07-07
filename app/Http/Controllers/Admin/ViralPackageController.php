@@ -209,6 +209,19 @@ class ViralPackageController extends Controller
         return back()->with('success', 'Package re-opened — set back to active.');
     }
 
+    public function addPost(ViralPackage $viralPackage, Request $request, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
+    {
+        $kind = in_array($request->input('kind'), ['reel', 'article'], true) ? $request->input('kind') : 'social_post';
+
+        try {
+            $deliverable = $service->addDeliverable($viralPackage, $kind);
+        } catch (\App\Exceptions\WorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "{$deliverable->title} added.");
+    }
+
     public function removeDeliverable(ViralPackage $viralPackage, \App\Models\ViralPackageDeliverable $deliverable, \App\Services\ViralPackageService $service): \Illuminate\Http\RedirectResponse
     {
         if ($deliverable->viral_package_id !== $viralPackage->id) {

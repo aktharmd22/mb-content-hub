@@ -210,14 +210,14 @@ class ViralPackageService
     }
 
     /**
-     * Add an extra social-post or reel deliverable slot to a package.
+     * Add an extra article, social-post or reel deliverable slot to a package.
      */
     public function addDeliverable(ViralPackage $package, string $kind = 'social_post', ?User $actor = null): ViralPackageDeliverable
     {
         $actor ??= Auth::user();
         $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'add a deliverable');
 
-        if (! in_array($kind, ['social_post', 'reel'], true)) {
+        if (! in_array($kind, ['social_post', 'reel', 'article'], true)) {
             throw new WorkflowException('Invalid deliverable type.');
         }
         if ($package->isCompleted()) {
@@ -225,7 +225,11 @@ class ViralPackageService
         }
 
         $nextSlot = (int) ($package->deliverables()->where('kind', $kind)->max('slot_number') ?? 0) + 1;
-        $label    = $kind === 'reel' ? 'Reel ' : 'Post ';
+        $label    = match ($kind) {
+            'reel'    => 'Reel ',
+            'article' => 'Article ',
+            default   => 'Post ',
+        };
 
         // Inherit the owner already assigned to this content type, if any.
         $owner = $package->deliverables()->where('kind', $kind)->whereNotNull('assigned_to')->value('assigned_to');
@@ -254,8 +258,8 @@ class ViralPackageService
         $actor ??= Auth::user();
         $this->requireRole($actor, ['sales', 'admin', 'tech_team'], 'remove a deliverable');
 
-        if (! in_array($deliverable->kind, ['social_post', 'reel', 'landing_page'], true)) {
-            throw new WorkflowException('Only social posts, reels and the landing page can be removed.');
+        if (! in_array($deliverable->kind, ['social_post', 'reel', 'landing_page', 'article'], true)) {
+            throw new WorkflowException('This deliverable type cannot be removed.');
         }
 
         $package = $deliverable->package;
@@ -263,12 +267,16 @@ class ViralPackageService
             throw new WorkflowException('Cannot remove deliverables from a completed package.');
         }
 
-        // Posts and reels must keep at least one of their kind. The landing page is
-        // optional and singular, so it can be removed entirely.
-        if (in_array($deliverable->kind, ['social_post', 'reel'], true)) {
+        // Articles, posts and reels must keep at least one of their kind. The landing
+        // page is optional and singular, so it can be removed entirely.
+        if (in_array($deliverable->kind, ['social_post', 'reel', 'article'], true)) {
             $remaining = $package->deliverables()->where('kind', $deliverable->kind)->count();
             if ($remaining <= 1) {
-                $label = $deliverable->kind === 'reel' ? 'reel' : 'social post';
+                $label = match ($deliverable->kind) {
+                    'reel'    => 'reel',
+                    'article' => 'article',
+                    default   => 'social post',
+                };
                 throw new WorkflowException("A package must keep at least one {$label}.");
             }
         }
